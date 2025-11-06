@@ -1,6 +1,4 @@
 import Hero from './components/Hero'
-import Section from './components/Section'
-import Card from './components/Card'
 import Image from 'next/image'
 
 export default function HomePage() {
@@ -8,198 +6,321 @@ export default function HomePage() {
     <>
       <Hero />
 
-      {/* Explore Our Cabins Section */}
-      <Section 
-        id="cabins" 
-        title="Explore Our Cabins"
-        background="light"
-      >
-        <div className="grid gap-12 md:gap-16">
-          {/* SUN Cabin */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="order-2 md:order-1">
-              <div className="text-6xl md:text-7xl lg:text-8xl font-light text-gray-200 mb-4">1</div>
-              <h3 className="text-2xl md:text-3xl font-light mb-6 tracking-wide">SUN Cabin</h3>
-              <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed mb-8">
-                A luxurious one-storey mirror cabin escape with panoramic views of the Atlantic Ocean, 
-                your own personal balcony, private pool and lounge area
-              </p>
-              <a 
-                href="/book-escape" 
-                className="inline-block px-8 py-3 border border-black text-black text-sm font-medium tracking-widest uppercase hover:bg-black hover:text-white transition-all duration-300"
-              >
-                Book Now
-              </a>
-            </div>
-            <div className="order-1 md:order-2 relative h-64 md:h-96 overflow-hidden">
-              <Image
-                src="/cabins/sun.jpg"
-                alt="SUN Cabin with panoramic ocean views"
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-          </div>
+      {/* Introduction Section - Magazine Style */}
+      <section className="py-32 px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-sm tracking-[0.3em] uppercase text-gray-500 mb-6">
+            Escape • Unwind • Reconnect
+          </p>
+          <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl text-gray-900 mb-8 leading-tight">
+            Barefoot Luxury on the
+            <span className="block mt-2">Atlantic Coast</span>
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 font-light leading-relaxed">
+            Our exquisitely designed beachfront mirror cabins offer a unique sanctuary to disconnect and unwind, 
+            surrounded by contemporary architecture and breathtakingly beautiful landscapes.
+          </p>
+        </div>
+      </section>
 
-          {/* SEA Cabin */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="relative h-64 md:h-96 overflow-hidden">
-              <Image
-                src="/cabins/sea.jpg"
-                alt="SEA Cabin with stunning Atlantic views"
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <div>
-              <div className="text-6xl md:text-7xl lg:text-8xl font-light text-gray-200 mb-4">2</div>
-              <h3 className="text-2xl md:text-3xl font-light mb-6 tracking-wide">SEA Cabin</h3>
-              <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed mb-8">
-                A private mirror cabin escape with a stunning view of the Atlantic ocean, 
-                your own personal balcony, private pool and lounge area
-              </p>
-              <a 
-                href="/book-escape" 
-                className="inline-block px-8 py-3 border border-black text-black text-sm font-medium tracking-widest uppercase hover:bg-black hover:text-white transition-all duration-300"
-              >
-                Book Now
-              </a>
-            </div>
-          </div>
-
-          {/* SAND Cabin */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="order-2 md:order-1">
-              <div className="text-6xl md:text-7xl lg:text-8xl font-light text-gray-200 mb-4">3</div>
-              <h3 className="text-2xl md:text-3xl font-light mb-6 tracking-wide">SAND Cabin</h3>
-              <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed mb-8">
-                A private mirror cabin escape with a stunning view of the Atlantic ocean, 
-                your own personal balcony, private pool and lounge area
-              </p>
-              <a 
-                href="/book-escape" 
-                className="inline-block px-8 py-3 border border-black text-black text-sm font-medium tracking-widest uppercase hover:bg-black hover:text-white transition-all duration-300"
-              >
-                Book Now
-              </a>
-            </div>
-            <div className="order-1 md:order-2 relative h-64 md:h-96 overflow-hidden">
-              <Image
-                src="/cabins/sand.jpg"
-                alt="SAND Cabin with Atlantic views"
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-700"
-              />
+      {/* Cabins Section - Full-Width Immersive */}
+      <section id="cabins" className="bg-gray-50">
+        {/* SUN Cabin */}
+        <div className="relative h-screen">
+          <Image
+            src="/cabins/sun.jpg"
+            alt="SUN Cabin"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+          
+          <div className="relative z-10 h-full flex items-center">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full">
+              <div className="max-w-2xl">
+                <div className="text-white/40 text-8xl md:text-9xl font-light mb-6">01</div>
+                <h3 className="text-white text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6">
+                  SUN Cabin
+                </h3>
+                <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed mb-8 max-w-xl">
+                  A luxurious one-storey mirror cabin escape with panoramic views of the Atlantic Ocean, 
+                  your own personal balcony, private pool and lounge area
+                </p>
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {['Ocean View', 'Private Pool', 'Balcony', 'King Bed'].map((feature) => (
+                    <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+                <a 
+                  href="/book-escape" 
+                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                >
+                  Reserve SUN
+                </a>
+              </div>
             </div>
           </div>
         </div>
-      </Section>
 
-      {/* Our Amenities Section */}
-      <Section 
-        title="Our Amenities"
-        background="white"
-      >
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 md:gap-8 mb-12">
-          {[
-            { name: "Refrigerator", image: "/amenities/refrigerator.jpg" },
-            { name: "Breakfast", image: "/amenities/breakfast.png" },
-            { name: "Private Chef", image: "/amenities/chef.png" },
-            { name: "Wellness", image: "/amenities/wellness.png" },
-            { name: "Wifi", image: "/amenities/wifi.png" },
-            { name: "Outdoor Grill", image: "/amenities/grill.png" },
-            { name: "Private Pool", image: "/amenities/pool.png" },
-            { name: "Air Con", image: "/amenities/aircon.png" }
-          ].map((amenity) => (
-            <div 
-              key={amenity.name} 
-              className="flex flex-col items-center text-center group"
-            >
-              <div className="relative w-full aspect-square mb-4 overflow-hidden bg-gray-100">
+        {/* SEA Cabin */}
+        <div className="relative h-screen">
+          <Image
+            src="/cabins/sea.jpg"
+            alt="SEA Cabin"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/70 via-black/40 to-transparent" />
+          
+          <div className="relative z-10 h-full flex items-center justify-end">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full flex justify-end">
+              <div className="max-w-2xl text-right">
+                <div className="text-white/40 text-8xl md:text-9xl font-light mb-6">02</div>
+                <h3 className="text-white text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6">
+                  SEA Cabin
+                </h3>
+                <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed mb-8 max-w-xl ml-auto">
+                  A private mirror cabin escape with a stunning view of the Atlantic ocean, 
+                  your own personal balcony, private pool and lounge area
+                </p>
+                <div className="flex flex-wrap gap-3 mb-8 justify-end">
+                  {['Atlantic View', 'Private Pool', 'Terrace', 'Queen Bed'].map((feature) => (
+                    <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+                <a 
+                  href="/book-escape" 
+                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                >
+                  Reserve SEA
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SAND Cabin */}
+        <div className="relative h-screen">
+          <Image
+            src="/cabins/sand.jpg"
+            alt="SAND Cabin"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+          
+          <div className="relative z-10 h-full flex items-center">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12 w-full">
+              <div className="max-w-2xl">
+                <div className="text-white/40 text-8xl md:text-9xl font-light mb-6">03</div>
+                <h3 className="text-white text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6">
+                  SAND Cabin
+                </h3>
+                <p className="text-white/90 text-lg md:text-xl font-light leading-relaxed mb-8 max-w-xl">
+                  A private mirror cabin escape with Atlantic views, 
+                  your own personal balcony, private pool and lounge area
+                </p>
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {['Coastal View', 'Private Pool', 'Patio', 'King Bed'].map((feature) => (
+                    <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+                <a 
+                  href="/book-escape" 
+                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                >
+                  Reserve SAND
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Divider - Immersive Image */}
+      <section className="relative h-[60vh]">
+        <Image
+          src="/amenities-feature.jpg"
+          alt="Sojourn experience"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+          <div className="text-center text-white px-6">
+            <p className="text-5xl md:text-6xl lg:text-7xl font-serif font-light mb-4">
+              "A little piece of heaven"
+            </p>
+            <p className="text-lg tracking-[0.3em] uppercase opacity-80">Guest Testimonial</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Amenities Section - Grid with Hover Effects */}
+      <section className="py-32 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">Curated Amenities</h2>
+            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">
+              Every detail designed to help you unwind and connect. 
+              We consciously do not have televisions in the cabins.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-200">
+            {[
+              { name: 'Refrigerator', image: '/amenities/refrigerator.jpg' },
+              { name: 'Breakfast', image: '/amenities/breakfast.png' },
+              { name: 'Private Chef', image: '/amenities/chef.png' },
+              { name: 'Wellness', image: '/amenities/wellness.png' },
+              { name: 'High-Speed Wifi', image: '/amenities/wifi.png' },
+              { name: 'Outdoor Grill', image: '/amenities/grill.png' },
+              { name: 'Private Pool', image: '/amenities/pool.png' },
+              { name: 'Climate Control', image: '/amenities/aircon.png' }
+            ].map((amenity) => (
+              <div 
+                key={amenity.name} 
+                className="group relative bg-white aspect-square overflow-hidden"
+              >
                 <Image
                   src={amenity.image}
                   alt={amenity.name}
                   fill
-                  className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                  className="object-contain p-8 group-hover:scale-110 transition-transform duration-700"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center p-6">
+                  <p className="text-white text-sm tracking-wider uppercase">{amenity.name}</p>
+                </div>
               </div>
-              <p className="text-sm md:text-base font-light tracking-wide">{amenity.name}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      </section>
 
-        <p className="text-center text-gray-600 text-base md:text-lg font-light leading-relaxed max-w-3xl mx-auto">
-          Our amenities are designed to help you unwind, and connect with your loved one and your thoughts. 
-          We consciously do not have a television in the cabins.
-        </p>
+      {/* Experiences Section - Split Screen Layout */}
+      <section className="bg-gray-50">
+        <div className="max-w-7xl mx-auto py-32 px-6">
+          <div className="text-center mb-20">
+            <p className="text-sm tracking-[0.3em] uppercase text-gray-500 mb-4">Indulge</p>
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
+              Curated Experiences
+            </h2>
+            <p className="text-lg text-gray-600 font-light max-w-3xl mx-auto">
+              From private chef services to wellness treatments and creative pursuits, 
+              every moment is crafted for your perfect escape
+            </p>
+          </div>
 
-        {/* Featured Amenity Image */}
-        <div className="relative h-64 md:h-96 mt-12 overflow-hidden">
-          <Image
-            src="/amenities-feature.jpg"
-            alt="Our amenities"
-            fill
-            className="object-cover"
+          <div className="grid md:grid-cols-3 gap-12">
+            {/* Private Chef */}
+            <div className="group">
+              <div className="relative h-96 mb-6 overflow-hidden">
+                <Image
+                  src="/experiences/chef.jpg"
+                  alt="Private Chef Experience"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute top-6 left-6 w-16 h-16 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                  <span className="text-3xl">🍽️</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-serif font-light mb-4">Private Chef Experience</h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Indulge in a culinary journey with locally-sourced ingredients and international flavors, 
+                personally curated by our executive chef.
+              </p>
+              <a href="/book-escape" className="text-sm tracking-wider uppercase underline underline-offset-4 hover:no-underline transition-all">
+                Learn More →
+              </a>
+            </div>
+
+            {/* Wellness */}
+            <div className="group">
+              <div className="relative h-96 mb-6 overflow-hidden">
+                <Image
+                  src="/experiences/wellness.jpg"
+                  alt="Wellness Services"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute top-6 left-6 w-16 h-16 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                  <span className="text-3xl">🧘</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-serif font-light mb-4">Wellness & Rejuvenation</h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Choose from Swedish, Deep Tissue & Holistic Massages, Body Treatments, 
+                Reflexology, and Restorative Facials.
+              </p>
+              <a href="/book-escape" className="text-sm tracking-wider uppercase underline underline-offset-4 hover:no-underline transition-all">
+                View Services →
+              </a>
+            </div>
+
+            {/* Creative */}
+            <div className="group">
+              <div className="relative h-96 mb-6 overflow-hidden">
+                <Image
+                  src="/experiences/paint.jpg"
+                  alt="Creative Expression"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute top-6 left-6 w-16 h-16 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                  <span className="text-3xl">🎨</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-serif font-light mb-4">Creative Expression</h3>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Get bubbly and creative with our intimate sip & paint sessions, 
+                guided by local artists.
+              </p>
+              <a href="/book-escape" className="text-sm tracking-wider uppercase underline underline-offset-4 hover:no-underline transition-all">
+                Book Session →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section - Full Width */}
+      <section className="relative h-[80vh]">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source 
+            src="https://res.cloudinary.com/dszk8iplz/video/upload/q_auto:best/v1762465861/hero-background.mp4_dx6ous.mp4" 
+            type="video/mp4" 
           />
+        </video>
+        <div className="absolute inset-0 bg-black/50" />
+        
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 text-white">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif font-light mb-8">
+            Your escape awaits
+          </h2>
+          <p className="text-xl md:text-2xl font-light mb-12 max-w-2xl">
+            Limited availability. Book your dates now.
+          </p>
+          <a 
+            href="/book-escape" 
+            className="px-16 py-6 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-transparent hover:text-white hover:border-2 hover:border-white transition-all duration-500"
+          >
+            Check Availability
+          </a>
         </div>
-      </Section>
-
-      {/* Discover our Experiences Section */}
-      <Section 
-        title="Discover our Experiences"
-        subtitle="Get a glimpse of the captivating spaces and experiences at Sojourn Cabins. From our stylish cabins to our awe-inspiring chef service and wellness services, every corner exudes urban elegance and luxury."
-        background="light"
-      >
-        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-          {/* Private Chef Experience */}
-          <div className="group">
-            <div className="relative h-48 md:h-64 mb-6 overflow-hidden">
-              <Image
-                src="/experiences/chef.jpg"
-                alt="Private chef preparing meal"
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed">
-              Indulge in a culinary journey with our private chef service. Savor delicious dishes 
-              with a touch of local flavors.
-            </p>
-          </div>
-
-          {/* Wellness Services */}
-          <div className="group">
-            <div className="relative h-48 md:h-64 mb-6 overflow-hidden">
-              <Image
-                src="/experiences/wellness.jpg"
-                alt="Wellness and spa services"
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed">
-              Relax and select a treatment from our menu of wellness packages including Swedish, 
-              Deep Tissue & Holistic Massages, Body Scrub, Body Wrap, Reflexology and Facials
-            </p>
-          </div>
-
-          {/* Sip & Paint */}
-          <div className="group">
-            <div className="relative h-48 md:h-64 mb-6 overflow-hidden">
-              <Image
-                src="/experiences/paint.jpg"
-                alt="Sip and paint experience"
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <p className="text-gray-600 text-base md:text-lg font-light leading-relaxed">
-              Get bubbly and creative with our sip and paint services with that special someone. 
-              Time to channel your inner Picasso!
-            </p>
-          </div>
-        </div>
-      </Section>
+      </section>
     </>
   )
 }

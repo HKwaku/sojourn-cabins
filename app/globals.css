@@ -1,22 +1,15 @@
-/* globals.css - Sojourn Cabins Aesthetic */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Font Imports (Add these to your Next.js project) */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap');
+/* Premium Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@200;300;400;500;600&display=swap');
 
 @layer base {
   :root {
-    /* Sojourn Color Palette */
-    --color-primary: 0 0% 0%;           /* Black */
-    --color-secondary: 0 0% 100%;       /* White */
-    --color-gray-50: 0 0% 98%;
-    --color-gray-100: 0 0% 96%;
-    --color-gray-200: 0 0% 88%;
-    --color-gray-600: 0 0% 45%;
-    --color-accent: 200 18% 46%;        /* Muted Blue-Gray */
+    --color-primary: 0 0% 0%;
+    --color-secondary: 0 0% 100%;
+    --color-accent: 197 71% 73%;
   }
 
   * {
@@ -25,278 +18,240 @@
 
   body {
     @apply bg-white text-gray-900 antialiased;
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-weight: 300;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cormorant Garamond', 'Montserrat', serif;
+    font-family: 'Cormorant Garamond', Georgia, serif;
     font-weight: 300;
-    letter-spacing: 0.05em;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
-  /* Sojourn Button Styles */
-  .btn {
-    @apply inline-block px-8 py-3 text-sm font-medium tracking-widest uppercase transition-all duration-300;
-  }
-
+  /* Premium button styles */
   .btn-primary {
-    @apply border border-black text-black hover:bg-black hover:text-white;
+    @apply relative overflow-hidden px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium transition-all duration-500;
   }
 
-  .btn-secondary {
-    @apply bg-white text-black border border-white hover:bg-transparent hover:text-white;
+  .btn-primary:hover {
+    @apply bg-black text-white;
   }
 
   .btn-outline {
-    @apply border-2 border-gray-300 text-gray-700 hover:border-black hover:text-black;
+    @apply px-10 py-4 border-2 border-white text-white text-sm tracking-[0.2em] uppercase font-medium transition-all duration-500 hover:bg-white hover:text-black;
   }
 
-  /* Minimal Card */
-  .card-minimal {
-    @apply bg-white transition-all duration-500;
-  }
-
-  /* Text Styles */
+  /* Text styles */
   .text-luxury {
     @apply font-light tracking-wide leading-relaxed;
   }
 
-  .heading-luxury {
-    @apply font-light text-3xl md:text-4xl lg:text-5xl tracking-wide;
-  }
-
-  /* Image Hover Effect */
-  .image-zoom-container {
-    @apply relative overflow-hidden;
-  }
-
-  .image-zoom {
-    @apply transition-transform duration-700 hover:scale-105;
-  }
-
-  /* Section Spacing */
-  .section-padding {
-    @apply py-20 md:py-28 lg:py-32;
-  }
-
-  /* Content Container */
-  .content-container {
-    @apply max-w-7xl mx-auto px-6 md:px-8 lg:px-12;
-  }
-
-  /* Numbered Item (for cabin listings) */
-  .numbered-item {
-    @apply text-6xl md:text-7xl lg:text-8xl font-light text-gray-200;
+  /* Parallax container */
+  .parallax {
+    transform: translateZ(0);
+    will-change: transform;
   }
 }
 
 @layer utilities {
-  /* Smooth Transitions */
-  .transition-smooth {
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
-  /* Text Spacing */
-  .tracking-luxury {
-    letter-spacing: 0.1em;
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  .tracking-wide-luxury {
-    letter-spacing: 0.15em;
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  /* Minimal Shadow */
-  .shadow-minimal {
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
-  .shadow-minimal-hover {
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
-  /* Image Overlay */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 1s ease-out both;
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 1s ease-out both;
+  }
+
+  .animate-fadeInDown {
+    animation: fadeInDown 1s ease-out both;
+  }
+
+  .animate-slideInLeft {
+    animation: slideInLeft 1s ease-out both;
+  }
+
+  .animate-slideInRight {
+    animation: slideInRight 1s ease-out both;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.8s ease-out both;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 hover:bg-gray-400 rounded-full;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-black text-white;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-none ring-1 ring-black ring-offset-2;
+  }
+
+  /* Image overlay effects */
   .overlay-dark {
-    @apply absolute inset-0 bg-black/40;
+    @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent;
   }
 
   .overlay-gradient {
-    @apply absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60;
+    @apply absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40;
   }
 
-  /* Aspect Ratios */
-  .aspect-cabin {
-    aspect-ratio: 3 / 2;
+  /* Text shadows for readability on images */
+  .text-shadow {
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
   }
 
-  .aspect-amenity {
-    aspect-ratio: 1 / 1;
+  .text-shadow-lg {
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   }
 
-  .aspect-hero {
-    aspect-ratio: 16 / 9;
+  /* Backdrop blur utilities */
+  .backdrop-blur-light {
+    backdrop-filter: blur(8px);
   }
-}
 
-/* Custom Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .backdrop-blur-heavy {
+    backdrop-filter: blur(20px);
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Premium hover effects */
+.hover-lift {
+  @apply transition-all duration-500;
 }
 
-.animate-fadeInUp {
-  animation: fadeInUp 0.8s ease-out;
+.hover-lift:hover {
+  @apply -translate-y-2 shadow-2xl;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-out;
+.hover-scale {
+  @apply transition-transform duration-700;
 }
 
-/* Smooth Scroll */
-html {
-  scroll-behavior: smooth;
+.hover-scale:hover {
+  @apply scale-105;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* Luxury spacing */
+.luxury-spacing {
+  @apply py-20 md:py-32 lg:py-40;
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+.luxury-padding {
+  @apply px-6 md:px-12 lg:px-16;
 }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 hover:bg-gray-500 rounded-full;
+/* Typography scales */
+.text-display {
+  @apply text-5xl md:text-6xl lg:text-7xl xl:text-8xl;
 }
 
-/* Image Loading State */
-.image-loading {
-  @apply bg-gray-100 animate-pulse;
+.text-heading {
+  @apply text-4xl md:text-5xl lg:text-6xl;
 }
 
-/* Minimal Focus States */
-:focus-visible {
-  @apply outline-none ring-1 ring-black ring-offset-2;
-}
-
-/* Typography Scale */
-.text-hero {
-  @apply text-4xl md:text-5xl lg:text-6xl xl:text-7xl;
-}
-
-.text-section-title {
-  @apply text-3xl md:text-4xl lg:text-5xl;
-}
-
-.text-card-title {
-  @apply text-2xl md:text-3xl;
+.text-subheading {
+  @apply text-2xl md:text-3xl lg:text-4xl;
 }
 
 .text-body-large {
-  @apply text-base md:text-lg lg:text-xl;
+  @apply text-lg md:text-xl lg:text-2xl;
 }
 
-/* Grid Layouts */
-.grid-cabins {
-  @apply grid gap-12 md:gap-16;
+/* Grid patterns */
+.grid-luxury {
+  @apply grid gap-px bg-gray-200;
 }
 
-.grid-amenities {
-  @apply grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8;
-}
-
-.grid-experiences {
-  @apply grid md:grid-cols-3 gap-8 md:gap-12;
-}
-
-/* Hover States */
-.hover-lift {
-  @apply transition-all duration-300 hover:-translate-y-1;
-}
-
-.hover-border {
-  @apply transition-all duration-300 hover:border-black;
-}
-
-/* Spacing Utilities */
-.space-section {
-  @apply mb-16 md:mb-20;
-}
-
-.space-element {
-  @apply mb-8 md:mb-12;
-}
-
-/* Background Variations */
-.bg-light-gray {
-  @apply bg-gray-50;
-}
-
-.bg-off-white {
-  @apply bg-white;
-}
-
-/* Mobile Menu (if needed) */
-.mobile-menu {
-  @apply fixed inset-0 bg-white z-50 transform transition-transform duration-300;
-}
-
-.mobile-menu.closed {
-  @apply translate-x-full;
-}
-
-/* Print Styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* Accessibility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* Responsive Images */
-img {
-  @apply max-w-full h-auto;
-}
-
-/* Link Styles */
-a {
-  @apply transition-colors duration-200;
-}
-
-/* Selection */
-::selection {
-  @apply bg-black text-white;
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
 }
 
 /* Reduce motion for accessibility */
@@ -308,5 +263,19 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn-primary {
+    @apply border-2 border-black;
   }
 }
