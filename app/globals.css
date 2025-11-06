@@ -1,0 +1,312 @@
+/* globals.css - Sojourn Cabins Aesthetic */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Font Imports (Add these to your Next.js project) */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500;600&family=Cormorant+Garamond:wght@300;400;500&display=swap');
+
+@layer base {
+  :root {
+    /* Sojourn Color Palette */
+    --color-primary: 0 0% 0%;           /* Black */
+    --color-secondary: 0 0% 100%;       /* White */
+    --color-gray-50: 0 0% 98%;
+    --color-gray-100: 0 0% 96%;
+    --color-gray-200: 0 0% 88%;
+    --color-gray-600: 0 0% 45%;
+    --color-accent: 200 18% 46%;        /* Muted Blue-Gray */
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', 'Montserrat', serif;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer components {
+  /* Sojourn Button Styles */
+  .btn {
+    @apply inline-block px-8 py-3 text-sm font-medium tracking-widest uppercase transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply border border-black text-black hover:bg-black hover:text-white;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-black border border-white hover:bg-transparent hover:text-white;
+  }
+
+  .btn-outline {
+    @apply border-2 border-gray-300 text-gray-700 hover:border-black hover:text-black;
+  }
+
+  /* Minimal Card */
+  .card-minimal {
+    @apply bg-white transition-all duration-500;
+  }
+
+  /* Text Styles */
+  .text-luxury {
+    @apply font-light tracking-wide leading-relaxed;
+  }
+
+  .heading-luxury {
+    @apply font-light text-3xl md:text-4xl lg:text-5xl tracking-wide;
+  }
+
+  /* Image Hover Effect */
+  .image-zoom-container {
+    @apply relative overflow-hidden;
+  }
+
+  .image-zoom {
+    @apply transition-transform duration-700 hover:scale-105;
+  }
+
+  /* Section Spacing */
+  .section-padding {
+    @apply py-20 md:py-28 lg:py-32;
+  }
+
+  /* Content Container */
+  .content-container {
+    @apply max-w-7xl mx-auto px-6 md:px-8 lg:px-12;
+  }
+
+  /* Numbered Item (for cabin listings) */
+  .numbered-item {
+    @apply text-6xl md:text-7xl lg:text-8xl font-light text-gray-200;
+  }
+}
+
+@layer utilities {
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Text Spacing */
+  .tracking-luxury {
+    letter-spacing: 0.1em;
+  }
+
+  .tracking-wide-luxury {
+    letter-spacing: 0.15em;
+  }
+
+  /* Minimal Shadow */
+  .shadow-minimal {
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+  }
+
+  .shadow-minimal-hover {
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Image Overlay */
+  .overlay-dark {
+    @apply absolute inset-0 bg-black/40;
+  }
+
+  .overlay-gradient {
+    @apply absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60;
+  }
+
+  /* Aspect Ratios */
+  .aspect-cabin {
+    aspect-ratio: 3 / 2;
+  }
+
+  .aspect-amenity {
+    aspect-ratio: 1 / 1;
+  }
+
+  .aspect-hero {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Smooth Scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 hover:bg-gray-500 rounded-full;
+}
+
+/* Image Loading State */
+.image-loading {
+  @apply bg-gray-100 animate-pulse;
+}
+
+/* Minimal Focus States */
+:focus-visible {
+  @apply outline-none ring-1 ring-black ring-offset-2;
+}
+
+/* Typography Scale */
+.text-hero {
+  @apply text-4xl md:text-5xl lg:text-6xl xl:text-7xl;
+}
+
+.text-section-title {
+  @apply text-3xl md:text-4xl lg:text-5xl;
+}
+
+.text-card-title {
+  @apply text-2xl md:text-3xl;
+}
+
+.text-body-large {
+  @apply text-base md:text-lg lg:text-xl;
+}
+
+/* Grid Layouts */
+.grid-cabins {
+  @apply grid gap-12 md:gap-16;
+}
+
+.grid-amenities {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8;
+}
+
+.grid-experiences {
+  @apply grid md:grid-cols-3 gap-8 md:gap-12;
+}
+
+/* Hover States */
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1;
+}
+
+.hover-border {
+  @apply transition-all duration-300 hover:border-black;
+}
+
+/* Spacing Utilities */
+.space-section {
+  @apply mb-16 md:mb-20;
+}
+
+.space-element {
+  @apply mb-8 md:mb-12;
+}
+
+/* Background Variations */
+.bg-light-gray {
+  @apply bg-gray-50;
+}
+
+.bg-off-white {
+  @apply bg-white;
+}
+
+/* Mobile Menu (if needed) */
+.mobile-menu {
+  @apply fixed inset-0 bg-white z-50 transform transition-transform duration-300;
+}
+
+.mobile-menu.closed {
+  @apply translate-x-full;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Responsive Images */
+img {
+  @apply max-w-full h-auto;
+}
+
+/* Link Styles */
+a {
+  @apply transition-colors duration-200;
+}
+
+/* Selection */
+::selection {
+  @apply bg-black text-white;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
