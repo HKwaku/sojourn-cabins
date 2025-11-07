@@ -22,7 +22,7 @@ export default function Navbar() {
     { name: 'Experiences', href: '#experiences' },
     { name: 'Rates', href: '/rates' },
     { name: 'Getting Here', href: '/getting-here' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'T&C', href: '#terms-and-conditions' },
   ]
 
   return (

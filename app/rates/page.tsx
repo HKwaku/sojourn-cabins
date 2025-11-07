@@ -452,7 +452,7 @@ export default function RatesPage() {
                 <span className="text-2xl">🛎️</span>
               </div>
               <h3 className="text-lg font-medium mb-2">Concierge Service</h3>
-              <p className="text-sm text-gray-600">24/7 guest assistance</p>
+              <p className="text-sm text-gray-600">guest assistance</p>
             </div>
           </div>
         </div>
@@ -467,7 +467,7 @@ export default function RatesPage() {
         <div className="space-y-8">
           <div className="border-l-2 border-gray-300 pl-6">
             <h3 className="text-xl font-medium mb-3">Check-in & Check-out</h3>
-            <p className="text-gray-600 leading-relaxed">Check-in is from 3:00 PM and check-out is by 11:00 AM. Early check-in and late check-out are subject to availability and may incur additional charges.</p>
+            <p className="text-gray-600 leading-relaxed">Check-in is from 2:00 PM and check-out is by 11:00 AM. Early check-in and late check-out are subject to availability and may incur additional charges.</p>
           </div>
 
           <div className="border-l-2 border-gray-300 pl-6">

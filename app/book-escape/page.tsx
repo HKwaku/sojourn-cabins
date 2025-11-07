@@ -54,7 +54,7 @@ export default function Page() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium mb-2">24/7 Support</h3>
+              <h3 className="text-lg font-medium mb-2">12/7 Support</h3>
               <p className="text-sm text-gray-600 leading-relaxed">Our team is here to assist you anytime</p>
             </div>
           </div>
