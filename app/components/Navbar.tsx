@@ -45,15 +45,13 @@ export default function Navbar() {
             >
               <div className="relative w-10 h-10">
                 <Image
-                  src="/logo.jpg"
-                  alt="Sojourn Cabins"
+                  src="/logo.png"
+                  alt="/logo.png"
                   fill
                   className="object-contain"
                 />
               </div>
-              <span className="text-xl font-serif font-light tracking-wider">
-                Sojourn Cabins
-              </span>
+        
             </Link>
 
             {/* Desktop Navigation */}

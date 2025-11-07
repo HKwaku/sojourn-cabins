@@ -9,7 +9,7 @@ export default function Page() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/80">Reserve Your Escape</p>
+          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/80"></p>
           <h1 className="text-5xl md:text-6xl font-serif font-light mb-6 leading-tight">Book Your Stay</h1>
           <p className="text-lg md:text-xl font-light text-white/90 max-w-2xl mx-auto leading-relaxed">
             Select your dates and cabin to begin your coastal retreat at Sojourn
