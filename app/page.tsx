@@ -1,4 +1,5 @@
 import Hero from './components/Hero'
+import AmenitiesSection from './components/AmenitiesSection'
 import Image from 'next/image'
 
 export default function HomePage() {
@@ -162,49 +163,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Amenities Section - Grid with Hover Effects */}
-      <section className="py-32 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">Curated Amenities</h2>
-            <p className="text-lg text-gray-600 font-light max-w-2xl mx-auto">
-              Every detail designed to help you unwind and connect. 
-              We consciously do not have televisions in the cabins.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gray-200">
-            {[
-              { name: 'Refrigerator', image: '/amenities/refrigerator.jpg' },
-              { name: 'Breakfast', image: '/amenities/breakfast.png' },
-              { name: 'Private Chef', image: '/amenities/chef.png' },
-              { name: 'Wellness', image: '/amenities/wellness.png' },
-              { name: 'High-Speed Wifi', image: '/amenities/wifi.png' },
-              { name: 'Outdoor Grill', image: '/amenities/grill.png' },
-              { name: 'Private Pool', image: '/amenities/pool.png' },
-              { name: 'Climate Control', image: '/amenities/aircon.png' }
-            ].map((amenity) => (
-              <div 
-                key={amenity.name} 
-                className="group relative bg-white aspect-square overflow-hidden"
-              >
-                <Image
-                  src={amenity.image}
-                  alt={amenity.name}
-                  fill
-                  className="object-contain p-8 group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center p-6">
-                  <p className="text-white text-sm tracking-wider uppercase">{amenity.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Amenities Section - UPDATED with new component */}
+      <AmenitiesSection />
 
       {/* Experiences Section - Split Screen Layout */}
-      <section className="bg-gray-50">
+      <section id="experiences" className="bg-gray-50">
         <div className="max-w-7xl mx-auto py-32 px-6">
           <div className="text-center mb-20">
             <p className="text-sm tracking-[0.3em] uppercase text-gray-500 mb-4">Indulge</p>

@@ -1,46 +1,135 @@
 'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useState } from 'react'
-import { Menu } from 'lucide-react'
-
-
-const links = [
-{ href: '/', label: 'Home' },
-{ href: '/rates', label: 'Rates' },
-{ href: '/getting-here', label: 'Getting Here' },
-{ href: '/our-cabins', label: 'Our Cabins' },
-{ href: '/terms-and-conditions', label: 'T&C' },
-{ href: '/book-escape', label: 'Book Escape' },
-]
-
+import Image from 'next/image'
 
 export default function Navbar() {
-const [open, setOpen] = useState(false)
-return (
-<header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur border-b border-neutral-200">
-<div className="container flex h-16 items-center justify-between">
-<Link href="/" className="flex items-center gap-2">
-<img src="/logo.webp" alt="Sojourn Cabins" className="h-8 w-8 rounded-full object-cover"/>
-<span className="font-semibold">Sojourn Cabins</span>
-</Link>
-<nav className="hidden md:flex items-center gap-6">
-{links.map(l => (
-<Link key={l.href} href={l.href} className="text-sm hover:underline underline-offset-4">{l.label}</Link>
-))}
-</nav>
-<button className="md:hidden btn-outline" aria-label="Open menu" onClick={() => setOpen(!open)}>
-<Menu size={18} />
-</button>
-</div>
-{open && (
-<div className="md:hidden border-t border-neutral-200">
-<div className="container py-3 grid gap-2">
-{links.map(l => (
-<Link key={l.href} href={l.href} className="py-2" onClick={() => setOpen(false)}>{l.label}</Link>
-))}
-</div>
-</div>
-)}
-</header>
-)
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const navLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'Our Cabins', href: '#cabins' },
+    { name: 'Experiences', href: '#experiences' },
+    { name: 'Rates', href: '/rates' },
+    { name: 'Getting Here', href: '/getting-here' },
+    { name: 'Contact', href: '#contact' },
+  ]
+
+  return (
+    <>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled 
+            ? 'bg-white/95 backdrop-blur-xl shadow-sm py-4' 
+            : 'bg-transparent py-6'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link 
+              href="/" 
+              className={`flex items-center gap-3 transition-colors duration-300 ${
+                scrolled ? 'text-black' : 'text-white'
+              }`}
+            >
+              <div className="relative w-10 h-10">
+                <Image
+                  src="/logo.jpg"
+                  alt="Sojourn Cabins"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xl font-serif font-light tracking-wider">
+                Sojourn Cabins
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`text-sm tracking-wider uppercase font-light transition-all duration-300 hover:opacity-60 ${
+                    scrolled ? 'text-black' : 'text-white'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Book Button */}
+            <div className="hidden lg:block">
+              <Link
+                href="/book-escape"
+                className={`px-8 py-3 text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 ${
+                  scrolled
+                    ? 'bg-black text-white hover:bg-gray-900'
+                    : 'bg-white text-black hover:bg-gray-100'
+                }`}
+              >
+                Book Now
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`lg:hidden flex flex-col gap-1.5 w-8 transition-colors duration-300 ${
+                scrolled ? 'text-black' : 'text-white'
+              }`}
+              aria-label="Toggle menu"
+            >
+              <span className={`h-0.5 w-full bg-current transition-transform duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+              <span className={`h-0.5 w-full bg-current transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+              <span className={`h-0.5 w-full bg-current transition-transform duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-0 z-40 bg-white transform transition-transform duration-500 lg:hidden ${
+          mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full pt-24 pb-8 px-6">
+          <div className="flex-1 flex flex-col gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-3xl font-serif font-light text-black hover:opacity-60 transition-opacity"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+          
+          <Link
+            href="/book-escape"
+            onClick={() => setMobileMenuOpen(false)}
+            className="w-full py-4 bg-black text-white text-center text-sm tracking-[0.2em] uppercase font-medium"
+          >
+            Book Your Escape
+          </Link>
+        </div>
+      </div>
+    </>
+  )
 }
