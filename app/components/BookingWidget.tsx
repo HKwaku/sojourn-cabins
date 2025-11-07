@@ -82,36 +82,199 @@ export default function BookingWidget() {
   var root = document.getElementById('booking-search');
   if (!root) return;
 
+  // IMPORTANT: keep <style> wrapper, but quote CSS safely with \`...\`
   root.innerHTML =
     '<style>' +
-    ':root{--bg:#f7f9fc;--panel:#fff;--text:#0f172a;--muted:#64748b;--line:#e5e7eb;--brand:#111827;--ok:#16a34a;--err:#b91c1c;--radius:18px;--shadow:0 14px 34px rgba(15,23,42,.08);--success:#dcfce7;--success-border:#86efac;--success-text:#166534}' +
-    '*{box-sizing:border-box} .wrap{max-width:1120px;margin:24px auto;padding:0 16px}' +
-    '.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}' +
-    'h1{margin:0 0 6px;font:600 28px/1.2 Inter,system-ui,Segoe UI,Roboto,Arial}.sub{color:#64748b;margin:0 0 12px}' +
-    '.grid{display:grid;gap:12px}@media(min-width:860px){.grid.cols-4{grid-template-columns:1.1fr 1.1fr .8fr auto}}' +
-    'label{display:block;font-size:13px;color:#334155;margin:0 0 6px;font-weight:500}' +
-    'input,select,button{font:inherit} input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;outline:none;transition:all .2s}' +
-    'input:focus,select:focus{box-shadow:0 0 0 4px rgba(17,24,39,.06);border-color:#111827}' +
-    '.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}' +
-    '.pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:999px;color:#334155;font-size:13px}' +
-    '.btn{border:0;background:var(--brand);color:#fff;padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:600;transition:all .2s}' +
-    '.btn:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px)} .btn:disabled{opacity:.5;cursor:not-allowed}' +
-    '.btn.secondary{background:#1118270d;color:#111;border:1px solid var(--line)} .btn.small{padding:8px 12px;font-size:13px}' +
-    '.notice{display:none;margin-top:12px;padding:12px;border-radius:12px;border:1px solid var(--success-border);background:var(--success);color:var(--success-text)}' +
-    '.notice.err{border-color:#ffe1e1;background:#fff3f3;color:#b91c1c}' +
-    '.results{display:grid;gap:14px;margin-top:16px}@media(min-width:820px){.results{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
-    '.room{border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden;display:flex;flex-direction:column;transition:all .2s}' +
-    '.room:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)} .hero{width:100%;height:220px;object-fit:cover;background:#eef2f7;display:block}' +
-    '.body{padding:14px}.name{font-weight:800;font-size:18px;margin:0 0 4px}.desc{color:#6b7280;font-size:14px;margin:0 0 10px;min-height:2.4em}' +
-    '.foot{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.price{font-weight:600;font-size:14px;line-height:1.4}' +
-    '.price-breakdown{color:#6b7280;font-size:12px;margin-top:4px}' +
-    '.skeleton{position:relative;overflow:hidden;background:#f3f4f6;border-radius:12px;height:120px}.skeleton:after{content:\"\";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,.05),transparent);transform:translateX(-100%);animation:shimmer 1.2s infinite}@keyframes shimmer{100%{transform:translateX(100%)}}' +
-    '.summary{margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:10px}.kv{display:flex;justify-content:space-between;padding:6px 0;align-items:center}.kv.discount{color:#16a34a;font-weight:600}.total{font-weight:800;font-size:15px;padding-top:8px;border-top:2px solid var(--line);margin-top:4px}' +
-    '.overlay{position:fixed;inset:0;display:none;background:rgba(15,23,42,.5);backdrop-filter:saturate(160%) blur(2px);z-index:9998}' +
-    '.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999}.sheet{width:90vw;max-width:1000px;max-height:90vh;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column}' +
-    '.sheet header{padding:16px 18px;border-bottom:1px solid var(--line);font-weight:800;font-size:18px;display:flex;justify-content:space-between;align-items:center}.sheet main{padding:16px 18px;overflow:auto}.sheet footer{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}' +
-    '.x{background:transparent;border:0;font-size:22px;cursor:pointer;line-height:1}.qty{display:inline-flex;gap:10px;align-items:center}.chip{display:inline-flex;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fff}' +
-    '.coupon-input{display:flex;gap:8px;margin-top:12px}.coupon-input input{flex:1}.applied-coupon{display:flex;align-items:center;justify-content:space-between;padding:10px;background:#dcfce7;border:1px solid #86efac;border-radius:10px;margin-top:8px}.applied-coupon code{font-weight:700;color:#166534}.remove-coupon{background:#ef4444;color:#fff;border:0;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}' +
+    \`
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* ---------- Theme ---------- */
+:root{
+  --bg:#ffffff; --panel:#ffffff; --text:#0f172a; --muted:#475569; --line:#e5e7eb;
+  --brand:#0f172a; --brand-hover:#111827; --ok:#16a34a; --err:#dc2626;
+  --radius:12px; --radius-lg:16px;
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.06);
+  --shadow-lg:0 12px 28px rgba(0,0,0,.10);
+  --surface:#f8fafc;
+}
+
+/* ---------- Base ---------- */
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+html,body{background:var(--bg);color:var(--text);overflow-x:hidden}
+
+/* ---------- Container (no markup changes) ---------- */
+.wrap{max-width:960px;margin:0 auto;padding:24px}
+@media (max-width:640px){ .wrap{max-width:640px;padding:16px} }
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);
+  padding:24px;
+}
+@media (max-width:640px){ .card{padding:18px} }
+
+/* ---------- Type ---------- */
+h1{font-size:28px;line-height:1.15;font-weight:700;margin:0 0 6px;letter-spacing:-0.01em}
+.sub{color:var(--muted);font-size:15px;line-height:1.6;margin:0 0 18px}
+
+/* ---------- Grid (search row) ---------- */
+.grid{display:grid;gap:16px;margin-bottom:16px;min-width:0}
+@media (min-width:880px){ .grid.cols-4{grid-template-columns:1fr 1fr 0.8fr auto} }
+
+/* ---------- Fields ---------- */
+label{display:block;font-size:12px;color:#64748b;margin:0 0 8px;font-weight:600;letter-spacing:.03em}
+input,select{
+  width:100%;max-width:100%;min-width:0;
+  padding:14px 14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  color:var(--text);
+  font-size:16px; /* prevents iOS zoom */
+  line-height:1.3;
+  transition:border-color .2s, box-shadow .2s;
+}
+input:hover,select:hover{border-color:#cbd5e1}
+input:focus,select:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.25);outline:none}
+
+input[type="date"]{
+  -webkit-appearance:none; appearance:none;
+  width:100%; min-width:0; background-clip:padding-box;
+  font-variant-numeric:tabular-nums;
+}
+@supports (-webkit-touch-callout:none){ input[type="date"]{ padding-right:42px } }
+
+/* ---------- Inline layout ---------- */
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{
+  display:inline-flex;gap:8px;align-items:center;
+  padding:8px 12px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--line);color:#334155;font-weight:600;font-size:13px;
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  appearance:none;border:0;cursor:pointer;
+  background:var(--brand);color:#fff;
+  padding:12px 20px;border-radius:14px;
+  font-weight:700;font-size:15px;letter-spacing:.02em;
+  transition:transform .1s, box-shadow .2s, background .2s;
+}
+.btn:hover:not(:disabled){background:var(--brand-hover);transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.secondary{
+  background:#fff;color:#0f172a;border:1px solid var(--line);box-shadow:none
+}
+.btn.secondary:hover{background:#f8fafc}
+
+/* ---------- Notices ---------- */
+.notice{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px}
+.notice.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+.notice:not(.err){background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+
+/* ---------- Results grid ---------- */
+.results{display:grid;gap:16px;margin-top:16px}
+@media (min-width:880px){ .results{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:640px) and (max-width:879px){ .results{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* ---------- Room card ---------- */
+.room{
+  border:1px solid var(--line);border-radius:16px;background:#fff;
+  overflow:hidden;display:flex;flex-direction:column;
+  transition:transform .15s, box-shadow .2s, border-color .2s; box-shadow:var(--shadow);
+}
+.room:hover{transform:translateY(-2px);border-color:#cbd5e1;box-shadow:var(--shadow-lg)}
+.hero{width:100%;aspect-ratio:16/10;object-fit:cover;background:#f1f5f9}
+.body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-weight:700;font-size:17px}
+.desc{color:#64748b;font-size:14px;line-height:1.5;min-height:2.6em}
+.foot{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.price{font-weight:800;font-size:15px}
+.price-breakdown{color:#64748b;font-size:12.5px}
+.chip{display:inline-flex;min-width:44px;justify-content:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
+
+/* ---------- Skeletons ---------- */
+.skeleton{
+  position:relative;overflow:hidden;border-radius:12px;height:140px;
+  background:linear-gradient(90deg,#f1f5f9 0%,#e5e7eb 50%,#f1f5f9 100%);background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ---------- Summary panel ---------- */
+.summary{
+  margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfdff
+}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;align-items:center;font-size:15px}
+.kv span{color:#64748b;font-weight:600}
+.kv strong{font-weight:800}
+.total{font-weight:900;font-size:18px;padding-top:10px;border-top:2px solid var(--line);margin-top:6px}
+
+/* ---------- Overlay & modal ---------- */
+.overlay{position:fixed;inset:0;display:none;background:rgba(15,23,42,.56);backdrop-filter:blur(6px);z-index:9998}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
+.sheet{
+  width:100%;max-width:720px;max-height:92vh;background:#fff;border-radius:18px;border:1px solid var(--line);
+  box-shadow:0 24px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden
+}
+.sheet header{
+  padding:18px 20px;border-bottom:1px solid var(--line);
+  font-weight:800;font-size:20px;letter-spacing:-0.01em;display:flex;justify-content:space-between;align-items:center
+}
+.sheet main{padding:18px 16px;overflow:auto;flex:1;background:#fff}
+.sheet footer{padding:14px 16px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;background:#fff}
+.x{
+  background:transparent;border:0;font-size:26px;cursor:pointer;line-height:1;color:#64748b;
+  width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s
+}
+.x:hover{color:#0f172a;background:#f1f5f9}
+
+/* ---------- Qty controls ---------- */
+.qty{display:inline-flex;gap:12px;align-items:center}
+.qty button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:800}
+.qty input{width:48px;text-align:center}
+
+/* ---------- Coupon row: prevent squish ---------- */
+.coupon-input{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.coupon-input input{flex:1;min-width:200px}
+.coupon-input .btn{padding:12px 18px}
+@media (max-width:520px){
+  .coupon-input{flex-direction:column}
+  .coupon-input input{min-width:0}
+  .coupon-input .btn{width:100%}
+}
+
+/* Applied coupon badge */
+.applied-coupon{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:10px;padding:10px 12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0
+}
+.applied-coupon code{font-weight:900;color:#065f46;font-size:14px}
+.remove-coupon{background:var(--err);color:#fff;border:0;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:800}
+
+/* ---------- Extras list: de-clutter ---------- */
+#extras-list{display:grid;gap:12px}
+#extras-list > *{
+  border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);
+  padding:14px 12px
+}
+#extras-list .name{font-size:16px}
+#extras-list .desc{font-size:13.5px}
+#extras-list .price{font-size:14px}
+#extras-list .qty{margin-left:auto}
+
+/* ---------- Responsive tighten ---------- */
+@media (max-width:380px){
+  .wrap{padding-left:12px;padding-right:12px}
+  input,select{padding:12px}
+  .btn{padding:12px 16px}
+}
+
+/* Prevent horizontal scroll on very narrow screens */
+#booking-search, .wrap, .card, .grid, .grid > div { min-width:0; }
+html, body { overflow-x:hidden; }
+    \` +
     '</style>' +
 
     '<div class="wrap"><div class="card">' +
@@ -745,19 +908,18 @@ export default function BookingWidget() {
   document.body.appendChild(script)
 
   return () => {
-  script.remove()
-  URL.revokeObjectURL(url)
-  const rootDiv = document.getElementById('booking-search')
-  if (rootDiv) rootDiv.innerHTML = ''
-  ;['ovl','modal-results','modal-extras','modal-guest','modal-thanks'].forEach(id => {
-    const el = document.getElementById(id)
-    if (el) el.remove()
-  })
-}
+    script.remove()
+    URL.revokeObjectURL(url)
+    const rootDiv = document.getElementById('booking-search')
+    if (rootDiv) rootDiv.innerHTML = ''
+    ;['ovl','modal-results','modal-extras','modal-guest','modal-thanks'].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.remove()
+    })
+  }
 
   }, [])
- // ---- ✨ new useEffect for styles goes here ✨ ----
-  // ====== (2) Inject modern light-only styles ======
+ // ---- existing style injector useEffect (kept) ----
   useEffect(() => {
     if (document.getElementById('booking-widget-light-styles')) return
 
@@ -864,5 +1026,6 @@ html, body { overflow-x:hidden; }
     document.head.appendChild(style)
     return () => style.remove()
   }, [])
+
   return <div id="booking-search" />
 }
