@@ -6,8 +6,8 @@ export default function RatesPage() {
       {/* Hero Section - Enhanced with gradient overlay */}
       <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <Image
-          src="/cabins/hero-beach.jpg"
-          alt="Sojourn Cabins Beachfront"
+          src="/cabins/sun.jpg"
+          alt="/cabins/sea.jpg"
           fill
           className="object-cover"
           priority
