@@ -18,11 +18,11 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Our Cabins', href: '#cabins' },
-    { name: 'Experiences', href: '#experiences' },
+    { name: 'Our Cabins', href: '/#cabins' },        // changed
+    { name: 'Experiences', href: '/#experiences' },  // changed
     { name: 'Rates', href: '/rates' },
     { name: 'Getting Here', href: '/getting-here' },
-    { name: 'T&C', href: '#terms-and-conditions' },
+    { name: 'Terms & Conditions', href: '/terms-and-conditions' },
   ]
 
   return (
