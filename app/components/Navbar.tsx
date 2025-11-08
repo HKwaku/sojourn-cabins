@@ -43,7 +43,7 @@ export default function Navbar() {
                 scrolled ? 'text-black' : 'text-white'
               }`}
             >
-              <div className="relative w-10 h-10">
+              <div className="relative w-14 h-14">
                 <Image
                   src="/logo.png"
                   alt="/logo.png"
