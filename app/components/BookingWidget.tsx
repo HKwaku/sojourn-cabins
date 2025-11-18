@@ -120,6 +120,7 @@ h1{font-size:28px;line-height:1.15;font-weight:700;margin:0 0 6px;letter-spacing
 
 /* ---------- Grid (search row) ---------- */
 .grid{display:grid;gap:16px;margin-bottom:16px;min-width:0}
+@media (min-width:880px){ .grid.cols-3{grid-template-columns:1fr 1fr 0.8fr} }
 @media (min-width:880px){ .grid.cols-4{grid-template-columns:1fr 1fr 0.8fr auto} }
 
 /* ---------- Fields ---------- */
@@ -174,9 +175,7 @@ input[type="date"]{
 .notice:not(.err){background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
 
 /* ---------- Results grid ---------- */
-.results{display:grid;gap:16px;margin-top:16px}
-@media (min-width:880px){ .results{grid-template-columns:repeat(3,minmax(0,1fr))} }
-@media (min-width:640px) and (max-width:879px){ .results{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.results{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
 
 /* ---------- Room card ---------- */
 .room{
@@ -279,15 +278,17 @@ html, body { overflow-x:hidden; }
 
     '<div class="wrap"><div class="card">' +
     '<h1>Choose your cabin</h1><p class="sub">Pick your dates to see available cabins and prices.</p>' +
-    '<div class="grid cols-4">' +
+    '<div class="grid cols-3">' +
       '<div><label>Check-in</label><input id="ci" type="date"></div>' +
       '<div><label>Check-out</label><input id="co" type="date"></div>' +
       '<div><label>Adults</label><select id="ad"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>' +
-      '<div class="row" style="align-items:flex-end;justify-content:flex-end;flex-wrap:wrap">' +
+    '</div>' +
+    '<div class="row" style="align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px">' +
+      '<div class="row" style="gap:10px">' +
         '<span class="pill">Total: <strong id="nn">—</strong> night<span id="nn-s">s</span></span>' +
         '<span class="pill" id="weekend-pill" style="display:none"><strong id="wd">0</strong> weekday • <strong id="we">0</strong> weekend</span>' +
-        '<button id="load" class="btn">See available cabins</button>' +
       '</div>' +
+      '<button id="load" class="btn">See available cabins</button>' +
     '</div>' +
 
     '<div class="summary">' +
@@ -376,28 +377,91 @@ html, body { overflow-x:hidden; }
   // ====== HELPERS ======
   function $(s) { return document.querySelector(s); }
   function RESULTS_SEL() { return document.querySelector('#results-modal') || document.querySelector('#results'); }
-  function formatCurrency(amount, curr) {
+    function formatCurrency(amount, curr) {
     if (!curr) curr = CURRENCY;
     return new Intl.NumberFormat('en-GB', { style: 'currency', currency: curr }).format(Number(amount || 0));
   }
   function iso(d) { return new Date(d).toISOString().slice(0, 10); }
-  function nights(a, b) { var A = new Date(a), B = new Date(b); return Math.max(0, Math.round((B - A) / 86400000)); }
+
+  // Match admin: add N days to an ISO date
+  function addDaysISO(isoDate, days) {
+    var d = new Date(isoDate);
+    if (isNaN(d)) return iso(new Date());
+    d.setDate(d.getDate() + (Number(days) || 0));
+    return iso(d);
+  }
+
+  // Match admin: nights = ceil((checkOut - checkIn) / 1 day), min 0
+  function nights(a, b) {
+    var A = new Date(a), B = new Date(b);
+    if (isNaN(A) || isNaN(B) || B <= A) return 0;
+    return Math.ceil((B - A) / 86400000);
+  }
+
+  // Calculate weekday and weekend nights breakdown
+  function calculateWeekdayWeekend(checkIn, checkOut) {
+    if (!checkIn || !checkOut) return { weekday: 0, weekend: 0 };
+    var start = new Date(checkIn);
+    var end = new Date(checkOut);
+    if (isNaN(start) || isNaN(end) || end <= start) return { weekday: 0, weekend: 0 };
+    
+    var weekday = 0;
+    var weekend = 0;
+    var current = new Date(start);
+    
+    while (current < end) {
+      var day = current.getDay();
+      if (day === 5 || day === 6) { // Friday or Saturday
+        weekend++;
+      } else {
+        weekday++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return { weekday: weekday, weekend: weekend };
+  }
+
   function showMsg(t, type) { var el = $('#msg'); el.className = 'notice' + (type === 'err' ? ' err' : ''); el.style.display = 'block'; el.textContent = t; }
   function hideMsg(){ var el = $('#msg'); el.style.display = 'none'; el.textContent = ''; }
 
   function setDefaults(){
+    // Keep “start from tomorrow” for guests,
+    // but use addDaysISO for consistency with admin logic
     var t = new Date();
     var ci = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 1));
-    var co = new Date(ci); co.setUTCDate(co.getUTCDate() + 2);
-    $('#ci').value = iso(ci); $('#co').value = iso(co);
+    var ciIso = iso(ci);
+    var coIso = addDaysISO(ciIso, 2); // default 2 nights
+
+    $('#ci').value = ciIso;
+    $('#co').value = coIso;
     updateNightsDisplay();
   }
-  function updateNightsDisplay() {
+
+    function updateNightsDisplay() {
     var nn = nights($('#ci').value, $('#co').value);
+
+    // Match admin: never show less than 1 night when dates are set
+    if (nn < 1 && $('#ci').value && $('#co').value) nn = 1;
+
     $('#nn').textContent = nn;
     $('#nn-s').textContent = nn === 1 ? '' : 's';
     $('#sN').textContent = nn;
+
+    // Calculate and show weekday/weekend breakdown
+    var breakdown = calculateWeekdayWeekend($('#ci').value, $('#co').value);
+    if (breakdown.weekday > 0 || breakdown.weekend > 0) {
+      $('#wd').textContent = String(breakdown.weekday);
+      $('#we').textContent = String(breakdown.weekend);
+      $('#weekend-pill').style.display = 'inline-flex';
+    } else {
+      $('#weekend-pill').style.display = 'none';
+    }
+
+    // Keep selected.nights in sync if a room is already chosen
+    if (selected) selected.nights = nn;
   }
+
   function renderSkeletons(){
     var r = RESULTS_SEL(); r.innerHTML = '';
     for (var i = 0; i < 4; i++){
@@ -418,18 +482,98 @@ html, body { overflow-x:hidden; }
   var appliedCoupon = null;
   var discountAmount = 0;
 
+  function getCouponScopeLabel() {
+    if (!appliedCoupon) return '';
+    
+    var scopeLabel;
+    if (appliedCoupon.applies_to === 'both') {
+      // Room + specific extras if configured
+      var labels = [];
+      
+      if (Array.isArray(appliedCoupon.extra_ids) && appliedCoupon.extra_ids.length) {
+        labels = appliedCoupon.extra_ids
+          .map(function(id) {
+            var extra = extras.find(function(e) { return String(e.id) === String(id); });
+            return extra ? extra.name : null;
+          })
+          .filter(function(name) { return name !== null; });
+      }
+      
+      if (labels.length === 0) {
+        scopeLabel = 'Room and Extras';
+      } else if (labels.length === 1) {
+        scopeLabel = 'Room and ' + labels[0];
+      } else if (labels.length === 2) {
+        scopeLabel = 'Room and ' + labels[0] + ' and ' + labels[1];
+      } else {
+        scopeLabel = 'Room and ' + labels.slice(0, 2).join(', ') + ' and others';
+      }
+    } else if (appliedCoupon.applies_to === 'rooms') {
+      scopeLabel = 'Room Only';
+    } else if (appliedCoupon.applies_to === 'extras') {
+      var labels = [];
+      
+      if (Array.isArray(appliedCoupon.extra_ids) && appliedCoupon.extra_ids.length) {
+        labels = appliedCoupon.extra_ids
+          .map(function(id) {
+            var extra = extras.find(function(e) { return String(e.id) === String(id); });
+            return extra ? extra.name : null;
+          })
+          .filter(function(name) { return name !== null; });
+      }
+      
+      if (labels.length === 0) {
+        scopeLabel = 'Extras';
+      } else if (labels.length === 1) {
+        scopeLabel = labels[0];
+      } else if (labels.length === 2) {
+        scopeLabel = labels[0] + ' and ' + labels[1];
+      } else {
+        scopeLabel = labels.slice(0, 2).join(', ') + ' and others';
+      }
+    } else {
+      scopeLabel = appliedCoupon.applies_to || '';
+    }
+    
+    return scopeLabel;
+  }
+
   function calculateDiscount() {
     if (!appliedCoupon || !selected) { discountAmount = 0; return 0; }
     var subtotal = selected.total + extrasTotal;
     if (appliedCoupon.min_booking_amount && subtotal < appliedCoupon.min_booking_amount) return 0;
+    
+    // Calculate total only for extras that this coupon targets (if defined)
+    var extrasTargetTotal = extrasTotal;
+    if (
+      appliedCoupon &&
+      Array.isArray(appliedCoupon.extra_ids) &&
+      appliedCoupon.extra_ids.length
+    ) {
+      var idSet = new Set(appliedCoupon.extra_ids.map(String));
+      extrasTargetTotal = extras
+        .filter(function(e) { return e.qty > 0 && idSet.has(String(e.id)); })
+        .reduce(function(sum, e) { return sum + (e.price * e.qty); }, 0);
+    }
+    
     var discount = 0;
     if (appliedCoupon.applies_to === 'both') {
-      var baseAmount = subtotal;
-      discount = appliedCoupon.discount_type === 'percentage' ? (baseAmount * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
+      // Room + only the targeted extras (if any are configured)
+      var base;
+      if (
+        Array.isArray(appliedCoupon.extra_ids) &&
+        appliedCoupon.extra_ids.length
+      ) {
+        base = selected.total + extrasTargetTotal;
+      } else {
+        base = selected.total + extrasTotal;
+      }
+      discount = appliedCoupon.discount_type === 'percentage' ? (base * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
     } else if (appliedCoupon.applies_to === 'rooms') {
       discount = appliedCoupon.discount_type === 'percentage' ? (selected.total * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
     } else if (appliedCoupon.applies_to === 'extras') {
-      discount = appliedCoupon.discount_type === 'percentage' ? (extrasTotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
+      // Only targeted extras
+      discount = appliedCoupon.discount_type === 'percentage' ? (extrasTargetTotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
     }
     discount = Math.min(discount, subtotal);
     discountAmount = discount;
@@ -447,7 +591,8 @@ html, body { overflow-x:hidden; }
 
     if (discount > 0) {
       $('#sDiscountRow').style.display = 'flex';
-      $('#sDiscountLabel').textContent = appliedCoupon.code;
+      var scopeLabel = getCouponScopeLabel();
+      $('#sDiscountLabel').textContent = appliedCoupon.code + ': ' + scopeLabel;
       $('#sDiscount').textContent = '−' + formatCurrency(discount, curr);
     } else {
       $('#sDiscountRow').style.display = 'none';
@@ -463,12 +608,17 @@ html, body { overflow-x:hidden; }
     var curr = selected.currency || CURRENCY;
     var discount = calculateDiscount();
     var finalTotal = Math.max(0, selected.total + extrasTotal - discount);
+    var scopeLabel = getCouponScopeLabel();
 
     // Modal 1 (Extras)
     $('#mN1').textContent = String(selected.nights || 0);
     $('#mRoom1').textContent = formatCurrency(selected.total, curr);
     $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) { $('#mDiscountRow1').style.display = 'flex'; $('#mDiscountLabel1').textContent = appliedCoupon.code; $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr); }
+    if (discount > 0) { 
+      $('#mDiscountRow1').style.display = 'flex'; 
+      $('#mDiscountLabel1').textContent = appliedCoupon.code + ': ' + scopeLabel; 
+      $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr); 
+    }
     else { $('#mDiscountRow1').style.display = 'none'; }
     $('#mTotal1').textContent = formatCurrency(finalTotal, curr);
 
@@ -476,7 +626,11 @@ html, body { overflow-x:hidden; }
     $('#mN2').textContent = String(selected.nights || 0);
     $('#mRoom2').textContent = formatCurrency(selected.total, curr);
     $('#mExtras2').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) { $('#mDiscountRow2').style.display = 'flex'; $('#mDiscountLabel2').textContent = appliedCoupon.code; $('#mDiscount2').textContent = '−' + formatCurrency(discount, curr); }
+    if (discount > 0) { 
+      $('#mDiscountRow2').style.display = 'flex'; 
+      $('#mDiscountLabel2').textContent = appliedCoupon.code + ': ' + scopeLabel; 
+      $('#mDiscount2').textContent = '−' + formatCurrency(discount, curr); 
+    }
     else { $('#mDiscountRow2').style.display = 'none'; }
     $('#mTotal2').textContent = formatCurrency(finalTotal, curr);
   }
@@ -500,6 +654,23 @@ html, body { overflow-x:hidden; }
       if (coupon.min_booking_amount && subtotal < coupon.min_booking_amount) {
         return { valid: false, error: 'Minimum booking amount of ' + formatCurrency(coupon.min_booking_amount, coupon.currency || CURRENCY) + ' required' };
       }
+      
+      // Check if coupon targets specific extras, ensure at least one is selected
+      if (
+        (coupon.applies_to === 'extras' || coupon.applies_to === 'both') &&
+        Array.isArray(coupon.extra_ids) &&
+        coupon.extra_ids.length
+      ) {
+        var selectedIds = new Set(extras.filter(function(e) { return e.qty > 0; }).map(function(e) { return String(e.id); }));
+        var anyMatch = coupon.extra_ids.some(function(id) { return selectedIds.has(String(id)); });
+        if (!anyMatch) {
+          return {
+            valid: false,
+            error: 'This coupon does not apply to the selected extras'
+          };
+        }
+      }
+      
       return { valid: true, coupon: coupon };
     } catch (err) {
       return { valid: false, error: 'Error: ' + err.message };
@@ -512,9 +683,12 @@ html, body { overflow-x:hidden; }
       var discountText = appliedCoupon.discount_type === 'percentage'
         ? (appliedCoupon.discount_value + '% off')
         : (formatCurrency(appliedCoupon.discount_value, appliedCoupon.currency) + ' off');
+      
+      var scopeLabel = getCouponScopeLabel();
+      
       display.innerHTML =
         '<div class="applied-coupon">' +
-          '<div><code>' + appliedCoupon.code + '</code> - ' + discountText + ' ' + appliedCoupon.applies_to + '</div>' +
+          '<div><code>' + appliedCoupon.code + '</code> - ' + discountText + ' ' + scopeLabel + '</div>' +
           '<button class="remove-coupon" id="remove-coupon">Remove</button>' +
         '</div>';
       var rm = document.getElementById('remove-coupon');
@@ -736,9 +910,8 @@ html, body { overflow-x:hidden; }
   function closeModal(which) {
     var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : modThanks;
     el.style.display = 'none';
-    if (modResults.style.display === 'none' && modExtras.style.display === 'none' && modGuest.style.display === 'none' && modThanks.style.display === 'none') {
-      ovl.style.display = 'none';
-    }
+    // Always hide overlay when closing a modal - it will be shown again if another modal opens
+    ovl.style.display = 'none';
   }
 
   document.querySelectorAll('[data-close="results"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('results'); }); });
@@ -750,6 +923,14 @@ html, body { overflow-x:hidden; }
     b.addEventListener('click', function(){ closeModal('guest'); openModal('extras'); });
   });
   document.getElementById('thanks-close').addEventListener('click', function(){ closeModal('thanks'); });
+
+  // Close modal when clicking on overlay
+  ovl.addEventListener('click', function() {
+    if (modResults.style.display === 'flex') closeModal('results');
+    else if (modExtras.style.display === 'flex') closeModal('extras');
+    else if (modGuest.style.display === 'flex') closeModal('guest');
+    else if (modThanks.style.display === 'flex') closeModal('thanks');
+  });
 
   // ====== COUPON HANDLER ======
   document.getElementById('apply-coupon').addEventListener('click', async function () {
@@ -766,12 +947,19 @@ html, body { overflow-x:hidden; }
   // ====== EVENTS ======
   setDefaults(); updateSummary();
 
+    // Match admin: whenever check-in changes, set check-out = check-in + 1 day
   document.getElementById('ci').addEventListener('change', function () {
-    var ci = document.getElementById('ci').value, co = document.getElementById('co').value;
-    if (co <= ci) { var d = new Date(ci); d.setDate(d.getDate() + 1); document.getElementById('co').value = iso(d); }
+    var ci = document.getElementById('ci').value;
+    if (ci) {
+      document.getElementById('co').value = addDaysISO(ci, 1);
+    }
     updateNightsDisplay();
   });
-  document.getElementById('co').addEventListener('change', function () { updateNightsDisplay(); });
+
+  // Just recompute nights when check-out changes (validation happens on "See cabins")
+  document.getElementById('co').addEventListener('change', function () {
+    updateNightsDisplay();
+  });
 
   document.getElementById('load').addEventListener('click', async function () {
     var ci = document.getElementById('ci').value, co = document.getElementById('co').value;
@@ -785,14 +973,6 @@ html, body { overflow-x:hidden; }
 
     try {
       var rooms = await getAvailableRooms(ci, co, ad);
-      if (rooms.length > 0) {
-        var firstRoom = rooms[0];
-        if (firstRoom.weekdayNights > 0 || firstRoom.weekendNights > 0) {
-          document.getElementById('wd').textContent = String(firstRoom.weekdayNights);
-          document.getElementById('we').textContent = String(firstRoom.weekendNights);
-          document.getElementById('weekend-pill').style.display = 'inline-flex';
-        }
-      }
       await renderRooms(rooms, ci, co);
     } catch (e) {
       showMsg('Error: ' + (e.message || "Couldn't load availability. Please try again."), 'err');
@@ -946,6 +1126,7 @@ h1 { margin-bottom:8px; font-size:32px; font-weight:600; color:var(--text); line
 .sub { color:var(--muted); margin-bottom:24px; font-size:16px; line-height:1.5; }
 
 .grid { display:grid; gap:20px; margin-bottom:24px; }
+@media(min-width:860px){ .grid.cols-3{ grid-template-columns:1fr 1fr 0.8fr; } }
 @media(min-width:860px){ .grid.cols-4{ grid-template-columns:1fr 1fr 0.8fr auto; } }
 
 label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
@@ -987,8 +1168,7 @@ input[type="date"] {
 .btn.secondary { background:#f3f4f6; color:var(--text); border:1px solid var(--line); }
 .btn.secondary:hover { background:#e5e7eb; border-color:#cbd5e1; }
 
-.results { display:grid; gap:20px; margin-top:20px; }
-@media(min-width:820px){ .results{ grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); } }
+.results { display:grid; gap:20px; margin-top:20px; grid-template-columns:1fr; }
 
 .room {
   border:1px solid var(--line); border-radius:12px; background:#fff;

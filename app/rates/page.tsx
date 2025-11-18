@@ -496,16 +496,16 @@ export default function RatesPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href="/book" 
+              href="/book-escape" 
               className="px-8 py-4 bg-white text-black text-sm tracking-wider uppercase hover:bg-gray-100 transition-colors duration-300"
             >
               Check Availability
             </a>
             <a 
-              href="/contact" 
+              href="https://wa.me/233547484568"  
               className="px-8 py-4 border border-white text-white text-sm tracking-wider uppercase hover:bg-white hover:text-black transition-all duration-300"
             >
-              Contact Us
+              WhatsApp
             </a>
           </div>
         </div>

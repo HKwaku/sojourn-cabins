@@ -1,13 +1,22 @@
+import Image from 'next/image'
 import Section from '../components/Section'
 
 export default function GettingHerePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative h-[50vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+        <Image
+          src="/cabins/sun.jpg"
+          alt="/cabins/sea.jpg"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
-          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/80"></p>
-          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight">Getting Here</h1>
+          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/90">Travel Information</p>
+          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight text-white">Getting Here</h1>
           <p className="text-lg md:text-xl font-light text-white/90 max-w-2xl mx-auto leading-relaxed">
             Your cabin is within a 10-minute drive from Fort William, Anomabo, Ghana
           </p>
