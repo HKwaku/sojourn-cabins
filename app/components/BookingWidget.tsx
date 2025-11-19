@@ -189,6 +189,17 @@ input[type="date"]{
 .name{font-weight:700;font-size:17px}
 .desc{color:#64748b;font-size:14px;line-height:1.5;min-height:2.6em}
 .foot{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.room-select{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+}
+.room-select input[type="checkbox"]{
+  width:16px;
+  height:16px;
+}
+
 .price{font-weight:800;font-size:15px}
 .price-breakdown{color:#64748b;font-size:12.5px}
 .chip{display:inline-flex;min-width:44px;justify-content:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
@@ -313,7 +324,10 @@ html, body { overflow-x:hidden; }
     '<div id="modal-results" class="modal" aria-hidden="true"><div class="sheet">' +
       '<header><div>Available cabins</div><button class="x" data-close="results">×</button></header>' +
       '<main><div id="results-modal" class="results"></div></main>' +
-      '<footer><button class="btn secondary" data-close="results">Close</button></footer>' +
+            '<footer>' +
+        '<button class="btn secondary" data-close="results">Close</button>' +
+        '<button class="btn" id="results-continue">Continue</button>' +
+      '</footer>' +
     '</div></div>' +
 
     '<div id="modal-extras" class="modal" aria-hidden="true"><div class="sheet">' +
@@ -369,6 +383,7 @@ html, body { overflow-x:hidden; }
           '<div class="kv"><span>Room</span><strong id="tRoom">—</strong></div>' +
           '<div class="kv total"><span>Total paid</span><strong id="tTotal">—</strong></div>' +
         '</div>' +
+
         '<p class="sub" style="margin-top:10px">A confirmation email will be sent to you shortly.</p>' +
       '</main>' +
       '<footer><button class="btn" id="thanks-close">Close</button></footer>' +
@@ -420,6 +435,17 @@ html, body { overflow-x:hidden; }
     }
     
     return { weekday: weekday, weekend: weekend };
+  }
+
+    function getRequiredCabinsForRoom(totalAdults, maxAdults) {
+    var total = parseInt(totalAdults, 10) || 1;
+    if (total <= 0) total = 1;
+
+    var cap = parseInt(maxAdults, 10);
+    // If capacity is missing/invalid, treat as 1 cabin
+    if (!cap || cap <= 0) return 1;
+
+    return Math.ceil(total / cap);
   }
 
   function showMsg(t, type) { var el = $('#msg'); el.className = 'notice' + (type === 'err' ? ' err' : ''); el.style.display = 'block'; el.textContent = t; }
@@ -476,11 +502,13 @@ html, body { overflow-x:hidden; }
   }
 
   // ====== STATE ======
-  var selected = null;
+  var selected = null;          // aggregated selection (summary)
+  var selectedRooms = [];       // individual rooms/cabins selected via checkboxes
   var extras = [];
   var extrasTotal = 0;
   var appliedCoupon = null;
   var discountAmount = 0;
+
 
   function getCouponScopeLabel() {
     if (!appliedCoupon) return '';
@@ -580,28 +608,76 @@ html, body { overflow-x:hidden; }
     return discount;
   }
 
-  function updateSummary(){
-    var room = selected && selected.total ? selected.total : 0;
-    var curr = (selected && selected.currency) ? selected.currency : CURRENCY;
-    var discount = calculateDiscount();
-    var finalTotal = Math.max(0, room + extrasTotal - discount);
+    function updateSummary() {
+    var curr = selected && selected.currency ? selected.currency : (CURRENCY || 'GHS');
+    var roomTotal = selected && selected.total ? selected.total : 0;
+    var discount = typeof calculateDiscount === 'function' ? calculateDiscount() : 0;
+    var finalTotal = Math.max(0, roomTotal + extrasTotal - discount);
 
-    $('#sRoom').textContent = room ? formatCurrency(room, curr) : '—';
-    $('#sExtras').textContent = formatCurrency(extrasTotal, curr);
+    var sRoomEl   = $('#sRoom');
+    var sExtrasEl = $('#sExtras');
+    var sDiscEl   = $('#sDisc');
+    var sTotalEl  = $('#sTotal');
+    var sNEl      = $('#sN');
 
-    if (discount > 0) {
-      $('#sDiscountRow').style.display = 'flex';
-      var scopeLabel = getCouponScopeLabel();
-      $('#sDiscountLabel').textContent = appliedCoupon.code + ': ' + scopeLabel;
-      $('#sDiscount').textContent = '−' + formatCurrency(discount, curr);
-    } else {
-      $('#sDiscountRow').style.display = 'none';
+    // Per-room split: if multiple rooms selected, show each line
+    if (sRoomEl) {
+      if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+        var lines = selectedRooms.map(function (r) {
+          var nm = r.name || r.code || 'Room';
+          var amt = r.total || 0;
+          var cur = r.currency || curr;
+          return nm + ': ' + formatCurrency(amt, cur);
+        });
+        sRoomEl.innerHTML = lines.join('<br>');
+      } else {
+        sRoomEl.textContent = roomTotal ? formatCurrency(roomTotal, curr) : '—';
+      }
     }
 
-    $('#sTotal').textContent = room ? formatCurrency(finalTotal, curr) : '—';
-    $('#sN').textContent = String(selected ? selected.nights : $('#nn').textContent);
-    $('#cont').disabled = !selected;
+    if (sExtrasEl) {
+      sExtrasEl.textContent = extrasTotal ? formatCurrency(extrasTotal, curr) : '—';
+    }
+
+    if (sDiscEl) {
+      sDiscEl.textContent = discount ? ('- ' + formatCurrency(discount, curr)) : '—';
+    }
+
+    if (sTotalEl) {
+      sTotalEl.textContent = roomTotal ? formatCurrency(finalTotal, curr) : '—';
+    }
+
+    if (sNEl) {
+      sNEl.textContent = String(selected ? selected.nights : ($('#nn') ? $('#nn').textContent : '0'));
+    }
+
+       // Capacity check + messaging:
+    var contBtn = document.getElementById('cont');
+    if (contBtn) {
+      var adultsVal = Number((document.getElementById('ad') || {}).value || 2);
+      var enoughCapacity =
+        !selected || typeof selected.capacity !== 'number'
+          ? true
+          : (selected.capacity >= adultsVal);
+
+      // Only disable when *no* room is selected. For capacity issues,
+      // keep enabled and let the click handler block + show alert.
+      contBtn.disabled = !selected;
+
+      // Show inline message about capacity vs allow-continue
+      if (selected && !enoughCapacity) {
+        showMsg(
+          'Number of guests exceed the capacity of the cabin(s) you have selected, please select an additional cabin',
+          'err'
+        );
+      } else if (selected) {
+        showMsg((selected.name || 'Rooms') + ' selected. You can Continue.', 'ok');
+      } else {
+        hideMsg();
+      }
+    }
   }
+
 
   function updateModalSummaries() {
     if (!selected) return;
@@ -612,26 +688,58 @@ html, body { overflow-x:hidden; }
 
     // Modal 1 (Extras)
     $('#mN1').textContent = String(selected.nights || 0);
-    $('#mRoom1').textContent = formatCurrency(selected.total, curr);
-    $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) { 
-      $('#mDiscountRow1').style.display = 'flex'; 
-      $('#mDiscountLabel1').textContent = appliedCoupon.code + ': ' + scopeLabel; 
-      $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr); 
+
+    var mRoom1El = $('#mRoom1');
+    if (mRoom1El) {
+      if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+        var lines1 = selectedRooms.map(function (r) {
+          var nm = r.name || r.code || 'Room';
+          var amt = r.total || 0;
+          var cur = r.currency || curr;
+          return nm + ': ' + formatCurrency(amt, cur);
+        });
+        mRoom1El.innerHTML = lines1.join('<br>');
+      } else {
+        mRoom1El.textContent = formatCurrency(selected.total, curr);
+      }
     }
-    else { $('#mDiscountRow1').style.display = 'none'; }
+
+    $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
+    if (discount > 0) {
+      $('#mDiscountRow1').style.display = 'flex';
+      $('#mDiscountLabel1').textContent = appliedCoupon.code + ': ' + scopeLabel;
+      $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr);
+    } else {
+      $('#mDiscountRow1').style.display = 'none';
+    }
     $('#mTotal1').textContent = formatCurrency(finalTotal, curr);
 
     // Modal 2 (Guest)
     $('#mN2').textContent = String(selected.nights || 0);
-    $('#mRoom2').textContent = formatCurrency(selected.total, curr);
-    $('#mExtras2').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) { 
-      $('#mDiscountRow2').style.display = 'flex'; 
-      $('#mDiscountLabel2').textContent = appliedCoupon.code + ': ' + scopeLabel; 
-      $('#mDiscount2').textContent = '−' + formatCurrency(discount, curr); 
+
+    var mRoom2El = $('#mRoom2');
+    if (mRoom2El) {
+      if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+        var lines2 = selectedRooms.map(function (r) {
+          var nm2 = r.name || r.code || 'Room';
+          var amt2 = r.total || 0;
+          var cur2 = r.currency || curr;
+          return nm2 + ': ' + formatCurrency(amt2, cur2);
+        });
+        mRoom2El.innerHTML = lines2.join('<br>');
+      } else {
+        mRoom2El.textContent = formatCurrency(selected.total, curr);
+      }
     }
-    else { $('#mDiscountRow2').style.display = 'none'; }
+
+    $('#mExtras2').textContent = formatCurrency(extrasTotal, curr);
+    if (discount > 0) {
+      $('#mDiscountRow2').style.display = 'flex';
+      $('#mDiscountLabel2').textContent = appliedCoupon.code + ': ' + scopeLabel;
+      $('#mDiscount2').textContent = '−' + formatCurrency(discount, curr);
+    } else {
+      $('#mDiscountRow2').style.display = 'none';
+    }
     $('#mTotal2').textContent = formatCurrency(finalTotal, curr);
   }
 
@@ -702,22 +810,41 @@ html, body { overflow-x:hidden; }
   }
 
   // ====== API ======
-  async function getAvailableRooms(checkIn, checkOut, adults) {
+    async function getAvailableRooms(checkIn, checkOut, adults) {
+    // Front-end now handles multiple cabins for larger groups.
+    // The RPC only needs a per-cabin capacity check, so clamp to 2
+    // (your current max_adults per room type). This prevents the RPC
+    // from filtering everything out when adults > 2.
+    var requested = parseInt(adults, 10);
+    if (!requested || requested < 1) requested = 1;
+    var perRoomAdults = Math.min(requested, 2);
+
     var rooms = await supabase.rpc('get_available_rooms', {
-      p_check_in: checkIn, p_check_out: checkOut, p_adults: parseInt(adults, 10)
+      p_check_in: checkIn,
+      p_check_out: checkOut,
+      p_adults: perRoomAdults
     });
+
     return rooms.map(function (room) {
       return {
-        id: room.id, code: room.code, name: room.name, description: room.description,
-        weekdayPrice: parseFloat(room.weekday_price), weekendPrice: parseFloat(room.weekend_price),
+        id: room.id,
+        code: room.code,
+        name: room.name,
+        description: room.description,
+        weekdayPrice: parseFloat(room.weekday_price),
+        weekendPrice: parseFloat(room.weekend_price),
         totalPrice: parseFloat(room.total_price),
         weekdayNights: parseInt(room.weekday_nights, 10),
         weekendNights: parseInt(room.weekend_nights, 10),
         nights: parseInt(room.nights, 10),
-        imageUrl: room.image_url, currency: room.currency || 'GHS'
+        // dynamic max adults per room type from Supabase
+        maxAdults: room.max_adults != null ? parseInt(room.max_adults, 10) : null,
+        imageUrl: room.image_url,
+        currency: room.currency || 'GHS'
       };
     });
   }
+
 
   async function getExtras() {
     try {
@@ -739,7 +866,7 @@ html, body { overflow-x:hidden; }
       if (!roomTypes || roomTypes.length === 0) throw new Error('Room type not found');
       var roomTypeId = roomTypes[0].id;
 
-      var reservationData = {
+            var reservationData = {
         confirmation_code: confirmCode,
         room_type_id: roomTypeId,
         room_type_code: payload.roomTypeCode,
@@ -758,7 +885,10 @@ html, body { overflow-x:hidden; }
         guest_last_name: payload.guest.last,
         guest_email: payload.guest.email,
         guest_phone: payload.guest.phone || '',
-        status: 'confirmed'
+        status: 'confirmed',
+        // 👇 new fields for grouping multi-room bookings
+        group_reservation_id: payload.groupReservationId || null,
+        group_reservation_code: payload.groupReservationCode || null
       };
 
       var newReservations = await supabase.insert('reservations', reservationData);
@@ -791,13 +921,23 @@ html, body { overflow-x:hidden; }
   }
 
   // ====== RENDER ROOMS ======
-  async function renderRooms(items, ci, co) {
+  async function renderRooms(items, ci, co, adults) {
     var r = RESULTS_SEL(); r.innerHTML = '';
     if (!items || !items.length) { showMsg('No cabins available for those dates.', 'err'); return; }
     if (items[0] && items[0].currency) { CURRENCY = items[0].currency; }
     hideMsg(); showMsg('Availability loaded — ' + items.length + ' option' + (items.length > 1 ? 's' : '') + '.', 'ok');
 
-    items.forEach(function (it) {
+    // Total adults for this search
+    var totalAdults = parseInt(adults, 10) || 1;
+    if (totalAdults <= 0) totalAdults = 1;
+
+    // Guests "need more than one room" if no room type alone can host them
+    var needsMultipleRooms = items.every(function (it) {
+      var cap = it.maxAdults != null ? parseInt(it.maxAdults, 10) : totalAdults;
+      return totalAdults > cap;
+    });
+
+      items.forEach(function (it) {
       var img = it.imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect fill='%23eef2f7' width='100%25' height='100%25'/%3E%3C/svg%3E";
       var priceBreakdown = '';
       if (it.weekdayNights > 0 && it.weekendNights > 0) {
@@ -807,6 +947,9 @@ html, body { overflow-x:hidden; }
       } else if (it.weekendNights > 0) {
         priceBreakdown = it.weekendNights + ' night' + (it.weekendNights > 1 ? 's' : '') + ' × ' + formatCurrency(it.weekendPrice, it.currency);
       }
+        
+      // Per-cabin price for the full stay
+      var totalForRoom = it.totalPrice;
 
       var card = document.createElement('div');
       card.className = 'room';
@@ -817,41 +960,174 @@ html, body { overflow-x:hidden; }
           '<div class="desc">' + (it.description || 'Relax in a cozy cabin.') + '</div>' +
           '<div class="foot">' +
             '<div class="price">' +
-              '<div>' + it.nights + ' night' + (it.nights > 1 ? 's' : '') + ' • <span class="chip">' + formatCurrency(it.totalPrice, it.currency) + ' total</span></div>' +
+              '<div>' +
+                it.nights + ' night' + (it.nights > 1 ? 's' : '') +
+                ' • <span class="chip">' + formatCurrency(totalForRoom, it.currency) + ' total</span>' +
+              '</div>' +
               (priceBreakdown ? '<div class="price-breakdown">' + priceBreakdown + '</div>' : '') +
             '</div>' +
-            '<button class="btn secondary" ' +
-              'data-id="' + it.id + '" data-code="' + it.code + '" data-name="' + it.name + '" data-img="' + img + '" ' +
-              'data-total="' + it.totalPrice + '" data-weekday-price="' + it.weekdayPrice + '" data-weekend-price="' + it.weekendPrice + '" ' +
-              'data-weekday-nights="' + it.weekdayNights + '" data-weekend-nights="' + it.weekendNights + '" data-nights="' + it.nights + '" data-currency="' + it.currency + '">Select</button>' +
+            '<label class="room-select">' +
+              '<input type="checkbox" class="room-checkbox" ' +
+                'data-id="' + it.id + '" data-code="' + it.code + '" data-name="' + it.name + '" data-img="' + img + '" ' +
+                'data-total="' + totalForRoom + '" data-currency="' + it.currency + '" ' +
+                'data-max-adults="' + (it.maxAdults != null ? it.maxAdults : '') + '" ' +
+                'data-nights="' + it.nights + '">' +
+              '<span>Select</span>' +
+            '</label>' +
           '</div>' +
         '</div>';
       r.appendChild(card);
     });
 
+        // ----- Preselect cabins based on number of adults -----
+    (function preselectCabins() {
+      var boxes = r.querySelectorAll('input.room-checkbox');
+      if (!boxes || !boxes.length) return;
+
+      var adultsVal = Number((document.getElementById('ad') || {}).value || 2);
+      if (!adultsVal || adultsVal <= 0) return;
+
+      // Build array of { cb, cap, price } for sorting
+      var arr = Array.prototype.slice.call(boxes).map(function (cb) {
+        var cap = parseInt(cb.getAttribute('data-max-adults') || '0', 10);
+        if (!Number.isFinite(cap) || cap < 0) cap = 0;
+        var price = parseFloat(cb.getAttribute('data-total') || '0');
+        if (!Number.isFinite(price) || price < 0) price = 0;
+        return { cb: cb, cap: cap, price: price };
+      });
+
+      // Sort by most expensive first
+      arr.sort(function (a, b) {
+        return b.price - a.price;
+      });
+
+      var remaining = adultsVal;
+      arr.forEach(function (item) {
+        if (remaining > 0 && item.cap > 0) {
+          item.cb.checked = true;
+          remaining -= item.cap;
+        }
+      });
+    })();
+
+    // ---- Sort so preselected rooms come to top ----
+    (function sortPreselectedFirst() {
+      var cards = Array.from(r.children);
+      cards.sort(function (a, b) {
+        var aChecked = a.querySelector('.room-checkbox')?.checked ? 1 : 0;
+        var bChecked = b.querySelector('.room-checkbox')?.checked ? 1 : 0;
+        return bChecked - aChecked; // checked first
+      });
+      cards.forEach(card => r.appendChild(card));
+    })();
+
+
+    // Recompute aggregate selection from checked checkboxes
+    function recomputeSelectionFromCheckboxes() {
+      var boxes = r.querySelectorAll('input.room-checkbox');
+      selectedRooms = [];
+      var totalRoom = 0;
+      var totalCapacity = 0;
+      var nameParts = [];
+      var codes = [];
+      var first = null;
+
+      boxes.forEach(function (cb) {
+        if (!cb.checked) return;
+        if (!first) first = cb;
+
+        var roomTotal = parseFloat(cb.getAttribute('data-total') || '0');
+        var maxA = parseInt(cb.getAttribute('data-max-adults') || '0', 10);
+        if (!Number.isFinite(maxA) || maxA < 0) maxA = 0;
+
+        totalRoom += roomTotal;
+        totalCapacity += maxA;
+
+        var nm = cb.getAttribute('data-name') || '';
+        if (nm) nameParts.push(nm);
+
+        var code = cb.getAttribute('data-code');
+        if (code) codes.push(code);
+
+        selectedRooms.push({
+          id: cb.getAttribute('data-id'),
+          code: code,
+          name: nm,
+          total: roomTotal,
+          maxAdults: maxA,
+          currency: cb.getAttribute('data-currency') || CURRENCY,
+          nights: parseInt(cb.getAttribute('data-nights') || '0', 10)
+        });
+      });
+
+      if (!selectedRooms.length) {
+        selected = null;
+        updateSummary();
+        return;
+      }
+
+      var curr = (first && (first.getAttribute('data-currency') || CURRENCY)) || CURRENCY;
+      selected = {
+        // For now, use the first room as the canonical room_type for the backend
+        id: selectedRooms[0].id,
+        code: selectedRooms[0].code,
+        name: nameParts.join(' + '),             // e.g. "Cabin A + Cabin B"
+        total: totalRoom,                        // combined room subtotal
+        currency: curr,
+        nights: nights(document.getElementById('ci').value, document.getElementById('co').value),
+        capacity: totalCapacity                  // combined adult capacity across selected rooms
+      };
+
+      CURRENCY = curr;
+      extras = [];
+      extrasTotal = 0;
+      appliedCoupon = null;
+      discountAmount = 0;
+      // updateSummary now handles both the capacity error
+      // and the "Rooms selected. You can Continue." message.
+      updateSummary();
+    }
+
+    // Attach checkbox listeners
+    r.querySelectorAll('input.room-checkbox').forEach(function (cb) {
+      cb.addEventListener('change', recomputeSelectionFromCheckboxes);
+    });
+
+    // Initial state (no rooms checked yet)
+    recomputeSelectionFromCheckboxes();
+
+
+        // Normal click behaviour:
+    // - If they DON'T need multiple rooms: select + continue (old behaviour)
+    // - If they DO need multiple rooms: select but STAY on results (no auto-jump to extras)
     r.querySelectorAll('button[data-code]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var curr = btn.getAttribute('data-currency') || CURRENCY;
-        selected = {
-          id: btn.getAttribute('data-id'),
-          code: btn.getAttribute('data-code'),
-          name: btn.getAttribute('data-name'),
-          weekdayPrice: parseFloat(btn.getAttribute('data-weekday-price') || '0'),
-          weekendPrice: parseFloat(btn.getAttribute('data-weekend-price') || '0'),
-          weekdayNights: parseInt(btn.getAttribute('data-weekday-nights') || '0', 10),
-          weekendNights: parseInt(btn.getAttribute('data-weekend-nights') || '0', 10),
-          total: parseFloat(btn.getAttribute('data-total') || '0'),
-          currency: curr,
-          imageUrl: btn.getAttribute('data-img'),
-          nights: parseInt(btn.getAttribute('data-nights') || '0', 10)
-        };
-        CURRENCY = curr; extras = []; extrasTotal = 0; appliedCoupon = null; discountAmount = 0;
-        updateSummary();
-        showMsg((selected.name || 'Room') + ' selected. You can Continue.', 'ok');
-        closeModal('results');
-        var c = document.getElementById('cont'); if (c) c.click();
+        applySelectionFromButton(btn, !needsMultipleRooms);
       });
     });
+
+
+    // If guests NEED more than one room (no single room can host them),
+    // sort by most expensive total-for-party and auto-select that option.
+    if (needsMultipleRooms) {
+      var sorted = items.slice().sort(function (a, b) {
+        var cabinsA = getRequiredCabinsForRoom(totalAdults, a.maxAdults);
+        var cabinsB = getRequiredCabinsForRoom(totalAdults, b.maxAdults);
+        var totalA = a.totalPrice * cabinsA;
+        var totalB = b.totalPrice * cabinsB;
+        return totalB - totalA; // most expensive first
+      });
+
+      if (sorted.length > 0) {
+        var best = sorted[0];
+        var bestBtn = r.querySelector('button[data-id="' + best.id + '"]');
+        if (bestBtn) {
+          // Auto-select but DO NOT auto-advance; user still sees options
+          applySelectionFromButton(bestBtn, false);
+        }
+      }
+    }
+
   }
 
   function renderExtrasList(list) {
@@ -922,7 +1198,19 @@ html, body { overflow-x:hidden; }
   document.querySelectorAll('[data-back="guest"]').forEach(function (b) {
     b.addEventListener('click', function(){ closeModal('guest'); openModal('extras'); });
   });
+
   document.getElementById('thanks-close').addEventListener('click', function(){ closeModal('thanks'); });
+    // "Continue" inside the Available cabins modal:
+  // if a room is selected, close results and reuse the main Continue logic.
+  var resultsContinueBtn = document.getElementById('results-continue');
+  if (resultsContinueBtn) {
+    resultsContinueBtn.addEventListener('click', function () {
+      if (!selected) return; // nothing chosen yet
+      closeModal('results');
+      var c = document.getElementById('cont');
+      if (c) c.click();
+    });
+  }
 
   // Close modal when clicking on overlay
   ovl.addEventListener('click', function() {
@@ -973,7 +1261,7 @@ html, body { overflow-x:hidden; }
 
     try {
       var rooms = await getAvailableRooms(ci, co, ad);
-      await renderRooms(rooms, ci, co);
+      await renderRooms(rooms, ci, co, ad);
     } catch (e) {
       showMsg('Error: ' + (e.message || "Couldn't load availability. Please try again."), 'err');
     }
@@ -981,6 +1269,12 @@ html, body { overflow-x:hidden; }
 
   document.getElementById('cont').addEventListener('click', async function () {
     if (!selected) return;
+    // Capacity check: if guests exceed combined cabin capacity, block and show message
+    var adultsVal = Number((document.getElementById('ad') || {}).value || 2);
+    if (typeof selected.capacity === 'number' && selected.capacity < adultsVal) {
+      alert('number of guests exceed  the capacity of the cabin (s) you have selected, please select an additional cabin');
+      return;
+    }
     try {
       var extrasList = await getExtras();
       var picked = new Map(extras.filter(function (x) { return x.qty > 0; }).map(function (x) { return [x.code, x.qty]; }));
@@ -1007,75 +1301,218 @@ html, body { overflow-x:hidden; }
     openModal('guest');
   });
 
-  document.getElementById('confirm').addEventListener('click', async function () {
-    var firstEl = document.getElementById('gFirst'), lastEl = document.getElementById('gLast'), emailEl = document.getElementById('gEmail'), phoneEl = document.getElementById('gPhone');
+    document.getElementById('confirm').addEventListener('click', async function () {
+    var firstEl = document.getElementById('gFirst'),
+        lastEl  = document.getElementById('gLast'),
+        emailEl = document.getElementById('gEmail'),
+        phoneEl = document.getElementById('gPhone');
+
     var first = firstEl && firstEl.value ? firstEl.value.trim() : '';
     var last  = lastEl  && lastEl.value  ? lastEl.value.trim()  : '';
     var email = emailEl && emailEl.value ? emailEl.value.trim() : '';
-    if (!first || !last || !email) { alert('Please enter first name, last name, and email.'); return; }
-    if (!selected || !selected.code) { alert('Please select a room first.'); return; }
+
+    if (!first || !last || !email) {
+      alert('Please enter first name, last name, and email.');
+      return;
+    }
+    if (!selected || !selected.code) {
+      alert('Please select a room first.');
+      return;
+    }
 
     var discount = calculateDiscount();
     var finalTotal = Math.max(0, (selected.total || 0) + extrasTotal - discount);
 
-    var payload = {
-      checkIn: document.getElementById('ci').value,
-      checkOut: document.getElementById('co').value,
-      adults: Number((document.getElementById('ad') || {}).value || 2),
-      nights: selected.nights || 0,
-      roomTypeCode: selected.code,
-      roomName: selected.name,
-      roomSubtotal: selected.total || 0,
-      extras: extras.filter(function (x) { return x.qty > 0; }).map(function (x) { return { code: x.code, name: x.name, price: x.price, qty: x.qty }; }),
-      extrasTotal: extrasTotal,
-      discountAmount: discount,
-      couponCode: appliedCoupon ? appliedCoupon.code : null,
-      finalTotal: finalTotal,
-      guest: { first: first, last: last, email: email, phone: phoneEl && phoneEl.value ? phoneEl.value.trim() : '' },
-      currency: selected.currency || CURRENCY || 'GHS'
-    };
+    // Are there multiple rooms selected via checkboxes?
+    var hasMultipleRooms = Array.isArray(selectedRooms) && selectedRooms.length > 1;
+    
+    // Track the full amount the guest is paying across all rooms
+    var groupFinalTotal = 0;
 
-    var btn = document.getElementById('confirm'); var old = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Confirming…';
+    // Shared group fields for multi-room bookings
+    var groupId = null;
+    var groupCode = null;
+    if (hasMultipleRooms) {
+      if (window.crypto && window.crypto.randomUUID) {
+        groupId = window.crypto.randomUUID();
+      } else {
+        groupId = 'grp_' + Math.random().toString(36).slice(2, 10);
+      }
+      groupCode = 'GRP-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    }
+
+    // Base data shared across all reservations in this booking
+    var checkInVal  = document.getElementById('ci').value;
+    var checkOutVal = document.getElementById('co').value;
+    var adultsVal   = Number((document.getElementById('ad') || {}).value || 2);
+    var sharedGuest = {
+      first: first,
+      last: last,
+      email: email,
+      phone: phoneEl && phoneEl.value ? phoneEl.value.trim() : ''
+    };
+    var curr = selected.currency || CURRENCY || 'GHS';
+
+    // Extras lines only once (we'll attach them to the first reservation)
+    var extrasLines = extras
+      .filter(function (x) { return x.qty > 0; })
+      .map(function (x) {
+        return { code: x.code, name: x.name, price: x.price, qty: x.qty };
+      });
+
+    // Determine which rooms to use:
+    // - if checkboxes have been used: selectedRooms[]
+    // - else: fall back to the single aggregated "selected" room
+    var roomsForPayload = (Array.isArray(selectedRooms) && selectedRooms.length)
+      ? selectedRooms
+      : [{
+          id: selected.id,
+          code: selected.code,
+          name: selected.name,
+          total: selected.total || 0,
+          currency: curr
+        }];
+
+    // Build one payload per room; first one carries extras + discount
+    var roomPayloads = [];
+    for (var i = 0; i < roomsForPayload.length; i++) {
+      var room = roomsForPayload[i];
+      var isPrimary = (i === 0);
+
+      var roomExtrasTotal = isPrimary ? extrasTotal : 0;
+      var roomDiscount    = isPrimary ? discount    : 0;
+      var roomFinal       = Math.max(0, (room.total || 0) + roomExtrasTotal - roomDiscount);
+      
+      groupFinalTotal += roomFinal;   // 👈 accumulate full amount
+      
+      roomPayloads.push({
+        checkIn: checkInVal,
+        checkOut: checkOutVal,
+        adults: adultsVal,
+        nights: selected.nights || 0,
+        roomTypeCode: room.code,
+        roomName: room.name,
+        roomSubtotal: room.total || 0,
+        extras: isPrimary ? extrasLines : [],
+        extrasTotal: roomExtrasTotal,
+        discountAmount: roomDiscount,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        finalTotal: roomFinal,
+        guest: sharedGuest,
+        currency: curr,
+        groupReservationId: groupId,
+        groupReservationCode: groupCode
+      });
+    }
+
+    var btn = document.getElementById('confirm');
+    var old = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Confirming…';
 
     try {
-      var res = await createReservation(payload);
-      try {
-        await fetch(SUPABASE_URL + '/functions/v1/send-booking-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + SUPABASE_ANON_KEY },
-          body: JSON.stringify({ booking: {
-            confirmation_code: res.confirmation_code,
-            guest_first_name: first,
-            guest_last_name: last,
-            guest_email: email,
-            guest_phone: phoneEl && phoneEl.value ? phoneEl.value.trim() : '',
-            room_name: payload.roomName,
-            check_in: payload.checkIn,
-            check_out: payload.checkOut,
-            nights: payload.nights,
-            adults: payload.adults,
-            room_subtotal: payload.roomSubtotal,
-            extras_total: payload.extrasTotal,
-            discount_amount: discount,
-            coupon_code: payload.couponCode,
-            total: finalTotal,
-            currency: payload.currency
-          }})
-        });
-      } catch (emailErr) {}
+      var primaryRes = null;
+      var primaryPayload = null;
 
-      closeModal('guest');
-      document.getElementById('tCode').textContent = res.confirmation_code || '—';
-      document.getElementById('tName').textContent = first + ' ' + last;
-      document.getElementById('tDates').textContent = payload.checkIn + ' → ' + payload.checkOut;
-      document.getElementById('tRoom').textContent = payload.roomName || '—';
-      document.getElementById('tTotal').textContent = new Intl.NumberFormat('en-GB', { style: 'currency', currency: res.currency || payload.currency }).format(res.total || finalTotal);
+      // Create one reservation row per room payload
+      for (var j = 0; j < roomPayloads.length; j++) {
+        var p = roomPayloads[j];
+        var res = await createReservation(p);
+        if (j === 0) {
+          primaryRes = res;
+          primaryPayload = p;
+        }
+      }
+
+      // Send booking email once, based on the primary reservation/payload
+      if (primaryRes && primaryPayload) {
+        try {
+          await fetch(SUPABASE_URL + '/functions/v1/send-booking-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({
+              booking: {
+                confirmation_code: primaryRes.confirmation_code,
+                guest_first_name: first,
+                guest_last_name: last,
+                guest_email: email,
+                guest_phone: sharedGuest.phone,
+                room_name: primaryPayload.roomName,
+                check_in: primaryPayload.checkIn,
+                check_out: primaryPayload.checkOut,
+                nights: primaryPayload.nights,
+                adults: primaryPayload.adults,
+                room_subtotal: primaryPayload.roomSubtotal,
+                extras_total: primaryPayload.extrasTotal,
+                discount_amount: primaryPayload.discountAmount,
+                coupon_code: primaryPayload.couponCode,
+                total: primaryPayload.finalTotal,
+                currency: primaryPayload.currency
+              }
+            })
+          });
+        } catch (emailErr) {}
+      }
+
+            closeModal('guest');
+
+      // Use the full group total for the thank-you page (even for single-room bookings)
+      var thanksTotal = groupFinalTotal || finalTotal;
+      var thanksCurrency = curr;
+
+            var codeEl  = document.getElementById('tCode');
+      var nameEl  = document.getElementById('tName');
+      var datesEl = document.getElementById('tDates');
+      var roomEl  = document.getElementById('tRoom');
+      var totalEl = document.getElementById('tTotal');
+
+      if (codeEl) {
+        var codeToShow = '—';
+        if (hasMultipleRooms && groupCode) {
+          // For group bookings, show the group booking code
+          codeToShow = groupCode;
+        } else if (primaryRes && primaryRes.confirmation_code) {
+          // For single-room bookings, show the standard confirmation code
+          codeToShow = primaryRes.confirmation_code;
+        }
+        codeEl.textContent = codeToShow;
+      }
+
+      if (nameEl)  nameEl.textContent  = first + ' ' + last;
+      if (datesEl) datesEl.textContent = checkInVal + ' → ' + checkOutVal;
+
+      // Per-room split on confirmation page
+      if (roomEl) {
+        if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+          var lines = selectedRooms.map(function (r) {
+            var nm = r.name || r.code || 'Room';
+            var amt = r.total || 0;
+            var cur = r.currency || thanksCurrency;
+            return nm + ': ' + formatCurrency(amt, cur);
+          });
+          roomEl.innerHTML = lines.join('<br>');
+        } else {
+          roomEl.textContent = selected.name || '—';
+        }
+      }
+
+      if (totalEl) {
+        totalEl.textContent = new Intl.NumberFormat('en-GB', {
+          style: 'currency',
+          currency: thanksCurrency
+        }).format(thanksTotal);
+      }
+
       openModal('thanks');
+
     } catch (e) {
       alert('Error creating reservation: ' + e.message);
     } finally {
-      btn.disabled = false; btn.textContent = old;
+      btn.disabled = false;
+      btn.textContent = old;
     }
   });
 
