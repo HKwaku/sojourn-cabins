@@ -1373,8 +1373,53 @@ html, body { overflow-x:hidden; }
           currency: curr
         }];
 
+    // --- Distribute adults across rooms (for multi-cabin bookings) ---
+    // Fill one room up to its max adults, then move to the next, until no adults remain.
+    var totalAdults = adultsVal;
+    var adultsPerRoom = [];
+
+    if (roomsForPayload.length > 1) {
+      var remainingAdults = totalAdults;
+
+      for (var i = 0; i < roomsForPayload.length; i++) {
+        var room = roomsForPayload[i];
+
+        // maxAdults is set when we build selectedRooms in renderRooms
+        var maxA = typeof room.maxAdults === 'number'
+          ? room.maxAdults
+          : parseInt(room.maxAdults, 10);
+
+        if (!Number.isFinite(maxA) || maxA <= 0) {
+          // If we somehow have no capacity info, just put all remaining adults here
+          adultsPerRoom.push(remainingAdults);
+          remainingAdults = 0;
+        } else {
+          var assign = Math.min(remainingAdults, maxA);
+          adultsPerRoom.push(assign);
+          remainingAdults -= assign;
+        }
+
+        // If we've allocated everyone already, any remaining rooms get 0 adults
+        if (remainingAdults <= 0 && i < roomsForPayload.length - 1) {
+          for (var j = i + 1; j < roomsForPayload.length; j++) {
+            adultsPerRoom.push(0);
+          }
+          break;
+        }
+      }
+
+      // Safety: ensure array length matches roomsForPayload length
+      while (adultsPerRoom.length < roomsForPayload.length) {
+        adultsPerRoom.push(0);
+      }
+    } else {
+      // Single-room booking: all adults stay on the one room
+      adultsPerRoom = [totalAdults];
+    }
+
     // Build one payload per room; first one carries extras + discount
     var roomPayloads = [];
+
     for (var i = 0; i < roomsForPayload.length; i++) {
       var room = roomsForPayload[i];
       var isPrimary = (i === 0);
@@ -1388,7 +1433,7 @@ html, body { overflow-x:hidden; }
       roomPayloads.push({
         checkIn: checkInVal,
         checkOut: checkOutVal,
-        adults: adultsVal,
+        adults: adultsPerRoom[i],
         nights: selected.nights || 0,
         roomTypeCode: room.code,
         roomName: room.name,

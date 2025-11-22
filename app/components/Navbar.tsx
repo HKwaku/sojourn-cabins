@@ -18,8 +18,9 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Our Cabins', href: '/#cabins' },        // changed
     { name: 'Experiences', href: '/#experiences' },  // changed
+    { name: 'Our Cabins', href: '/#cabins' },        // changed
+    { name: 'Gallery', href: '/gallery' },
     { name: 'Rates', href: '/rates' },
     { name: 'Getting Here', href: '/getting-here' },
     { name: 'Terms & Conditions', href: '/terms-and-conditions' },
@@ -43,7 +44,7 @@ export default function Navbar() {
                 scrolled ? 'text-black' : 'text-white'
               }`}
             >
-              <div className="relative w-14 h-14">
+              <div className="relative w-48 h-28">
                 <Image
                   src="/logo.png"
                   alt="/logo.png"
