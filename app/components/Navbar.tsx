@@ -18,8 +18,8 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Experiences', href: '/#experiences' },  // changed
-    { name: 'Our Cabins', href: '/#cabins' },        // changed
+    { name: 'Experiences', href: '/#experiences' },
+    { name: 'Our Cabins', href: '/#cabins' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Rates', href: '/rates' },
     { name: 'Getting Here', href: '/getting-here' },
@@ -28,18 +28,19 @@ export default function Navbar() {
 
   return (
     <>
-      <nav 
+      <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled 
-            ? 'bg-white/95 backdrop-blur-xl shadow-sm py-4' 
-            : 'bg-transparent py-6'
+          scrolled
+            ? 'bg-white/95 backdrop-blur-xl shadow-sm py-3' // was py-4
+            : 'bg-transparent py-4' // was py-6
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        {/* reduced horizontal padding to nudge logo left */}
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link 
-              href="/" 
+            {/* Logo (size unchanged) */}
+            <Link
+              href="/"
               className={`flex items-center gap-3 transition-colors duration-300 ${
                 scrolled ? 'text-black' : 'text-white'
               }`}
@@ -52,7 +53,6 @@ export default function Navbar() {
                   className="object-contain"
                 />
               </div>
-        
             </Link>
 
             {/* Desktop Navigation */}
@@ -92,9 +92,21 @@ export default function Navbar() {
               }`}
               aria-label="Toggle menu"
             >
-              <span className={`h-0.5 w-full bg-current transition-transform duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-              <span className={`h-0.5 w-full bg-current transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
-              <span className={`h-0.5 w-full bg-current transition-transform duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+              <span
+                className={`h-0.5 w-full bg-current transition-transform duration-300 ${
+                  mobileMenuOpen ? 'rotate-45 translate-y-2' : ''
+                }`}
+              />
+              <span
+                className={`h-0.5 w-full bg-current transition-opacity duration-300 ${
+                  mobileMenuOpen ? 'opacity-0' : ''
+                }`}
+              />
+              <span
+                className={`h-0.5 w-full bg-current transition-transform duration-300 ${
+                  mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''
+                }`}
+              />
             </button>
           </div>
         </div>
@@ -106,20 +118,21 @@ export default function Navbar() {
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full pt-24 pb-8 px-6">
+        <div className="flex flex-col h-full pt-36 pb-8 px-6">
           <div className="flex-1 flex flex-col gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-3xl font-serif font-light text-black hover:opacity-60 transition-opacity"
+                // smaller text size for mobile menu items
+                className="text-2xl font-serif font-light text-black hover:opacity-60 transition-opacity"
               >
                 {link.name}
               </Link>
             ))}
           </div>
-          
+
           <Link
             href="/book-escape"
             onClick={() => setMobileMenuOpen(false)}

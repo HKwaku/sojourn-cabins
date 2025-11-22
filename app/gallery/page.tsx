@@ -5,13 +5,15 @@ import Image from 'next/image';
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
-  { src: '/cabins/sea.jpg', alt: 'Sea cabin exterior at dusk' },
-  { src: '/cabins/sun.jpg', alt: 'Sun cabin in soft morning light' },
-  { src: '/cabins/sand.jpg', alt: 'Sand cabin surrounded by trees' },
-  { src: '/cabins/image1.jpg', alt: 'Sand cabin surrounded by trees' },
-  { src: '/cabins/image2.jpg', alt: 'Sand cabin surrounded by trees' },
-  { src: '/cabins/image3.jpg', alt: 'Sand cabin surrounded by trees' },
-  { src: '/cabins/image4.jpg', alt: 'Sand cabin surrounded by trees' },
+  { src: '/cabins/ext000.jpg', alt: '' },
+  { src: '/cabins/ext0.jpg', alt: '' },
+  { src: '/cabins/sea.jpg', alt: '' },
+  { src: '/cabins/sun.jpg', alt: '' },
+  { src: '/cabins/sand.jpg', alt: '' },
+  { src: '/cabins/ext1.jpg', alt: '' },
+  { src: '/cabins/ext2.jpg', alt: '' },
+  { src: '/cabins/coc.jpg', alt: '' },
+  { src: '/cabins/exper1.jpg', alt: '' },
 ];
 
 // -------- CATEGORY SLIDESHOWS (you will update images) --------
@@ -19,37 +21,42 @@ const galleryCategories = [
   {
     title: 'Exterior',
     description: 'Cabin exteriors and the surrounding landscape.',
-    images: ['/cabins/image1.jpg', '/cabins/image2.jpg', '/cabins/image3.jpg'],
+    images: ['/cabins/ext00.jpg', '/cabins/ext1.jpg', '/cabins/ext2.jpg', '/cabins/ext3.jpg', '/cabins/ext4.jpg', '/cabins/ext5.jpg', '/cabins/ext8.jpg', '/cabins/ext9.jpg' ],
   },
   {
     title: 'Interior',
     description: 'Calm, minimal interiors designed for slow stays.',
-    images: ['/cabins/image4.jpg', '/cabins/image5.jpg', '/cabins/image6.jpg'],
+    images: ['/cabins/int1.jpg', '/cabins/int2.jpg'],
   },
   {
     title: 'Chef Experience',
     description: 'Private dining and chef-led experiences.',
-    images: ['/cabins/image7.jpg', '/cabins/image8.jpg', '/cabins/image9.jpg'],
+    images: ['/cabins/chef1.jpg', '/cabins/chef2.jpg', '/cabins/chef3.jpg', '/cabins/chef4.jpg', '/cabins/chef5.jpg'],
   },
   {
     title: 'Wellness',
-    description: 'Guided wellness, hot tubs, saunas and still moments.',
-    images: ['/cabins/image10.jpg', '/cabins/image11.jpg', '/cabins/image12.jpg'],
+    description: 'Guided wellness, massages and facials.',
+    images: ['/cabins/well1.jpg', '/cabins/well2.jpg', '/cabins/well3.jpg'],
   },
   {
     title: 'Sip & Paint',
     description: 'Creative evenings with a glass in hand.',
-    images: ['/cabins/image1.jpg', '/cabins/image14.jpg', '/cabins/image13.jpg'],
+    images: ['/cabins/sip1.jpg', '/cabins/sip2.jpg'],
   },
   {
     title: 'Firepit Nights',
     description: 'Slow evenings, open skies and crackling fires.',
-    images: ['/cabins/image1.jpg', '/cabins/image2.jpg', '/cabins/image3.jpg'],
+    images: ['/cabins/fire1.jpg', '/cabins/sax1.jpg', '/cabins/fire3.jpg', '/cabins/fire4.jpg'],
   },
   {
-    title: 'Trails & Outdoors',
-    description: 'Woodland paths, viewpoints and open fields.',
-    images: ['/cabins/image8.jpg', '/cabins/image6.jpg', '/cabins/image5.jpg'],
+    title: 'Cinema Experience',
+    description: 'Cinema experience under the stars',
+    images: ['/cabins/cin1.jpg'],
+  },
+  {
+    title: 'Outdoors & Activities',
+    description: 'Immerse yourself in the history and culture of coastal Ghana',
+    images: ['/cabins/hik1.jpg', '/cabins/hik2.jpg'],
   },
 ];
 
@@ -156,7 +163,7 @@ export default function GalleryPage() {
             <div key={cat.title} className="space-y-3 sm:space-y-4">
               {/* Text */}
               <div>
-                <p className="text-[10px] tracking-[0.3em] uppercase text-gray-500 mb-1">
+                <p className="text-xs sm:text-sm md:text-base font-semibold tracking-[0.25em] uppercase text-gray-700 mb-1">
                   {cat.title}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-600">
