@@ -279,3 +279,13 @@
     @apply border-2 border-black;
   }
 }
+/* Page transition */
+.page-transition {
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.page-transition.fade-out {
+  opacity: 0.45;   /* instead of 0 */
+}
+

@@ -39,13 +39,13 @@ export default function Hero() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a 
             href="/book-escape" 
-            className="w-full sm:w-auto px-14 py-5 bg-white text-black text-sm md:text-base font-medium tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-500 shadow-2xl hover:scale-105"
+            className="w-full sm:w-auto px-14 py-5 rounded-full bg-white text-black text-sm md:text-base font-medium tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-500 shadow-2xl hover:scale-105"
           >
             Book Your Escape
           </a>
           <a 
             href="#cabins" 
-            className="w-full sm:w-auto px-14 py-5 border-2 border-white text-white text-sm md:text-base font-medium tracking-[0.25em] uppercase hover:bg-white hover:text-black transition-all duration-500"
+            className="w-full sm:w-auto px-14 py-5 rounded-full border-2 border-white text-white text-sm md:text-base font-medium tracking-[0.25em] uppercase hover:bg-white hover:text-black transition-all duration-500"
           >
             Explore Cabins
           </a>

@@ -57,7 +57,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
                 >
                   Reserve SUN
                 </a>
@@ -96,7 +96,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
                 >
                   Reserve SEA
                 </a>
@@ -135,7 +135,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
                 >
                   Reserve SAND
                 </a>
@@ -278,7 +278,7 @@ export default function HomePage() {
           </p>
           <a 
             href="/book-escape" 
-            className="px-16 py-6 bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-transparent hover:text-white hover:border-2 hover:border-white transition-all duration-500"
+            className="px-16 py-6 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-transparent hover:text-white hover:border-2 hover:border-white transition-all duration-500"
           >
             Check Availability
           </a>

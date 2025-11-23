@@ -80,7 +80,7 @@ export default function RatesPage() {
 
               <a 
                 href="/book?cabin=sand" 
-                className="block w-full text-center px-6 py-3 bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
+                className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SAND
               </a>
@@ -136,7 +136,7 @@ export default function RatesPage() {
 
               <a 
                 href="/book?cabin=sea" 
-                className="block w-full text-center px-6 py-3 bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
+                className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SEA
               </a>
@@ -192,7 +192,7 @@ export default function RatesPage() {
 
               <a 
                 href="/book?cabin=sun" 
-                className="block w-full text-center px-6 py-3 bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
+                className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SUN
               </a>
@@ -497,13 +497,13 @@ export default function RatesPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="/book-escape" 
-              className="px-8 py-4 bg-white text-black text-sm tracking-wider uppercase hover:bg-gray-100 transition-colors duration-300"
+              className="px-8 py-4 rounded-full bg-white text-black text-sm tracking-wider uppercase hover:bg-gray-100 transition-colors duration-300"
             >
               Check Availability
             </a>
             <a 
               href="https://wa.me/233547484568"  
-              className="px-8 py-4 border border-white text-white text-sm tracking-wider uppercase hover:bg-white hover:text-black transition-all duration-300"
+              className="px-8 py-4 rounded-full border border-white text-white text-sm tracking-wider uppercase hover:bg-white hover:text-black transition-all duration-300"
             >
               WhatsApp
             </a>

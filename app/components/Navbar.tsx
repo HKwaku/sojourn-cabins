@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -16,6 +17,32 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const handleNav = (href: string) => {
+  const page = document.querySelector('.page-transition') as HTMLElement | null
+
+  // If wrapper not found, just navigate normally
+  if (!page) {
+    router.push(href)
+    return
+  }
+
+  // Fade out
+  page.classList.add('fade-out')
+
+  // After fade-out duration, navigate and then fade back in
+  setTimeout(() => {
+    router.push(href)
+
+    // Small delay so new content is in place, then fade in
+    setTimeout(() => {
+      page.classList.remove('fade-out')
+    }, 50)
+  }, 350) // 600ms matches your CSS transition
+}
+
+
+  const router = useRouter()
+  
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Experiences', href: '/#experiences' },
@@ -58,31 +85,31 @@ export default function Navbar() {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-6">
               {navLinks.map((link) => (
-                <Link
+                <div
                   key={link.name}
-                  href={link.href}
-                  className={`text-sm tracking-wider uppercase font-light transition-all duration-300 hover:opacity-60 ${
+                  onClick={() => handleNav(link.href)}
+                  className={`cursor-pointer text-sm tracking-wider uppercase font-light transition-all duration-300 hover:opacity-60 ${
                     scrolled ? 'text-black' : 'text-white'
                   }`}
                 >
                   {link.name}
-                </Link>
+                </div>
               ))}
             </div>
 
             {/* Right side: Book (desktop only) + social icons (all) + mobile menu button */}
             <div className="flex items-center gap-3">
               {/* Desktop Book button */}
-              <Link
-                href="/book-escape"
-                className={`hidden lg:inline-flex px-6 py-3 text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 ${
+              <div
+                onClick={() => handleNav('/book-escape')}
+                className={`cursor-pointer px-6 py-3 rounded-full text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 ${
                   scrolled
                     ? 'bg-black text-white hover:bg-gray-900'
                     : 'bg-white text-black hover:bg-gray-100'
                 }`}
               >
                 Book
-              </Link>
+              </div>
 
               {/* Social icons – visible on desktop & mobile */}
               <div className="flex items-center gap-3">
@@ -177,7 +204,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu (unchanged, no social icons inside) */}
+      {/* Mobile Menu (unchanged styling; now uses handleNav for fade) */}
       <div
         className={`fixed inset-0 z-40 bg-white transform transition-transform duration-500 lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -186,24 +213,28 @@ export default function Navbar() {
         <div className="flex flex-col h-full pt-36 pb-8 px-6">
           <div className="flex-1 flex flex-col gap-6">
             {navLinks.map((link) => (
-              <Link
+              <div
                 key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  handleNav(link.href)
+                }}
                 className="text-2xl font-serif font-light text-black hover:opacity-60 transition-opacity"
               >
                 {link.name}
-              </Link>
+              </div>
             ))}
           </div>
 
-          <Link
-            href="/book-escape"
-            onClick={() => setMobileMenuOpen(false)}
-            className="w-full py-4 bg-black text-white text-center text-sm tracking-[0.2em] uppercase font-medium"
+          <div
+            onClick={() => {
+              setMobileMenuOpen(false)
+              handleNav('/book-escape')
+            }}
+            className="w-full py-4 rounded-full bg-black text-white text-center text-sm tracking-[0.2em] uppercase font-medium"
           >
             Book Your Escape
-          </Link>
+          </div>
         </div>
       </div>
     </>

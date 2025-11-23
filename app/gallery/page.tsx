@@ -193,7 +193,7 @@ export default function GalleryPage() {
             </div>
             <a
               href="/book-escape"
-              className="inline-flex items-center justify-center px-7 py-3 border border-black text-[10px] md:text-xs tracking-[0.25em] uppercase font-medium hover:bg-black hover:text-white transition-colors"
+              className="inline-flex items-center justify-center px-7 py-3 rounded-full border border-black text-[10px] md:text-xs tracking-[0.25em] uppercase font-medium hover:bg-black hover:text-white transition-colors"
             >
               Book Your Escape
             </a>
