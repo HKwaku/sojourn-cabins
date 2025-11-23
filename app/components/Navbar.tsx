@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -22,17 +23,31 @@ export default function Navbar() {
 
   // 🔹 Start fade and navigation together
   const handleNav = (href: string) => {
-    const page = document.querySelector('.page-transition') as HTMLElement | null
+  const page = document.querySelector('.page-transition') as HTMLElement | null
 
-    if (!page) {
-      router.push(href)
-      return
-    }
+  const isAnchor = href.includes('#')
+  const baseHref = href.split('#')[0] || '/'
+  const isSameRoute = baseHref === pathname
 
-    // Begin fade-out while navigation happens
-    page.classList.add('fade-out')
+  // 🔹 For anchor links or same route (e.g. clicking "Home" on "/"):
+  // don't fade, just navigate and ensure blur is removed.
+  if (isAnchor || isSameRoute) {
+    if (page) page.classList.remove('fade-out')
     router.push(href)
+    return
   }
+
+  // 🔹 If wrapper missing, just navigate
+  if (!page) {
+    router.push(href)
+    return
+  }
+
+  // 🔹 Normal page navigation: fade out + navigate
+  page.classList.add('fade-out')
+  router.push(href)
+}
+
 
   // 🔹 When the route/path changes, fade back in
   useEffect(() => {
@@ -72,7 +87,7 @@ export default function Navbar() {
                 scrolled ? 'text-black' : 'text-white'
               }`}
             >
-              <div className="relative w-48 h-28">
+              <div className="relative w-[165px] h-[95px]">
                 <Image
                   src="/logo.png"
                   alt="/logo.png"
