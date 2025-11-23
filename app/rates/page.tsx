@@ -79,7 +79,7 @@ export default function RatesPage() {
               </div>
 
               <a 
-                href="/book?cabin=sand" 
+                href="/book-escape"
                 className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SAND
@@ -135,7 +135,7 @@ export default function RatesPage() {
               </div>
 
               <a 
-                href="/book?cabin=sea" 
+                href="/book-escape" 
                 className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SEA
@@ -191,7 +191,7 @@ export default function RatesPage() {
               </div>
 
               <a 
-                href="/book?cabin=sun" 
+                href="/book-escape" 
                 className="block w-full text-center px-6 py-3 rounded-full bg-black text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300"
               >
                 Reserve SUN

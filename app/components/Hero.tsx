@@ -55,7 +55,7 @@ export default function Hero() {
       {/* Stats Bar - Bottom */}
       <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-md border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="grid grid-cols-3 gap-4 text-center text-white">
+          <div className="grid grid-cols-4 gap-3 text-center text-white">
             <div className="flex flex-col items-center">
               <div className="text-2xl md:text-3xl font-light mb-1">3</div>
               <div className="text-xs md:text-sm tracking-wider uppercase opacity-80">Luxury Cabins</div>
@@ -67,6 +67,10 @@ export default function Hero() {
             <div className="flex flex-col items-center">
               <div className="text-2xl md:text-3xl font-light mb-1">★ 5.0</div>
               <div className="text-xs md:text-sm tracking-wider uppercase opacity-80">Guest Rating</div>
+            </div>
+             <div className="flex flex-col items-center">
+              <div className="text-2xl md:text-3xl font-light mb-1">✓</div>
+              <div className="text-xs md:text-sm tracking-wider uppercase opacity-80">Concierge</div>
             </div>
           </div>
         </div>

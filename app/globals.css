@@ -282,10 +282,12 @@
 /* Page transition */
 .page-transition {
   opacity: 1;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.9s ease-in-out;  /* slower + smoother */
 }
 
 .page-transition.fade-out {
-  opacity: 0.45;   /* instead of 0 */
+  opacity: 0.6;  /* only a gentle dim, no harsh white flash */
 }
+
+
 

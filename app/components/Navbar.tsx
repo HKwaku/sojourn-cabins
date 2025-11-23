@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,32 +20,29 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // 🔹 Start fade and navigation together
   const handleNav = (href: string) => {
-  const page = document.querySelector('.page-transition') as HTMLElement | null
+    const page = document.querySelector('.page-transition') as HTMLElement | null
 
-  // If wrapper not found, just navigate normally
-  if (!page) {
+    if (!page) {
+      router.push(href)
+      return
+    }
+
+    // Begin fade-out while navigation happens
+    page.classList.add('fade-out')
     router.push(href)
-    return
   }
 
-  // Fade out
-  page.classList.add('fade-out')
-
-  // After fade-out duration, navigate and then fade back in
-  setTimeout(() => {
-    router.push(href)
-
-    // Small delay so new content is in place, then fade in
-    setTimeout(() => {
+  // 🔹 When the route/path changes, fade back in
+  useEffect(() => {
+    const page = document.querySelector('.page-transition') as HTMLElement | null
+    if (page) {
+      // Remove fade-out so it transitions back to opacity: 1
       page.classList.remove('fade-out')
-    }, 50)
-  }, 350) // 600ms matches your CSS transition
-}
+    }
+  }, [pathname])
 
-
-  const router = useRouter()
-  
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Experiences', href: '/#experiences' },
@@ -58,8 +58,8 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'bg-white/95 backdrop-blur-xl shadow-sm py-3'
-            : 'bg-transparent py-4'
+            ? 'bg-white/95 backdrop-blur-xl shadow-sm py-1'
+            : 'bg-transparent py-1'
         }`}
       >
         {/* logo kept far left on mobile */}
@@ -102,7 +102,7 @@ export default function Navbar() {
               {/* Desktop Book button */}
               <div
                 onClick={() => handleNav('/book-escape')}
-                className={`cursor-pointer px-6 py-3 rounded-full text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 ${
+                className={`hidden lg:inline cursor-pointer px-6 py-3 rounded-full text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 ${
                   scrolled
                     ? 'bg-black text-white hover:bg-gray-900'
                     : 'bg-white text-black hover:bg-gray-100'
@@ -204,7 +204,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu (unchanged styling; now uses handleNav for fade) */}
+      {/* Mobile Menu */}
       <div
         className={`fixed inset-0 z-40 bg-white transform transition-transform duration-500 lg:hidden ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
