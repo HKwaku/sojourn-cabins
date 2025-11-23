@@ -445,8 +445,9 @@ export default function Page() {
 
                               {/* nights */}
                               <span className="text-gray-700">
-                                {pkg.nights} night{pkg.nights > 1 ? 's' : ''}
+                                {pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}
                               </span>
+
 
                               {/* bullet */}
                               <span className="text-gray-400">•</span>
