@@ -33,6 +33,8 @@ type FeaturedPackage = {
   nights: number | null
   nextAvailable: string | null
   image_url?: string | null
+  appliesTo?: string | null
+  extrasSummary?: string | null
 }
 
 export default function Page() {
@@ -81,7 +83,7 @@ export default function Page() {
 
         const pkgIds = pkgs.map((p) => p.id)
 
-        // 2) Load rooms attached to these packages (same mapping idea as PackagesModal)
+        // 2) Load rooms attached to these packages (packages_rooms + room_types)
         const roomsUrl =
           `${SUPABASE_URL}/rest/v1/packages_rooms` +
           `?select=package_id,room_type_id&package_id=in.(${pkgIds.join(',')})`
@@ -90,20 +92,107 @@ export default function Page() {
           { package_id: number; room_type_id: number | null }[]
         >(roomsUrl)
 
-        const roomsByPackage: Record<number, number[]> = {}
         const roomIdSet = new Set<number>()
+        const roomIdsByPackage: Record<number, number[]> = {}
 
-        pkgRooms.forEach((pr) => {
+        ;(pkgRooms || []).forEach((pr) => {
           if (pr.room_type_id == null) return
           roomIdSet.add(pr.room_type_id)
-          if (!roomsByPackage[pr.package_id]) roomsByPackage[pr.package_id] = []
-          roomsByPackage[pr.package_id].push(pr.room_type_id)
+          if (!roomIdsByPackage[pr.package_id]) roomIdsByPackage[pr.package_id] = []
+          roomIdsByPackage[pr.package_id].push(pr.room_type_id)
         })
+
+        let roomsDisplayByPackage: Record<
+          number,
+          { code: string | null; name: string | null }[]
+        > = {}
+
+        if (roomIdSet.size) {
+          const roomIds = Array.from(roomIdSet)
+          const roomsMetaUrl =
+            `${SUPABASE_URL}/rest/v1/room_types` +
+            `?select=id,code,name&id=in.(${roomIds.join(',')})`
+
+          const roomsMeta = await fetchJSON<
+            { id: number; code: string | null; name: string | null }[]
+          >(roomsMetaUrl)
+
+          const roomById: Record<
+            number,
+            { id: number; code: string | null; name: string | null }
+          > = {}
+          ;(roomsMeta || []).forEach((r) => {
+            roomById[r.id] = r
+          })
+
+          const map: typeof roomsDisplayByPackage = {}
+          ;(pkgRooms || []).forEach((pr) => {
+            if (pr.room_type_id == null) return
+            const meta = roomById[pr.room_type_id]
+            if (!meta) return
+            if (!map[pr.package_id]) map[pr.package_id] = []
+            map[pr.package_id].push({ code: meta.code, name: meta.name })
+          })
+          roomsDisplayByPackage = map
+        }
+
+        // 3) Load extras linked to packages (package_extras + extras)
+        const pkgExtrasUrl =
+          `${SUPABASE_URL}/rest/v1/package_extras` +
+          `?select=package_id,extra_id,quantity,code&package_id=in.(${pkgIds.join(',')})`
+
+        const pkgExtras = await fetchJSON<
+          { package_id: number; extra_id: number | null; quantity: number | null; code: string | null }[]
+        >(pkgExtrasUrl)
+
+        const extraIdSet = new Set<number>()
+        ;(pkgExtras || []).forEach((px) => {
+          if (px.extra_id == null) return
+          extraIdSet.add(px.extra_id)
+        })
+
+        let extrasByPackage: Record<
+          number,
+          { name: string | null; code: string | null; quantity: number | null }[]
+        > = {}
+
+        if (extraIdSet.size) {
+          const extraIds = Array.from(extraIdSet)
+          const extrasMetaUrl =
+            `${SUPABASE_URL}/rest/v1/extras` +
+            `?select=id,name,code,price,currency&id=in.(${extraIds.join(',')})`
+
+          const extrasMeta = await fetchJSON<
+            { id: number; name: string | null; code: string | null }[]
+          >(extrasMetaUrl)
+
+          const extraById: Record<
+            number,
+            { id: number; name: string | null; code: string | null }
+          > = {}
+          ;(extrasMeta || []).forEach((e) => {
+            extraById[e.id] = e
+          })
+
+          const map: typeof extrasByPackage = {}
+          ;(pkgExtras || []).forEach((px) => {
+            if (px.extra_id == null) return
+            const ex = extraById[px.extra_id]
+            if (!ex) return
+            if (!map[px.package_id]) map[px.package_id] = []
+            map[px.package_id].push({
+              name: ex.name,
+              code: ex.code,
+              quantity: px.quantity,
+            })
+          })
+          extrasByPackage = map
+        }
 
         const roomTypeIds = Array.from(roomIdSet)
         const todayISO = new Date().toISOString().slice(0, 10)
 
-        // 3) Fetch reservations for those room types (future only)
+        // 4) Fetch reservations for those room types (future only)
         const reservationsByRoom: Record<
           number,
           {
@@ -172,12 +261,12 @@ export default function Page() {
           return A < D && B > C
         }
 
-        // 4) Compute *next date with availability* per package
+        // 5) Compute *next date with availability* + cabin & extras summaries per package
         const horizonDays = 365
 
         const withAvailability: FeaturedPackage[] = pkgs.map((pkg) => {
           const nights = pkg.nights && pkg.nights > 0 ? pkg.nights : 1
-          const roomIdsForPkg = roomsByPackage[pkg.id] || []
+          const roomIdsForPkg = roomIdsByPackage[pkg.id] || []
           let nextAvailable: string | null = null
 
           if (roomIdsForPkg.length) {
@@ -209,6 +298,38 @@ export default function Page() {
             }
           }
 
+          // Cabin summary: "Applies to SAND and SEA Cabins"
+          const roomsForPkg = roomsDisplayByPackage[pkg.id] || []
+          let appliesTo: string | null = null
+          if (roomsForPkg.length) {
+            const labels = roomsForPkg
+              .map((r) => (r.code || r.name || '').trim())
+              .filter(Boolean)
+            if (labels.length) {
+              if (labels.length === 1) {
+                appliesTo = `Applies to ${labels[0]} Cabin`
+              } else {
+                const last = labels[labels.length - 1]
+                const rest = labels.slice(0, -1)
+                appliesTo = `Applies to ${rest.join(', ')} and ${last} Cabins`
+              }
+            }
+          }
+
+          // Extras summary: "1× Breakfast Basket, Late Checkout"
+          const extrasForPkg = extrasByPackage[pkg.id] || []
+          let extrasSummary: string | null = null
+          if (extrasForPkg.length) {
+            extrasSummary = extrasForPkg
+              .map((e) =>
+                `${e.quantity && e.quantity > 1 ? `${e.quantity}× ` : ''}${
+                  (e.name || e.code || '').trim()
+                }`.trim()
+              )
+              .filter(Boolean)
+              .join(', ')
+          }
+
           return {
             id: pkg.id,
             code: pkg.code,
@@ -218,6 +339,8 @@ export default function Page() {
             nights: pkg.nights,
             image_url: pkg.image_url,
             nextAvailable,
+            appliesTo,
+            extrasSummary,
           }
         })
 
@@ -246,8 +369,12 @@ export default function Page() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
-          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/90">Plan Your Stay</p>
-          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight text-white">Book Your Escape</h1>
+          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/90">
+            Plan Your Stay
+          </p>
+          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight text-white">
+            Book Your Escape
+          </h1>
           <p className="text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed text-white/90">
             Select your dates and cabin to begin your coastal retreat
           </p>
@@ -271,97 +398,115 @@ export default function Page() {
               </p>
             )}
 
-            {!loadingPackages && !packagesError && featuredPackages.length > 0 && (
-              <>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl md:text-2xl font-medium text-gray-900">
-                    Featured Packages
-                  </h2>
-                </div>
+            {!loadingPackages &&
+              !packagesError &&
+              featuredPackages.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl md:text-2xl font-medium text-gray-900">
+                      Featured Packages
+                    </h2>
+                  </div>
 
-                <div className="grid gap-6 md:grid-cols-3">
-                  {featuredPackages.map((pkg) => (
-                    <div
-                      key={pkg.id}
-                      className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 flex flex-col"
-                    >
-                      {/* Package image uses <img> to avoid next/image domain config */}
-                      {pkg.image_url ? (
-                        <div className="w-full h-48 overflow-hidden">
-                          <img
-                            src={pkg.image_url}
-                            alt={pkg.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                          No Image
-                        </div>
-                      )}
+                  <div className="grid gap-6 md:grid-cols-3">
+                    {featuredPackages.map((pkg) => (
+                      <div
+                        key={pkg.id}
+                        className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 flex flex-col"
+                      >
+                        {/* Package image uses <img> to avoid next/image domain config */}
+                        {pkg.image_url ? (
+                          <div className="w-full h-48 overflow-hidden">
+                            <img
+                              src={pkg.image_url}
+                              alt={pkg.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                            No Image
+                          </div>
+                        )}
 
-                      <div className="p-6 flex flex-col flex-1 justify-between">
-                        <div className="space-y-2">
-                          <p className="text-[0.65rem] tracking-[0.25em] uppercase text-gray-400">
-                            Featured Package
-                          </p>
-
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {pkg.name}
-                          </h3>
-
-                          {pkg.nights && (
-                            <p className="text-sm text-gray-600">
-                              {pkg.nights} night{pkg.nights > 1 ? 's' : ''}{' '}
-                              {pkg.code ? `• ${pkg.code.toUpperCase()}` : ''}
+                        <div className="p-6 flex flex-col flex-1 justify-between">
+                          <div className="space-y-2">
+                            <p className="text-[0.65rem] tracking-[0.25em] uppercase text-gray-400">
+                              Featured Package
                             </p>
-                          )}
 
-                          {pkg.package_price != null && (
-                            <p className="text-sm text-gray-800">
-                              From{' '}
-                              <span className="font-semibold">
-                                {pkg.currency || 'GHS'} {pkg.package_price.toFixed(2)}
-                              </span>
-                            </p>
-                          )}
-                        </div>
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {pkg.name}
+                            </h3>
 
-                        <div className="mt-4 space-y-3">
-                          <div className="text-xs text-gray-600">
-                            {pkg.nextAvailable ? (
-                              <>
-                                Next availability:{' '}
-                                <span className="font-medium text-gray-900">
-                                  {new Date(pkg.nextAvailable).toLocaleDateString('en-GB', {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })}
+                            {pkg.nights && (
+                              <p className="text-sm text-gray-600">
+                                {pkg.nights} night
+                                {pkg.nights > 1 ? 's' : ''}{' '}
+                                {pkg.code ? `• ${pkg.code.toUpperCase()}` : ''}
+                              </p>
+                            )}
+
+                            {pkg.package_price != null && (
+                              <p className="text-sm text-gray-800">
+                                From{' '}
+                                <span className="font-semibold">
+                                  {pkg.currency || 'GHS'}{' '}
+                                  {pkg.package_price.toFixed(2)}
                                 </span>
-                              </>
-                            ) : (
-                              'No upcoming availability within the next year.'
+                              </p>
+                            )}
+
+                            {pkg.appliesTo && (
+                              <p className="text-xs text-gray-600">
+                                {pkg.appliesTo}
+                              </p>
+                            )}
+
+                            {pkg.extrasSummary && (
+                              <p className="text-xs text-gray-600">
+                                Includes: {pkg.extrasSummary}
+                              </p>
                             )}
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => setPackagesOpen(true)}
-                            className="inline-flex items-center px-8 py-3 rounded-full bg-black hover:bg-black
+                          <div className="mt-4 space-y-3">
+                            <div className="text-xs text-gray-600">
+                              {pkg.nextAvailable ? (
+                                <>
+                                  Next availability:{' '}
+                                  <span className="font-medium text-gray-900">
+                                    {new Date(
+                                      pkg.nextAvailable
+                                    ).toLocaleDateString('en-GB', {
+                                      weekday: 'short',
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric',
+                                    })}
+                                  </span>
+                                </>
+                              ) : (
+                                'No upcoming availability within the next year.'
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setPackagesOpen(true)}
+                              className="inline-flex items-center px-8 py-3 rounded-full bg-black hover:bg-black
  text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300 mr-2"
-                          >
-                            Book Package
-                          </button>
+                            >
+                              Book Package
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                    ))}
+                  </div>
+                </>
+              )}
           </div>
 
           {/* Copy + Button above widget */}
@@ -404,32 +549,68 @@ export default function Page() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
               <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-medium mb-2">Flexible Booking</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Free cancellation up to 7 days before arrival</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Free cancellation up to 7 days before arrival
+              </p>
             </div>
 
             <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
               <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7l9-4 9 4-9 4-9-4zm0 6l9 4 9-4m-9 4v6" />
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M3 7l9-4 9 4-9 4-9-4zm0 6l9 4 9-4m-9 4v6"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-medium mb-2">Curated Amenities</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Premium extras to elevate your coastal stay</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Premium extras to elevate your coastal stay
+              </p>
             </div>
 
             <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
               <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5V4H2v16h5m10 0l-4-4m0 0l-4 4m4-4v-5" />
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M17 20h5V4H2v16h5m10 0l-4-4m0 0l-4 4m4-4v-5"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-medium mb-2">Seamless Check-In</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">Self check-in details shared before arrival</p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Self check-in details shared before arrival
+              </p>
             </div>
           </div>
         </div>
