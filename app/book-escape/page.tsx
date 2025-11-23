@@ -440,33 +440,42 @@ export default function Page() {
                               {pkg.name}
                             </h3>
 
-                            {pkg.nights && (
-                              <p className="text-sm text-gray-600">
-                                {pkg.nights} night
-                                {pkg.nights > 1 ? 's' : ''}{' '}
-                                {pkg.code ? `• ${pkg.code.toUpperCase()}` : ''}
-                              </p>
-                            )}
+                            {/* One-line: nights • price • cabins */}
+                            <p className="text-sm text-gray-800 flex items-center flex-wrap gap-1">
 
-                            {pkg.package_price != null && (
-                              <p className="text-sm text-gray-800">
-                                From{' '}
+                              {/* nights */}
+                              <span className="text-gray-700">
+                                {pkg.nights} night{pkg.nights > 1 ? 's' : ''}
+                              </span>
+
+                              {/* bullet */}
+                              <span className="text-gray-400">•</span>
+
+                              {/* price (no 'From') */}
+                              {pkg.package_price != null && (
                                 <span className="font-semibold">
-                                  {pkg.currency || 'GHS'}{' '}
-                                  {pkg.package_price.toFixed(2)}
+                                  {pkg.currency || 'GHS'} {pkg.package_price.toFixed(0)}
                                 </span>
-                              </p>
-                            )}
+                              )}
 
-                            {pkg.appliesTo && (
-                              <p className="text-xs text-gray-600">
-                                {pkg.appliesTo}
-                              </p>
-                            )}
+                              {/* cabins — convert "Applies to SAND and SUN Cabins" → "SAND or SUN" */}
+                              {pkg.appliesTo && (
+                                <>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-gray-700">
+                                    {pkg.appliesTo
+                                      .replace('Applies to ', '')
+                                      .replace(/ and /i, ' or ')
+                                      .replace(/ Cabins?/i, '')
+                                      .trim()}
+                                  </span>
+                                </>
+                              )}
+                            </p>
 
                             {pkg.extrasSummary && (
                               <p className="text-xs text-gray-600">
-                                Includes: {pkg.extrasSummary}
+                                {pkg.extrasSummary}
                               </p>
                             )}
                           </div>
