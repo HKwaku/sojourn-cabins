@@ -78,7 +78,7 @@ export default function Navbar() {
         }`}
       >
         {/* logo kept far left on mobile */}
-        <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Logo (size unchanged) */}
             <Link
@@ -87,7 +87,7 @@ export default function Navbar() {
                 scrolled ? 'text-black' : 'text-white'
               }`}
             >
-              <div className="relative w-[165px] h-[95px]">
+              <div className="relative w-[150px] h-[85px]">
                 <Image
                   src="/logo.png"
                   alt="/logo.png"

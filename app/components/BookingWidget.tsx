@@ -214,12 +214,58 @@ input[type="date"]{
 
 /* ---------- Summary panel ---------- */
 .summary{
-  margin-top:18px;border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfdff
+  margin-top:18px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  background:#fbfdff;
 }
-.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;align-items:center;font-size:15px}
-.kv span{color:#64748b;font-weight:600}
-.kv strong{font-weight:800}
-.total{font-weight:900;font-size:18px;padding-top:10px;border-top:2px solid var(--line);margin-top:6px}
+
+/* left-aligned key/value rows */
+.kv{
+  display:flex;
+  justify-content:flex-start;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 0;
+  font-size:15px;
+  text-align:left;
+}
+.kv span{
+  color:#64748b;
+  font-weight:600;
+}
+.kv strong{
+  font-weight:800;
+}
+
+/* extras rows italic */
+.kv.extras span,
+.kv.extras strong{
+  font-style:italic;
+}
+
+/* discount rows: dark green text, light green highlight + divider */
+.kv.discount{
+  background:#ecfdf5;
+  border-radius:12px;
+  padding:10px 12px;
+  margin-top:6px;
+  border-top:1px dashed #bbf7d0;
+}
+.kv.discount span,
+.kv.discount strong{
+  color:#166534;
+}
+
+/* total row: strong visual separation */
+.total{
+  font-weight:900;
+  font-size:18px;
+  padding-top:12px;
+  margin-top:10px;
+  border-top:2px solid var(--line);
+}
 
 /* ---------- Overlay & modal ---------- */
 .overlay{position:fixed;inset:0;display:none;background:rgba(15,23,42,.56);backdrop-filter:blur(6px);z-index:9998}
@@ -305,7 +351,7 @@ html, body { overflow-x:hidden; }
     '<div class="summary">' +
       '<div class="kv"><span>Nights</span><strong id="sN">0</strong></div>' +
       '<div class="kv"><span>Room subtotal</span><strong id="sRoom">—</strong></div>' +
-      '<div class="kv"><span>Extras</span><strong id="sExtras">£0.00</strong></div>' +
+        '<div class="kv extras"><span>Extras</span><strong id="sExtras">£0.00</strong></div>' +
       '<div class="kv discount" id="sDiscountRow" style="display:none"><span>Discount (<span id="sDiscountLabel"></span>)</span><strong id="sDiscount">−£0.00</strong></div>' +
       '<div class="kv total"><span>Estimated total</span><strong id="sTotal">—</strong></div>' +
     '</div>' +
@@ -336,7 +382,7 @@ html, body { overflow-x:hidden; }
         '<div class="summary" style="margin-top:16px">' +
           '<div class="kv"><span>Nights</span><strong id="mN1">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom1">—</strong></div>' +
-          '<div class="kv"><span>Extras</span><strong id="mExtras1">£0.00</strong></div>' +
+          '<div class="kv extras"><span>Extras</span><strong id="mExtras1">£0.00</strong></div>' +
           '<div class="kv discount" id="mDiscountRow1" style="display:none"><span>Discount (<span id="mDiscountLabel1"></span>)</span><strong id="mDiscount1">−£0.00</strong></div>' +
           '<div class="kv total"><span>Estimated total</span><strong id="mTotal1">—</strong></div>' +
         '</div>' +
@@ -364,7 +410,7 @@ html, body { overflow-x:hidden; }
           '<div class="kv"><span>Room</span><strong id="mRoomName2">—</strong></div>' +
           '<div class="kv"><span>Nights</span><strong id="mN2">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom2">—</strong></div>' +
-          '<div class="kv"><span>Extras</span><strong id="mExtras2">£0.00</strong></div>' +
+          '<div class="kv extras"><span>Extras</span><strong id="mExtras2">£0.00</strong></div>' +
           '<div class="kv discount" id="mDiscountRow2" style="display:none"><span>Discount (<span id="mDiscountLabel2"></span>)</span><strong id="mDiscount2">−£0.00</strong></div>' +
           '<div class="kv total"><span>Total to pay</span><strong id="mTotal2">—</strong></div>' +
         '</div>' +
@@ -381,9 +427,12 @@ html, body { overflow-x:hidden; }
           '<div class="kv"><span>Guest</span><strong id="tName">—</strong></div>' +
           '<div class="kv"><span>Dates</span><strong id="tDates">—</strong></div>' +
           '<div class="kv"><span>Room</span><strong id="tRoom">—</strong></div>' +
+          '<div class="kv"><span>Room subtotal</span><strong id="tRoomSub">—</strong></div>' +
+          '<div class="kv extras"><span>Extras</span><strong id="tExtras">—</strong></div>' +
+          '<div class="kv extras"><span>Extras subtotal</span><strong id="tExtrasSub">—</strong></div>' +
+          '<div class="kv discount"><span>Discount</span><strong id="tDisc">—</strong></div>' +
           '<div class="kv total"><span>Total paid</span><strong id="tTotal">—</strong></div>' +
         '</div>' +
-
         '<p class="sub" style="margin-top:10px">A confirmation email will be sent to you shortly.</p>' +
       '</main>' +
       '<footer><button class="btn" id="thanks-close">Close</button></footer>' +
@@ -1470,37 +1519,37 @@ html, body { overflow-x:hidden; }
       }
 
       // Send booking email once, based on the primary reservation/payload
-      if (primaryRes && primaryPayload) {
-        try {
-          await fetch(SUPABASE_URL + '/functions/v1/send-booking-email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Bearer ' + SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({
-              booking: {
-                confirmation_code: primaryRes.confirmation_code,
-                guest_first_name: first,
-                guest_last_name: last,
-                guest_email: email,
-                guest_phone: sharedGuest.phone,
-                room_name: primaryPayload.roomName,
-                check_in: primaryPayload.checkIn,
-                check_out: primaryPayload.checkOut,
-                nights: primaryPayload.nights,
-                adults: primaryPayload.adults,
-                room_subtotal: primaryPayload.roomSubtotal,
-                extras_total: primaryPayload.extrasTotal,
-                discount_amount: primaryPayload.discountAmount,
-                coupon_code: primaryPayload.couponCode,
-                total: primaryPayload.finalTotal,
-                currency: primaryPayload.currency
-              }
-            })
-          });
-        } catch (emailErr) {}
-      }
+    if (primaryRes && primaryPayload) {
+      try {
+        await fetch('/api/send-booking-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            booking: {
+              confirmation_code: primaryRes.confirmation_code,
+              guest_first_name: first,
+              guest_last_name: last,
+              guest_email: email,
+              guest_phone: sharedGuest.phone,
+              room_name: primaryPayload.roomName,
+              check_in: primaryPayload.checkIn,
+              check_out: primaryPayload.checkOut,
+              nights: primaryPayload.nights,
+              adults: primaryPayload.adults,
+              room_subtotal: primaryPayload.roomSubtotal,
+              extras_total: primaryPayload.extrasTotal,
+              discount_amount: primaryPayload.discountAmount,
+              coupon_code: primaryPayload.couponCode,
+              total: primaryPayload.finalTotal,
+              currency: primaryPayload.currency
+            }
+          })
+        })
+      } catch (emailErr) {}
+    }
+
 
             closeModal('guest');
 
@@ -1508,11 +1557,16 @@ html, body { overflow-x:hidden; }
       var thanksTotal = groupFinalTotal || finalTotal;
       var thanksCurrency = curr;
 
-            var codeEl  = document.getElementById('tCode');
+      var codeEl  = document.getElementById('tCode');
       var nameEl  = document.getElementById('tName');
       var datesEl = document.getElementById('tDates');
       var roomEl  = document.getElementById('tRoom');
+      var roomSubEl = document.getElementById('tRoomSub');
+      var extrasEl = document.getElementById('tExtras');
+      var extrasSubEl = document.getElementById('tExtrasSub');
+      var discEl  = document.getElementById('tDisc');
       var totalEl = document.getElementById('tTotal');
+
 
       if (codeEl) {
         var codeToShow = '—';
@@ -1544,12 +1598,56 @@ html, body { overflow-x:hidden; }
         }
       }
 
+      // Room subtotal
+      if (roomSubEl) {
+        var roomSubtotal = selected && selected.total ? selected.total : 0;
+        roomSubEl.textContent = formatCurrency(roomSubtotal, thanksCurrency);
+      }
+
+      // Extras lines with per-extra amount
+      if (extrasEl) {
+        if (Array.isArray(extrasLines) && extrasLines.length) {
+          var extraLineStrings = extrasLines.map(function (x) {
+            var label = (x.name || x.code || 'Extra').trim();
+            var qty = x.qty || 0;
+            var lineTotal = (x.price || 0) * (x.qty || 0);
+            var qtyLabel = qty > 1 ? qty + '× ' : '';
+            return qtyLabel + label + ': ' + formatCurrency(lineTotal, thanksCurrency);
+          });
+          extrasEl.innerHTML = extraLineStrings.join('<br>');
+        } else {
+          extrasEl.textContent = '—';
+        }
+      }
+
+      // Extras subtotal
+      if (extrasSubEl) {
+        extrasSubEl.textContent = extrasTotal
+          ? formatCurrency(extrasTotal, thanksCurrency)
+          : '—';
+      }
+
+      // Discount amount + human description (from getCouponScopeLabel)
+      if (discEl) {
+        if (discount && discount > 0) {
+          var desc = '';
+          if (typeof getCouponScopeLabel === 'function') {
+            desc = getCouponScopeLabel() || '';
+          }
+          var amtText = '-' + formatCurrency(discount, thanksCurrency);
+          discEl.textContent = desc ? amtText + ' (' + desc + ')' : amtText;
+        } else {
+          discEl.textContent = '—';
+        }
+      }
+
       if (totalEl) {
         totalEl.textContent = new Intl.NumberFormat('en-GB', {
           style: 'currency',
           currency: thanksCurrency
         }).format(thanksTotal);
       }
+
 
       openModal('thanks');
 
@@ -1668,10 +1766,60 @@ input[type="date"] {
   margin-top:auto; padding-top:14px; border-top:1px solid var(--line); }
 .price { font-weight:700; font-size:15px; }
 
-.summary { margin-top:20px; border:1px solid var(--line); border-radius:12px; padding:16px; background:#fafafa; }
-.kv { display:flex; justify-content:space-between; padding:8px 0; font-size:15px; }
-.kv span { color:var(--muted); font-weight:500; }
-.total { font-weight:800; font-size:18px; padding-top:10px; border-top:2px solid var(--line); margin-top:6px; }
+.summary {
+  margin-top:20px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  background:#fafafa;
+}
+
+/* left-aligned rows */
+.kv {
+  display:flex;
+  justify-content:flex-start;
+  align-items:flex-start;
+  gap:8px;
+  padding:8px 0;
+  font-size:15px;
+  text-align:left;
+}
+.kv span {
+  color:var(--muted);
+  font-weight:500;
+}
+.kv strong {
+  font-weight:700;
+}
+
+/* extras italic */
+.kv.extras span,
+.kv.extras strong {
+  font-style:italic;
+}
+
+/* discount rows: dark green + light green highlight + divider */
+.kv.discount {
+  background:#ecfdf5;
+  border-radius:12px;
+  padding:10px 12px;
+  margin-top:6px;
+  border-top:1px dashed #bbf7d0;
+}
+.kv.discount span,
+.kv.discount strong {
+  color:#166534;
+}
+
+/* total row separation */
+.total {
+  font-weight:800;
+  font-size:18px;
+  padding-top:12px;
+  margin-top:10px;
+  border-top:2px solid var(--line);
+}
+
 
 @media(max-width:860px){
   .grid.cols-4 { grid-template-columns:1fr; }

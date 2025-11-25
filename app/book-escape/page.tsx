@@ -357,210 +357,239 @@ export default function Page() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white">
       {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <Image
           src="/cabins/sun.jpg"
           alt="/cabins/sea.jpg"
           fill
-          className="object-cover"
+          className="object-cover scale-105 transition-transform duration-[2s]"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-        <div className="relative z-10 text-center text-white px-6 max-w-4xl">
-          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/90">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+        <div className="relative z-10 text-center text-white px-6 max-w-4xl animate-fadeIn">
+          <p className="text-xs md:text-sm tracking-[0.4em] uppercase mb-6 text-white/80 font-light">
             Plan Your Stay
           </p>
-          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight text-white">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white/90 font-serif font-light mb-8 leading-[1.1] tracking-tight">
             Book Your Escape
           </h1>
-          <p className="text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed text-white/90">
+          <p className="text-base md:text-lg font-light max-w-xl mx-auto leading-relaxed text-white/90">
             Select your dates and cabin to begin your coastal retreat
           </p>
         </div>
-      </section>
-
-      {/* Booking + Packages Section */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Featured packages ABOVE booking */}
-          <div className="mt-6">
-            {loadingPackages && (
-              <p className="text-sm text-gray-500 text-center">
-                Loading featured packages…
-              </p>
-            )}
-
-            {packagesError && (
-              <p className="text-sm text-red-500 text-center">
-                {packagesError}
-              </p>
-            )}
-
-            {!loadingPackages &&
-              !packagesError &&
-              featuredPackages.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl md:text-2xl font-medium text-gray-900">
-                      Featured Packages
-                    </h2>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-3">
-                    {featuredPackages.map((pkg) => (
-                      <div
-                        key={pkg.id}
-                        className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 flex flex-col"
-                      >
-                        {/* Package image uses <img> to avoid next/image domain config */}
-                        {pkg.image_url ? (
-                          <div className="w-full h-48 overflow-hidden">
-                            <img
-                              src={pkg.image_url}
-                              alt={pkg.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                            No Image
-                          </div>
-                        )}
-
-                        <div className="p-6 flex flex-col flex-1 justify-between">
-                          <div className="space-y-2">
-                            <p className="text-[0.65rem] tracking-[0.25em] uppercase text-gray-400">
-                              Featured Package
-                            </p>
-
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {pkg.name}
-                            </h3>
-
-                            {/* One-line: nights • price • cabins */}
-                            <p className="text-sm text-gray-800 flex items-center flex-wrap gap-1">
-
-                              {/* nights */}
-                              <span className="text-gray-700">
-                                {pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}
-                              </span>
-
-
-                              {/* bullet */}
-                              <span className="text-gray-400">•</span>
-
-                              {/* price (no 'From') */}
-                              {pkg.package_price != null && (
-                                <span className="font-semibold">
-                                  {pkg.currency || 'GHS'} {pkg.package_price.toFixed(0)}
-                                </span>
-                              )}
-
-                              {/* cabins — convert "Applies to SAND and SUN Cabins" → "SAND or SUN" */}
-                              {pkg.appliesTo && (
-                                <>
-                                  <span className="text-gray-400">•</span>
-                                  <span className="text-gray-700">
-                                    {pkg.appliesTo
-                                      .replace('Applies to ', '')
-                                      .replace(/ and /i, ' or ')
-                                      .replace(/ Cabins?/i, '')
-                                      .trim()}
-                                  </span>
-                                </>
-                              )}
-                            </p>
-
-                            {pkg.extrasSummary && (
-                              <p className="text-xs text-gray-600">
-                                {pkg.extrasSummary}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="mt-4 space-y-3">
-                            <div className="text-xs text-gray-600">
-                              {pkg.nextAvailable ? (
-                                <>
-                                  Next availability:{' '}
-                                  <span className="font-medium text-gray-900">
-                                    {new Date(
-                                      pkg.nextAvailable
-                                    ).toLocaleDateString('en-GB', {
-                                      weekday: 'short',
-                                      day: '2-digit',
-                                      month: 'short',
-                                      year: 'numeric',
-                                    })}
-                                  </span>
-                                </>
-                              ) : (
-                                'No upcoming availability within the next year.'
-                              )}
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => setPackagesOpen(true)}
-                              className="inline-flex items-center px-8 py-3 rounded-full bg-black hover:bg-black
- text-white text-sm tracking-wider uppercase hover:bg-gray-800 transition-colors duration-300 mr-2"
-                            >
-                              Book Package
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+        {/* Decorative scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 rounded-full border-2 border-white/40 flex items-start justify-center p-2">
+            <div className="w-1 h-2 bg-white/60 rounded-full" />
           </div>
-
-          {/* Copy + Button above widget */}
-          <div className="flex flex-col items-center text-center space-y-4">
-            <p className="text-xs tracking-[0.3em] uppercase text-gray-400">
-              Choose Your Experience
-            </p>
-            <div className="text-base text-gray-700 leading-relaxed">
-              <button
-                type="button"
-                onClick={() => setPackagesOpen(true)}
-                className="inline-flex items-center px-8 py-3 rounded-full bg-orange-500 text-white text-sm tracking-wider uppercase hover:bg-orange-600 transition-colors duration-300 mr-2"
-              >
-                View More Packages
-              </button>
-              <span className="text-gray-600">
-                or customize your experience below
-              </span>
-            </div>
-          </div>
-
-          {/* Visual separator between packages and booking widget */}
-          <div className="border-t border-gray-200 pt-10"></div>
-
-          {/* Booking widget */}
-          <div>
-            <BookingWidget />
-          </div>
-
-          <PackagesModal
-            isOpen={packagesOpen}
-            onClose={() => setPackagesOpen(false)}
-          />
         </div>
       </section>
 
-      {/* Quick Info Cards (unchanged) */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
-              <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
+      {/* Featured Packages Section */}
+      <section className="py-20 md:py-28 px-6 md:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <p className="text-xs tracking-[0.4em] uppercase text-stone-400 mb-4">
+              Curated Experiences
+            </p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-stone-900 mb-4">
+              Featured Packages
+            </h2>
+            <div className="w-16 h-px bg-stone-300 mx-auto" />
+          </div>
+
+          {/* Loading State */}
+          {loadingPackages && (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-8 h-8 border-2 border-stone-200 border-t-stone-600 rounded-full animate-spin" />
+                <p className="text-sm text-stone-500 tracking-wide">Loading packages...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {packagesError && (
+            <div className="text-center py-16">
+              <p className="text-sm text-red-500 bg-red-50 inline-block px-6 py-3 rounded-lg">
+                {packagesError}
+              </p>
+            </div>
+          )}
+
+          {/* Packages Grid */}
+          {!loadingPackages && !packagesError && featuredPackages.length > 0 && (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {featuredPackages.map((pkg, index) => (
+                <div
+                  key={pkg.id}
+                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col border border-stone-100"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  {/* Package Image */}
+                  <div className="relative h-56 overflow-hidden">
+                    {pkg.image_url ? (
+                      <>
+                        <img
+                          src={pkg.image_url}
+                          alt={pkg.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      </>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
+                        <svg className="w-12 h-12 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    {/* Featured Badge */}
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-[0.15em] uppercase bg-white/95 backdrop-blur-sm text-stone-700 font-medium shadow-sm">
+                        Featured
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Package Content */}
+                  <div className="p-6 md:p-8 flex flex-col flex-1">
+                    <div className="flex-1 space-y-4">
+                      {/* Package Name */}
+                      <h3 className="text-xl md:text-2xl font-serif font-light text-stone-900 leading-tight">
+                        {pkg.name}
+                      </h3>
+
+                      {/* Package Details */}
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <span className="inline-flex items-center gap-1.5 text-stone-600">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                          {pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}
+                        </span>
+                        <span className="text-stone-300">•</span>
+                        {pkg.package_price != null && (
+                          <span className="font-medium text-stone-900">
+                            {pkg.currency || 'GHS'} {pkg.package_price.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Cabin Info */}
+                      {pkg.appliesTo && (
+                        <p className="text-sm text-stone-500">
+                          {pkg.appliesTo
+                            .replace('Applies to ', '')
+                            .replace(/ and /i, ' or ')
+                            .replace(/ Cabins?/i, ' Cabin')
+                            .trim()}
+                        </p>
+                      )}
+
+                      {/* Extras Summary */}
+                      {pkg.extrasSummary && (
+                        <p className="text-xs text-stone-500 bg-stone-50 px-3 py-2 rounded-lg">
+                          <span className="text-stone-400 mr-1">Includes:</span>
+                          {pkg.extrasSummary}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-6 pt-6 border-t border-stone-100 space-y-4">
+                      {/* Availability */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className={`w-2 h-2 rounded-full ${pkg.nextAvailable ? 'bg-emerald-400' : 'bg-stone-300'}`} />
+                        {pkg.nextAvailable ? (
+                          <span className="text-stone-600">
+                            Available from{' '}
+                            <span className="font-medium text-stone-900">
+                              {new Date(pkg.nextAvailable).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-stone-400">No availability in the next year</span>
+                        )}
+                      </div>
+
+                      {/* Book Button */}
+                      <button
+                        type="button"
+                        onClick={() => setPackagesOpen(true)}
+                        className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm tracking-wide font-medium hover:bg-stone-800 active:scale-[0.98] transition-all duration-300"
+                      >
+                        Book Package
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* View More Packages CTA */}
+          {!loadingPackages && !packagesError && (
+            <div className="mt-16 text-center">
+              <button
+                type="button"
+                onClick={() => setPackagesOpen(true)}
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm tracking-wide font-medium hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] transition-all duration-300"
+              >
+                <span>View All Packages</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </button>
+              <p className="mt-4 text-sm text-stone-500">
+                or customize your experience below
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Booking Widget Section */}
+      <section className="py-20 md:py-28 px-6 md:px-8 lg:px-12 bg-stone-50">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <p className="text-xs tracking-[0.4em] uppercase text-stone-400 mb-4">
+              Custom Booking
+            </p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-stone-900 mb-4">
+              Create Your Stay
+            </h2>
+            <div className="w-16 h-px bg-stone-300 mx-auto mb-6" />
+            <p className="text-stone-600 max-w-lg mx-auto">
+              Select your preferred dates, cabin, and extras to build your perfect retreat
+            </p>
+          </div>
+
+          {/* Booking Widget Container */}
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-100 p-6 md:p-10">
+            <BookingWidget />
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Info Cards */}
+      <section className="py-20 md:py-28 px-6 md:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            {/* Flexible Booking Card */}
+            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
+              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
                 <svg
-                  className="w-6 h-6 text-gray-700"
+                  className="w-7 h-7 text-stone-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -573,16 +602,17 @@ export default function Page() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium mb-2">Flexible Booking</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Free cancellation up to 7 days before arrival
+              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Flexible Booking</h3>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                Free cancellation up to 7 days before arrival. Plans change—we understand.
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
-              <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
+            {/* Curated Amenities Card */}
+            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
+              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
                 <svg
-                  className="w-6 h-6 text-gray-700"
+                  className="w-7 h-7 text-stone-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -591,20 +621,21 @@ export default function Page() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={1.5}
-                    d="M3 7l9-4 9 4-9 4-9-4zm0 6l9 4 9-4m-9 4v6"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium mb-2">Curated Amenities</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Premium extras to elevate your coastal stay
+              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Curated Amenities</h3>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                Premium extras thoughtfully selected to elevate your coastal experience.
               </p>
             </div>
 
-            <div className="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 p-8">
-              <div className="w-12 h-12 bg-gray-50 flex items-center justify-center mb-4">
+            {/* Seamless Check-In Card */}
+            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
+              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
                 <svg
-                  className="w-6 h-6 text-gray-700"
+                  className="w-7 h-7 text-stone-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -613,18 +644,24 @@ export default function Page() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={1.5}
-                    d="M17 20h5V4H2v16h5m10 0l-4-4m0 0l-4 4m4-4v-5"
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium mb-2">Seamless Check-In</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Self check-in details shared before arrival
+              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Seamless Check-In</h3>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                Self check-in details shared before arrival. Your retreat starts smoothly.
               </p>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Packages Modal */}
+      <PackagesModal
+        isOpen={packagesOpen}
+        onClose={() => setPackagesOpen(false)}
+      />
     </div>
   )
 }
