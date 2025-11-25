@@ -1,5 +1,5 @@
 // mailjet.js – no SDK, plain HTTPS call
-
+// @ts-nocheck
 const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
 const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
 const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL;

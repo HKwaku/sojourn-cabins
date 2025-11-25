@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 // If your `@` alias points to project root, this works:
-import { sendBookingEmail } from '@/mailjet'
+import { sendBookingEmail } from '../../../mailjet'
 // otherwise you can adjust the path as needed
 
 export async function POST(req: Request) {
