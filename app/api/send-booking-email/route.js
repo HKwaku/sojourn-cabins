@@ -5,15 +5,11 @@ export async function POST(req) {
   try {
     const { booking } = await req.json();
 
-    await sendBookingEmail({
+        await sendBookingEmail({
       to: booking.guest_email,
       name: booking.guest_first_name || '',
-      booking: {
-        cabin: booking.room_name,
-        checkIn: booking.check_in,
-        checkOut: booking.check_out,
-        total: booking.total,
-      },
+      // pass through the full booking payload from the widget
+      booking,
     });
 
     return NextResponse.json({ success: true });

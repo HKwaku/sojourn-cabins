@@ -86,250 +86,585 @@ export default function BookingWidget() {
   root.innerHTML =
     '<style>' +
     \`
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-/* ---------- Theme ---------- */
-:root{
-  --bg:#ffffff; --panel:#ffffff; --text:#0f172a; --muted:#475569; --line:#e5e7eb;
-  --brand:#0f172a; --brand-hover:#111827; --ok:#16a34a; --err:#dc2626;
-  --radius:12px; --radius-lg:16px;
-  --shadow:0 1px 4px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.06);
-  --shadow-lg:0 12px 28px rgba(0,0,0,.10);
-  --surface:#f8fafc;
-}
+  /* ---------- Theme ---------- */
+  :root{
+    --bg:#f3f4f6;
+    --panel:#ffffff;
+    --surface:#f9fafb;
+    --panel-elevated:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --line:#e5e7eb;
+    --brand:#f97316;
+    --brand-soft:rgba(249,115,22,.08);
+    --brand-hover:#ea580c;
+    --ok:#16a34a;
+    --err:#ef4444;
+    --radius:14px;
+    --radius-lg:18px;
+    --shadow:0 18px 45px rgba(15,23,42,.12);
+    --shadow-soft:0 10px 30px rgba(15,23,42,.08);
+  }
 
-/* ---------- Base ---------- */
-*{box-sizing:border-box;margin:0;padding:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
-html,body{background:var(--bg);color:var(--text);overflow-x:hidden}
+  /* ---------- Base ---------- */
+  *{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  html,body{
+    background:radial-gradient(circle at top,#ffffff 0,#f9fafb 45%,#eef2ff 100%);
+    color:var(--text);
+    overflow-x:hidden;
+  }
 
-/* ---------- Container (no markup changes) ---------- */
-.wrap{max-width:960px;margin:0 auto;padding:24px}
-@media (max-width:640px){ .wrap{max-width:640px;padding:16px} }
-.card{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:var(--radius-lg);
-  box-shadow:var(--shadow);
-  padding:24px;
-}
-@media (max-width:640px){ .card{padding:18px} }
+  /* ---------- Container ---------- */
+  .wrap{
+    max-width:960px;
+    margin:32px auto;
+    padding:0 20px 32px;
+  }
+  @media (max-width:640px){
+    .wrap{
+      max-width:640px;
+      padding:12px 16px 28px;
+      margin-top:12px;
+    }
+  }
 
-/* ---------- Type ---------- */
-h1{font-size:28px;line-height:1.15;font-weight:700;margin:0 0 6px;letter-spacing:-0.01em}
-.sub{color:var(--muted);font-size:15px;line-height:1.6;margin:0 0 18px}
+  .card{
+    background:linear-gradient(145deg,#ffffff, #f9fafb);
+    border-radius:24px;
+    border:1px solid rgba(148,163,184,.35);
+    box-shadow:var(--shadow);
+    padding:22px 22px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background:
+      radial-gradient(circle at 0 0,rgba(249,115,22,.10) 0,transparent 55%),
+      radial-gradient(circle at 90% 120%,rgba(59,130,246,.12) 0,transparent 55%);
+    opacity:0.7;
+    pointer-events:none;
+  }
+  .card > *{
+    position:relative;
+    z-index:1;
+  }
+  @media (max-width:640px){
+    .card{
+      padding:18px 16px 18px;
+      border-radius:20px;
+    }
+  }
 
-/* ---------- Grid (search row) ---------- */
-.grid{display:grid;gap:16px;margin-bottom:16px;min-width:0}
-@media (min-width:880px){ .grid.cols-3{grid-template-columns:1fr 1fr 0.8fr} }
-@media (min-width:880px){ .grid.cols-4{grid-template-columns:1fr 1fr 0.8fr auto} }
+  /* ---------- Typography ---------- */
+  h1{
+    font-size:26px;
+    line-height:1.15;
+    font-weight:700;
+    margin:0 0 4px;
+    letter-spacing:-0.03em;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+    margin:0 0 16px;
+  }
 
-/* ---------- Fields ---------- */
-label{display:block;font-size:12px;color:#64748b;margin:0 0 8px;font-weight:600;letter-spacing:.03em}
-input,select{
-  width:100%;max-width:100%;min-width:0;
-  padding:14px 14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:#fff;
-  color:var(--text);
-  font-size:16px; /* prevents iOS zoom */
-  line-height:1.3;
-  transition:border-color .2s, box-shadow .2s;
-}
-input:hover,select:hover{border-color:#cbd5e1}
-input:focus,select:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.25);outline:none}
+  /* ---------- Grid (search row) ---------- */
+  .grid{
+    display:grid;
+    gap:14px;
+    margin-bottom:14px;
+    min-width:0;
+  }
+  @media (min-width:880px){
+    .grid.cols-3{grid-template-columns:1.2fr 1.2fr .9fr;}
+  }
+  @media (min-width:880px){
+    .grid.cols-4{grid-template-columns:1.2fr 1.2fr .9fr auto;}
+  }
 
-input[type="date"]{
-  -webkit-appearance:none; appearance:none;
-  width:100%; min-width:0; background-clip:padding-box;
-  font-variant-numeric:tabular-nums;
-}
-@supports (-webkit-touch-callout:none){ input[type="date"]{ padding-right:42px } }
+  /* ---------- Labels & Inputs ---------- */
+  label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:#6b7280;
+    margin:0 0 8px;
+    font-weight:600;
+  }
 
-/* ---------- Inline layout ---------- */
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.pill{
-  display:inline-flex;gap:8px;align-items:center;
-  padding:8px 12px;border-radius:999px;background:var(--surface);
-  border:1px solid var(--line);color:#334155;font-weight:600;font-size:13px;
-}
+  input,select{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    padding:11px 12px 11px;
+    border-radius:12px;
+    border:1px solid rgba(148,163,184,.7);
+    background:#ffffff;
+    color:var(--text);
+    font-size:15px;
+    line-height:1.3;
+    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .08s ease;
+  }
+  input:hover,select:hover{
+    border-color:#94a3b8;
+    background:#f9fafb;
+  }
+  input:focus,select:focus{
+    border-color:var(--brand);
+    box-shadow:0 0 0 1px rgba(249,115,22,.8),0 0 0 6px rgba(249,115,22,.18);
+    outline:none;
+    transform:translateY(-0.5px);
+  }
+  input::placeholder{color:#9ca3af;}
 
-/* ---------- Buttons ---------- */
-.btn{
-  appearance:none;border:0;cursor:pointer;
-  background:var(--brand);color:#fff;
-  padding:12px 20px;border-radius:14px;
-  font-weight:700;font-size:15px;letter-spacing:.02em;
-  transition:transform .1s, box-shadow .2s, background .2s;
-}
-.btn:hover:not(:disabled){background:var(--brand-hover);transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.btn.secondary{
-  background:#fff;color:#0f172a;border:1px solid var(--line);box-shadow:none
-}
-.btn.secondary:hover{background:#f8fafc}
+  input[type="date"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    min-width:0;
+    font-variant-numeric:tabular-nums;
+    background-clip:padding-box;
+  }
+  @supports (-webkit-touch-callout:none){
+    input[type="date"]{padding-right:40px;}
+  }
 
-/* ---------- Notices ---------- */
-.notice{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;font-size:14px}
-.notice.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
-.notice:not(.err){background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+  /* ---------- Inline layout ---------- */
+  .row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .pill{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:7px 11px;
+    border-radius:999px;
+    background:rgba(248,250,252,1);
+    border:1px solid rgba(148,163,184,.6);
+    color:#111827;
+    font-weight:500;
+    font-size:12px;
+  }
+  .pill strong{font-weight:700;}
 
-/* ---------- Results grid ---------- */
-.results{display:grid;gap:16px;margin-top:16px;grid-template-columns:1fr}
+  /* ---------- Buttons ---------- */
+  .btn{
+    appearance:none;
+    border:0;
+    cursor:pointer;
+    background:linear-gradient(135deg,var(--brand),#fb923c);
+    color:#111827;
+    padding:10px 18px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    box-shadow:0 14px 30px rgba(249,115,22,.35);
+    transition:transform .12s ease, box-shadow .15s ease, filter .12s ease, background .12s ease;
+  }
+  .btn:hover:not(:disabled){
+    filter:brightness(1.05);
+    transform:translateY(-1px);
+    box-shadow:0 18px 40px rgba(249,115,22,.4);
+  }
+  .btn:active:not(:disabled){
+    transform:translateY(0);
+    box-shadow:0 10px 22px rgba(249,115,22,.3);
+  }
+  .btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
 
-/* ---------- Room card ---------- */
-.room{
-  border:1px solid var(--line);border-radius:16px;background:#fff;
-  overflow:hidden;display:flex;flex-direction:column;
-  transition:transform .15s, box-shadow .2s, border-color .2s; box-shadow:var(--shadow);
-}
-.room:hover{transform:translateY(-2px);border-color:#cbd5e1;box-shadow:var(--shadow-lg)}
-.hero{width:100%;aspect-ratio:16/10;object-fit:cover;background:#f1f5f9}
-.body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
-.name{font-weight:700;font-size:17px}
-.desc{color:#64748b;font-size:14px;line-height:1.5;min-height:2.6em}
-.foot{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
-.room-select{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:14px;
-}
-.room-select input[type="checkbox"]{
-  width:16px;
-  height:16px;
-}
+  .btn.secondary{
+    background:#ffffff;
+    color:#111827;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    box-shadow:none;
+    text-transform:none;
+    letter-spacing:.02em;
+    font-size:14px;
+  }
+  .btn.secondary:hover{
+    background:#f3f4f6;
+    box-shadow:0 10px 26px rgba(15,23,42,.12);
+  }
 
-.price{font-weight:800;font-size:15px}
-.price-breakdown{color:#64748b;font-size:12.5px}
-.chip{display:inline-flex;min-width:44px;justify-content:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
+  /* ---------- Notices ---------- */
+  .notice{
+    display:none;
+    margin-top:14px;
+    padding:11px 12px;
+    border-radius:12px;
+    font-size:13px;
+    border:1px solid transparent;
+    background:#f9fafb;
+  }
+  .notice.err{
+    background:#fef2f2;
+    border-color:#fecaca;
+    color:#b91c1c;
+  }
+  .notice:not(.err){
+    background:#ecfdf5;
+    border-color:#bbf7d0;
+    color:#166534;
+  }
 
-/* ---------- Skeletons ---------- */
-.skeleton{
-  position:relative;overflow:hidden;border-radius:12px;height:140px;
-  background:linear-gradient(90deg,#f1f5f9 0%,#e5e7eb 50%,#f1f5f9 100%);background-size:200% 100%;
-  animation:shimmer 1.4s infinite;
-}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  /* ---------- Results grid ---------- */
+  .results{
+    display:grid;
+    gap:14px;
+    margin-top:14px;
+    grid-template-columns:1fr;
+  }
 
-/* ---------- Summary panel ---------- */
-.summary{
-  margin-top:18px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:16px;
-  background:#fbfdff;
-}
+  /* ---------- Room card ---------- */
+  .room{
+    border-radius:18px;
+    border:1px solid rgba(226,232,240,1);
+    background:radial-gradient(circle at top,#ffffff,#f9fafb);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:var(--shadow-soft);
+    transition:transform .16s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .room:hover{
+    transform:translateY(-2px);
+    box-shadow:0 24px 55px rgba(15,23,42,.14);
+    border-color:rgba(249,115,22,.75);
+    background:radial-gradient(circle at top,#ffffff,#fef3c7);
+  }
 
-/* left-aligned key/value rows */
-.kv{
-  display:flex;
-  justify-content:flex-start;
-  align-items:flex-start;
-  gap:8px;
-  padding:8px 0;
-  font-size:15px;
-  text-align:left;
-}
-.kv span{
-  color:#64748b;
-  font-weight:600;
-}
-.kv strong{
-  font-weight:800;
-}
+  .hero{
+    width:100%;
+    aspect-ratio:16/10;
+    object-fit:cover;
+    background:#e5e7eb;
+  }
 
-/* extras rows italic */
-.kv.extras span,
-.kv.extras strong{
-  font-style:italic;
-}
+  /* ---------- Room body ---------- */
+  .body{
+    padding:14px 15px 13px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    flex:1;
+  }
+  .name{
+    font-weight:650;
+    font-size:16px;
+    letter-spacing:-0.01em;
+  }
+  .desc{
+    color:#6b7280;
+    font-size:13px;
+    line-height:1.55;
+    min-height:2.3em;
+  }
+  .foot{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:auto;
+    padding-top:11px;
+    border-top:1px dashed rgba(203,213,225,1);
+  }
+  .room-select{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:#111827;
+  }
+  .room-select input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    border-radius:6px;
+  }
+  .price{
+    font-weight:700;
+    font-size:14px;
+  }
+  .price-breakdown{
+    color:#6b7280;
+    font-size:12px;
+    margin-top:2px;
+  }
+  .chip{
+    display:inline-flex;
+    min-width:44px;
+    justify-content:center;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(203,213,225,1);
+    background:#f9fafb;
+    font-weight:700;
+    font-size:12px;
+  }
 
-/* discount rows: dark green text, light green highlight + divider */
-.kv.discount{
-  background:#ecfdf5;
-  border-radius:12px;
-  padding:10px 12px;
-  margin-top:6px;
-  border-top:1px dashed #bbf7d0;
-}
-.kv.discount span,
-.kv.discount strong{
-  color:#166534;
-}
+  /* ---------- Skeletons ---------- */
+  .skeleton{
+    position:relative;
+    overflow:hidden;
+    border-radius:14px;
+    height:140px;
+    background:linear-gradient(90deg,#e5e7eb 0%,#f3f4f6 50%,#e5e7eb 100%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s infinite linear;
+  }
+  @keyframes shimmer{
+    0%{background-position:200% 0;}
+    100%{background-position:-200% 0;}
+  }
 
-/* total row: strong visual separation */
-.total{
-  font-weight:900;
-  font-size:18px;
-  padding-top:12px;
-  margin-top:10px;
-  border-top:2px solid var(--line);
-}
+  /* ---------- Summary panel ---------- */
+  .summary{
+    margin-top:16px;
+    border-radius:18px;
+    padding:14px 14px 12px;
+    background:#f9fafb;
+    border:1px solid rgba(226,232,240,1);
+  }
 
-/* ---------- Overlay & modal ---------- */
-.overlay{position:fixed;inset:0;display:none;background:rgba(15,23,42,.56);backdrop-filter:blur(6px);z-index:9998}
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;padding:16px}
-.sheet{
-  width:100%;max-width:720px;max-height:92vh;background:#fff;border-radius:18px;border:1px solid var(--line);
-  box-shadow:0 24px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden
-}
-.sheet header{
-  padding:18px 20px;border-bottom:1px solid var(--line);
-  font-weight:800;font-size:20px;letter-spacing:-0.01em;display:flex;justify-content:space-between;align-items:center
-}
-.sheet main{padding:18px 16px;overflow:auto;flex:1;background:#fff}
-.sheet footer{padding:14px 16px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;background:#fff}
-.x{
-  background:transparent;border:0;font-size:26px;cursor:pointer;line-height:1;color:#64748b;
-  width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s
-}
-.x:hover{color:#0f172a;background:#f1f5f9}
+  /* key/value rows */
+  .kv{
+    display:flex;
+    justify-content:flex-start;
+    align-items:flex-start;
+    gap:6px;
+    padding:7px 0;
+    font-size:14px;
+    text-align:left;
+  }
+  .kv span{
+    color:#6b7280;
+    font-weight:600;
+    min-width:120px;
+  }
+  .kv strong{
+    font-weight:700;
+  }
 
-/* ---------- Qty controls ---------- */
-.qty{display:inline-flex;gap:12px;align-items:center}
-.qty button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:800}
-.qty input{width:48px;text-align:center}
+  /* extras italic */
+  .kv.extras span,
+  .kv.extras strong{
+    font-style:italic;
+  }
 
-/* ---------- Coupon row: prevent squish ---------- */
-.coupon-input{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
-.coupon-input input{flex:1;min-width:200px}
-.coupon-input .btn{padding:12px 18px}
-@media (max-width:520px){
-  .coupon-input{flex-direction:column}
-  .coupon-input input{min-width:0}
-  .coupon-input .btn{width:100%}
-}
+  /* discount rows */
+  .kv.discount{
+    background:#ecfdf5;
+    border-radius:12px;
+    padding:9px 11px;
+    margin-top:4px;
+    border-top:1px dashed #6ee7b7;
+  }
+  .kv.discount span,
+  .kv.discount strong{
+    color:#166534;
+  }
 
-/* Applied coupon badge */
-.applied-coupon{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  margin-top:10px;padding:10px 12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0
-}
-.applied-coupon code{font-weight:900;color:#065f46;font-size:14px}
-.remove-coupon{background:var(--err);color:#fff;border:0;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:800}
+  /* total row */
+  .total{
+    font-weight:800;
+    font-size:16px;
+    padding-top:10px;
+    margin-top:8px;
+    border-top:2px solid rgba(209,213,219,1);
+  }
 
-/* ---------- Extras list: de-clutter ---------- */
-#extras-list{display:grid;gap:12px}
-#extras-list > *{
-  border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);
-  padding:14px 12px
-}
-#extras-list .name{font-size:16px}
-#extras-list .desc{font-size:13.5px}
-#extras-list .price{font-size:14px}
-#extras-list .qty{margin-left:auto}
+  /* ---------- Overlay & modal ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    background:rgba(15,23,42,.25);
+    backdrop-filter:blur(8px);
+    z-index:9998;
+  }
 
-/* ---------- Responsive tighten ---------- */
-@media (max-width:380px){
-  .wrap{padding-left:12px;padding-right:12px}
-  input,select{padding:12px}
-  .btn{padding:12px 16px}
-}
+  .modal{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:16px;
+  }
 
-/* Prevent horizontal scroll on very narrow screens */
-#booking-search, .wrap, .card, .grid, .grid > div { min-width:0; }
-html, body { overflow-x:hidden; }
+  .sheet{
+    width:100%;
+    max-width:720px;
+    max-height:92vh;
+    background:#ffffff;
+    border-radius:22px;
+    border:1px solid rgba(226,232,240,1);
+    box-shadow:0 26px 70px rgba(15,23,42,.25);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  .sheet header{
+    padding:16px 18px;
+    border-bottom:1px solid rgba(226,232,240,1);
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:-0.02em;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .sheet main{
+    padding:16px 14px 14px;
+    overflow:auto;
+    flex:1;
+  }
+  .sheet footer{
+    padding:12px 14px;
+    border-top:1px solid rgba(226,232,240,1);
+    display:flex;
+    gap:10px;
+    justify-content:space-between;
+    background:#f9fafb;
+  }
+
+  /* close button */
+  .x{
+    background:transparent;
+    border:0;
+    font-size:22px;
+    cursor:pointer;
+    line-height:1;
+    color:#9ca3af;
+    width:34px;
+    height:34px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .15s ease,color .15s ease,transform .1s ease;
+  }
+  .x:hover{
+    color:#111827;
+    background:#e5e7eb;
+    transform:translateY(-0.5px);
+  }
+
+  /* ---------- Qty controls ---------- */
+  .qty{
+    display:inline-flex;
+    gap:10px;
+    align-items:center;
+  }
+  .qty button{
+    width:34px;
+    height:34px;
+    border-radius:999px;
+    border:1px solid rgba(209,213,219,1);
+    background:#ffffff;
+    font-weight:700;
+    color:#374151;
+  }
+
+  /* ---------- Coupon row ---------- */
+  .coupon-input{
+    display:flex;
+    gap:10px;
+    margin-top:9px;
+    flex-wrap:wrap;
+  }
+  .coupon-input input{
+    flex:1;
+    min-width:200px;
+  }
+  .coupon-input .btn{
+    padding-inline:16px;
+  }
+  @media (max-width:520px){
+    .coupon-input{flex-direction:column;}
+    .coupon-input input{min-width:0;}
+    .coupon-input .btn{width:100%;}
+  }
+
+  /* Applied coupon badge */
+  .applied-coupon{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:9px;
+    padding:9px 11px;
+    border-radius:12px;
+    background:#ecfdf5;
+    border:1px solid #6ee7b7;
+  }
+  .applied-coupon code{
+    font-weight:800;
+    color:#065f46;
+    font-size:13px;
+  }
+  .remove-coupon{
+    background:#ef4444;
+    color:#fff;
+    border:0;
+    padding:5px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+  }
+
+  /* ---------- Extras list ---------- */
+  #extras-list{
+    display:grid;
+    gap:12px;
+  }
+  #extras-list > *{
+    border:1px solid rgba(226,232,240,1);
+    border-radius:16px;
+    background:#ffffff;
+    box-shadow:var(--shadow-soft);
+    padding:12px 13px;
+  }
+  #extras-list .name{font-size:15px;}
+  #extras-list .desc{font-size:13px;color:#6b7280;}
+  #extras-list .price{font-size:13px;}
+  #extras-list .qty{margin-left:auto;}
+
+  /* ---------- Responsive tighten ---------- */
+  @media (max-width:380px){
+    .wrap{padding-left:10px;padding-right:10px;}
+    input,select{padding:10px 11px;}
+    .btn{padding:10px 15px;}
+  }
+
+  /* Prevent horizontal scroll on very narrow screens */
+  #booking-search, .wrap, .card, .grid, .grid > div { min-width:0; }
+  html, body { overflow-x:hidden; }
+
     \` +
     '</style>' +
 
@@ -421,18 +756,27 @@ html, body { overflow-x:hidden; }
     '<div id="modal-thanks" class="modal" aria-hidden="true"><div class="sheet">' +
       '<header><div>Booking confirmed! 🎉</div><button class="x" data-close="thanks">×</button></header>' +
       '<main>' +
-        '<p style="margin:0 0 8px">Thank you! Your reservation is confirmed.</p>' +
-        '<div class="summary" style="margin-top:8px">' +
-          '<div class="kv"><span>Confirmation code</span><strong id="tCode">—</strong></div>' +
-          '<div class="kv"><span>Guest</span><strong id="tName">—</strong></div>' +
-          '<div class="kv"><span>Dates</span><strong id="tDates">—</strong></div>' +
-          '<div class="kv"><span>Room</span><strong id="tRoom">—</strong></div>' +
-          '<div class="kv"><span>Room subtotal</span><strong id="tRoomSub">—</strong></div>' +
-          '<div class="kv extras"><span>Extras</span><strong id="tExtras">—</strong></div>' +
-          '<div class="kv extras"><span>Extras subtotal</span><strong id="tExtrasSub">—</strong></div>' +
-          '<div class="kv discount"><span>Discount</span><strong id="tDisc">—</strong></div>' +
-          '<div class="kv total"><span>Total paid</span><strong id="tTotal">—</strong></div>' +
+                '<p style="margin:0 0 8px">Thank you! Your reservation is confirmed.</p>' +
+          '<div class="summary summary-confirm" style="margin-top:8px">' +
+          // Booking details section
+          '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">' +
+            '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Booking details</div>' +
+            '<div class="kv"><span class="label">Confirmation code:</span><span class="divider"></span><span class="value" id="tCode">—</span></div>' +
+            '<div class="kv"><span class="label">Guest:</span><span class="divider"></span><span class="value" id="tName">—</span></div>' +
+            '<div class="kv"><span class="label">Dates:</span><span class="divider"></span><span class="value" id="tDates">—</span></div>' +
+            '<div class="kv"><span class="label">Room:</span><span class="divider"></span><span class="value" id="tRoom">—</span></div>' +
+          '</div>' +
+          // Divider
+          '<div style="border-top:1px solid var(--line);margin:4px 0 10px"></div>' +
+          // Payment summary section
+          '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Payment summary</div>' +
+          '<div class="kv"><span class="label">Room subtotal:</span><span class="divider"></span><span class="value" id="tRoomSub">—</span></div>' +
+          '<div class="kv extras"><span class="label">Extras:</span><span class="divider"></span><span class="value" id="tExtras">—</span></div>' +
+          '<div class="kv extras"><span class="label">Extras subtotal:</span><span class="divider"></span><span class="value" id="tExtrasSub">—</span></div>' +
+          '<div class="kv discount"><span class="label">Discount:</span><span class="divider"></span><span class="value" id="tDisc">—</span></div>' +
+          '<div class="kv total"><span class="label">Total paid:</span><span class="divider"></span><span class="value" id="tTotal">—</span></div>' +
         '</div>' +
+
         '<p class="sub" style="margin-top:10px">A confirmation email will be sent to you shortly.</p>' +
       '</main>' +
       '<footer><button class="btn" id="thanks-close">Close</button></footer>' +
@@ -972,7 +1316,52 @@ html, body { overflow-x:hidden; }
   // ====== RENDER ROOMS ======
   async function renderRooms(items, ci, co, adults) {
     var r = RESULTS_SEL(); r.innerHTML = '';
-    if (!items || !items.length) { showMsg('No cabins available for those dates.', 'err'); return; }
+      if (!items || !items.length) {
+      // Tell the guest there is no availability for the chosen dates
+      showMsg('No cabins available for those dates.', 'err');
+
+      // How many nights is this search for?
+      var stayNights = nights(ci, co);
+      if (stayNights <= 0) stayNights = 1;
+
+      // Look ahead for the next date that *any* cabin is available
+      var anyNext = null;
+      var maxLookAhead = 90; // days to scan forward
+
+      for (var offset = 1; offset <= maxLookAhead; offset++) {
+        var nextCi = addDaysISO(ci, offset);
+        var nextCo = addDaysISO(nextCi, stayNights);
+
+        try {
+          var nextRooms = await getAvailableRooms(nextCi, nextCo, adults);
+          if (nextRooms && nextRooms.length) {
+            anyNext = { ci: nextCi, co: nextCo };
+            break;
+          }
+        } catch (e) {
+          // If the lookup fails, stop trying so we don't loop forever
+          break;
+        }
+      }
+
+      var html = '<div class="notice err" style="display:block;text-align:left;line-height:1.6">';
+      html += '<p><strong>No cabins are available for ' + ci + ' → ' + co + '.</strong></p>';
+
+      if (anyNext) {
+        html += '<p>The next available stay for any cabin is <strong>' +
+          anyNext.ci + ' → ' + anyNext.co + '</strong>.</p>';
+      } else {
+        html += '<p>We couldn\u2019t find another available date in the next few months. ' +
+          'Please try different dates.</p>';
+      }
+
+      html += '</div>';
+
+      // Show this message inside the results modal instead of leaving it empty
+      r.innerHTML = html;
+      return;
+    }
+
     if (items[0] && items[0].currency) { CURRENCY = items[0].currency; }
     hideMsg(); showMsg('Availability loaded — ' + items.length + ' option' + (items.length > 1 ? 's' : '') + '.', 'ok');
 
@@ -1829,6 +2218,35 @@ input[type="date"] {
   .pill { justify-content:center; }
   .btn { width:100%; }
   .foot { flex-direction:column; align-items:flex-start; }
+}
+
+/* Booking confirmation summary: aligned columns, no bold */
+.summary-confirm .kv{
+  display:grid;
+  grid-template-columns:150px 1px 1fr;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.summary-confirm .kv .label{
+  text-align:right;
+  color:#6b7280;
+  font-weight:400;
+}
+
+.summary-confirm .kv .divider{
+  width:1px;
+  background:var(--line);
+}
+
+.summary-confirm .kv .value{
+  text-align:left;
+  font-weight:400;
+}
+
+/* Remove bold from total row inside confirmation summary */
+.summary-confirm .kv.total{
+  font-weight:400;
 }
 
 /* prevent horizontal scroll */
