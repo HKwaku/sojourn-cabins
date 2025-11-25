@@ -1,4 +1,4 @@
-// mailjet.js – no SDK, plain HTTPS call
+// mailjet.js – Mailjet send using plain HTTPS
 // @ts-nocheck
 
 const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
@@ -15,7 +15,8 @@ export async function sendBookingEmail({ to, name, booking }) {
     "Basic " +
     Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
 
-  // simple currency formatter to mirror the widget feel
+  // mirror the booking summary modal structure
+
   function formatMoney(amount, currency) {
     const curr = currency || "GHS";
     const num = Number(amount || 0);
@@ -33,26 +34,33 @@ export async function sendBookingEmail({ to, name, booking }) {
     `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`.trim() ||
     name ||
     "";
-  const dates = booking.check_in && booking.check_out
-    ? `${booking.check_in} → ${booking.check_out}`
-    : "";
+  const dates =
+    booking.check_in && booking.check_out
+      ? `${booking.check_in} → ${booking.check_out}`
+      : "—";
 
-  const roomSubtotal = booking.room_subtotal
-    ? formatMoney(booking.room_subtotal, booking.currency)
-    : "—";
+  const roomSubtotal =
+    booking.room_subtotal != null
+      ? formatMoney(booking.room_subtotal, booking.currency)
+      : "—";
 
-  const extrasSubtotal = booking.extras_total
-    ? formatMoney(booking.extras_total, booking.currency)
-    : "—";
+  const extrasSubtotal =
+    booking.extras_total != null
+      ? formatMoney(booking.extras_total, booking.currency)
+      : "—";
 
   const discountText =
     booking.discount_amount && Number(booking.discount_amount) > 0
-      ? `-${formatMoney(booking.discount_amount, booking.currency)}${
-          booking.coupon_code ? ` (${booking.coupon_code})` : ""
-        }`
+      ? `-${formatMoney(
+          booking.discount_amount,
+          booking.currency
+        )}${booking.coupon_code ? ` (${booking.coupon_code})` : ""}`
       : "—";
 
-  const totalPaid = formatMoney(booking.total, booking.currency);
+  const totalPaid =
+    booking.total != null
+      ? formatMoney(booking.total, booking.currency)
+      : "—";
 
   const body = {
     Messages: [
@@ -84,30 +92,30 @@ export async function sendBookingEmail({ to, name, booking }) {
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;width:140px;">Confirmation code:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${
-                      booking.confirmation_code || "—"
-                    }</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${booking.confirmation_code || "—"}
+                    </td>
                   </tr>
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Guest:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${
-                      fullName || "—"
-                    }</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${fullName || "—"}
+                    </td>
                   </tr>
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Dates:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${
-                      dates || "—"
-                    }</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${dates}
+                    </td>
                   </tr>
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Room:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${
-                      booking.room_name || "—"
-                    }</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${booking.room_name || "—"}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -123,22 +131,32 @@ export async function sendBookingEmail({ to, name, booking }) {
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;width:140px;">Room subtotal:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${roomSubtotal}</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${roomSubtotal}
+                    </td>
                   </tr>
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Extras subtotal:</td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">${extrasSubtotal}</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;">
+                      ${extrasSubtotal}
+                    </td>
                   </tr>
                   <tr>
                     <td style="padding:4px 8px 4px 0;text-align:right;color:#166534;background:#ecfdf5;">Discount:</td>
                     <td style="width:1px;border-left:1px solid #bbf7d0;background:#ecfdf5;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;color:#166534;background:#ecfdf5;">${discountText}</td>
+                    <td style="padding:4px 0 4px 8px;text-align:left;color:#166534;background:#ecfdf5;">
+                      ${discountText}
+                    </td>
                   </tr>
                   <tr>
-                    <td style="padding:8px 8px 0 0;text-align:right;color:#111827;font-weight:600;border-top:2px solid #e5e7eb;">Total paid:</td>
+                    <td style="padding:8px 8px 0 0;text-align:right;color:#111827;font-weight:600;border-top:2px solid #e5e7eb;">
+                      Total paid:
+                    </td>
                     <td style="width:1px;border-left:1px solid #e5e7eb;border-top:2px solid #e5e7eb;"></td>
-                    <td style="padding:8px 0 0 8px;text-align:left;font-weight:600;border-top:2px solid #e5e7eb;">${totalPaid}</td>
+                    <td style="padding:8px 0 0 8px;text-align:left;font-weight:600;border-top:2px solid #e5e7eb;">
+                      ${totalPaid}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -166,23 +184,5 @@ export async function sendBookingEmail({ to, name, booking }) {
     throw new Error(`Mailjet error ${res.status}`);
   }
 
-  return res.json();
-}
-
-  const res = await fetch("https://api.mailjet.com/v3.1/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Mailjet error:", res.status, text);
-    throw new Error(`Mailjet error ${res.status}`);
-  }
-
-  return res.json();
+  return await res.json();
 }
