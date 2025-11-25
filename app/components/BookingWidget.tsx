@@ -1518,7 +1518,7 @@ html, body { overflow-x:hidden; }
         }
       }
 
-      // Send booking email once, based on the primary reservation/payload
+    // Send booking email once, based on the primary reservation/payload
     if (primaryRes && primaryPayload) {
       try {
         await fetch('/api/send-booking-email', {
@@ -1546,8 +1546,10 @@ html, body { overflow-x:hidden; }
               currency: primaryPayload.currency
             }
           })
-        })
-      } catch (emailErr) {}
+        });
+      } catch (emailErr) {
+        console.error('Failed to send booking email', emailErr);
+      }
     }
 
 
