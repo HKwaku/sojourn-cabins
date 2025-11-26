@@ -449,28 +449,30 @@ export default function BookingWidget() {
   }
 
   /* key/value rows */
-  .kv{
+    .kv{
     display:flex;
-    justify-content:flex-start;
     align-items:flex-start;
-    gap:6px;
-    padding:7px 0;
+    gap:12px;
     font-size:14px;
-    text-align:left;
   }
+  /* Field names (left) bold, with vertical divider */
   .kv span{
     color:#6b7280;
-    font-weight:600;
-    min-width:120px;
-  }
-  .kv strong{
     font-weight:700;
+    min-width:120px;
+    padding-right:10px;
+    border-right:1px solid #e5e7eb;
+  }
+  /* Values (right) normal weight, aligned left */
+  .kv strong{
+    font-weight:400;
+    padding-left:10px;
   }
 
-  /* extras italic */
+  /* No italics anywhere */
   .kv.extras span,
   .kv.extras strong{
-    font-style:italic;
+    font-style:normal;
   }
 
   /* discount rows */
@@ -746,7 +748,7 @@ export default function BookingWidget() {
           '<div class="kv"><span>Nights</span><strong id="mN2">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom2">—</strong></div>' +
           '<div class="kv extras"><span>Extras</span><strong id="mExtras2">£0.00</strong></div>' +
-          '<div class="kv discount" id="mDiscountRow2" style="display:none"><span>Discount (<span id="mDiscountLabel2"></span>)</span><strong id="mDiscount2">−£0.00</strong></div>' +
+          '<div class="kv discount" id="mDiscountRow2" style="display:none"><span>Discount</span><strong id="mDiscount2">−£0.00</strong></div>' +
           '<div class="kv total"><span>Total to pay</span><strong id="mTotal2">—</strong></div>' +
         '</div>' +
       '</main>' +
@@ -1001,10 +1003,31 @@ export default function BookingWidget() {
     return discount;
   }
 
+    function getDiscountDescriptionForDisplay(curr) {
+    if (!appliedCoupon) return '';
+
+    var currency = curr || (selected && selected.currency) || CURRENCY || 'GHS';
+    var scopeLabel = getCouponScopeLabel();
+    var base = '';
+
+    if (appliedCoupon.discount_type === 'percentage') {
+      base = appliedCoupon.discount_value + '% off';
+    } else if (appliedCoupon.discount_type === 'fixed_amount') {
+      base = formatCurrency(appliedCoupon.discount_value, currency) + ' off';
+    }
+
+    if (scopeLabel) {
+      base = base ? base + ' ' + scopeLabel : scopeLabel;
+    }
+
+    return base;
+  }
+
     function updateSummary() {
     var curr = selected && selected.currency ? selected.currency : (CURRENCY || 'GHS');
     var roomTotal = selected && selected.total ? selected.total : 0;
     var discount = typeof calculateDiscount === 'function' ? calculateDiscount() : 0;
+    var discountDescription = discount ? getDiscountDescriptionForDisplay(curr) : '';
     var finalTotal = Math.max(0, roomTotal + extrasTotal - discount);
 
     var sRoomEl   = $('#sRoom');
@@ -1033,7 +1056,13 @@ export default function BookingWidget() {
     }
 
     if (sDiscEl) {
-      sDiscEl.textContent = discount ? ('- ' + formatCurrency(discount, curr)) : '—';
+      if (discount) {
+        sDiscEl.textContent =
+          '- ' + formatCurrency(discount, curr) +
+          (discountDescription ? ' (' + discountDescription + ')' : '');
+      } else {
+        sDiscEl.textContent = '—';
+      }
     }
 
     if (sTotalEl) {
@@ -1072,69 +1101,80 @@ export default function BookingWidget() {
   }
 
 
-  function updateModalSummaries() {
-    if (!selected) return;
-    var curr = selected.currency || CURRENCY;
-    var discount = calculateDiscount();
-    var finalTotal = Math.max(0, selected.total + extrasTotal - discount);
-    var scopeLabel = getCouponScopeLabel();
+        function updateModalSummaries() {
+      if (!selected) return;
+      var curr = selected.currency || CURRENCY;
+      var discount = calculateDiscount();
+      var discountDescription = discount ? getDiscountDescriptionForDisplay(curr) : '';
+      var finalTotal = Math.max(0, selected.total + extrasTotal - discount);
+      var scopeLabel = getCouponScopeLabel();
 
-    // Modal 1 (Extras)
-    $('#mN1').textContent = String(selected.nights || 0);
+      // Modal 1 (Extras)
+      $('#mN1').textContent = String(selected.nights || 0);
 
-    var mRoom1El = $('#mRoom1');
-    if (mRoom1El) {
-      if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
-        var lines1 = selectedRooms.map(function (r) {
-          var nm = r.name || r.code || 'Room';
-          var amt = r.total || 0;
-          var cur = r.currency || curr;
-          return nm + ': ' + formatCurrency(amt, cur);
-        });
-        mRoom1El.innerHTML = lines1.join('<br>');
-      } else {
-        mRoom1El.textContent = formatCurrency(selected.total, curr);
+      var mRoom1El = $('#mRoom1');
+      if (mRoom1El) {
+        if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+          var lines1 = selectedRooms.map(function (r) {
+            var nm = r.name || r.code || 'Room';
+            var amt = r.total || 0;
+            var cur = r.currency || curr;
+            return nm + ': ' + formatCurrency(amt, cur);
+          });
+          mRoom1El.innerHTML = lines1.join('<br>');
+        } else {
+          mRoom1El.textContent = formatCurrency(selected.total, curr);
+        }
       }
-    }
 
-    $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) {
-      $('#mDiscountRow1').style.display = 'flex';
-      $('#mDiscountLabel1').textContent = appliedCoupon.code + ': ' + scopeLabel;
-      $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr);
-    } else {
-      $('#mDiscountRow1').style.display = 'none';
-    }
-    $('#mTotal1').textContent = formatCurrency(finalTotal, curr);
+      $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
 
-    // Modal 2 (Guest)
-    $('#mN2').textContent = String(selected.nights || 0);
-
-    var mRoom2El = $('#mRoom2');
-    if (mRoom2El) {
-      if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
-        var lines2 = selectedRooms.map(function (r) {
-          var nm2 = r.name || r.code || 'Room';
-          var amt2 = r.total || 0;
-          var cur2 = r.currency || curr;
-          return nm2 + ': ' + formatCurrency(amt2, cur2);
-        });
-        mRoom2El.innerHTML = lines2.join('<br>');
+      // Modal 1 (Extras) – keep full description
+      if (discount > 0) {
+        $('#mDiscountRow1').style.display = 'flex';
+        $('#mDiscountLabel1').textContent = discountDescription || 'Discount';
+        $('#mDiscount1').textContent = '−' + formatCurrency(discount, curr);
       } else {
-        mRoom2El.textContent = formatCurrency(selected.total, curr);
+        $('#mDiscountRow1').style.display = 'none';
       }
+
+      $('#mTotal1').textContent = formatCurrency(finalTotal, curr);
+
+      // Modal 2 (Guest)
+      $('#mN2').textContent = String(selected.nights || 0);
+
+      var mRoom2El = $('#mRoom2');
+      if (mRoom2El) {
+        if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+          var lines2 = selectedRooms.map(function (r) {
+            var nm2 = r.name || r.code || 'Room';
+            var amt2 = r.total || 0;
+            var cur2 = r.currency || curr;
+            return nm2 + ': ' + formatCurrency(amt2, cur2);
+          });
+          mRoom2El.innerHTML = lines2.join('<br>');
+        } else {
+          mRoom2El.textContent = formatCurrency(selected.total, curr);
+        }
+      }
+
+      $('#mExtras2').textContent = formatCurrency(extrasTotal, curr);
+
+      // Modal 2 (Guest) – amount only, no extra description text
+      var discRow2 = $('#mDiscountRow2');
+      var discVal2 = $('#mDiscount2');
+      if (discRow2 && discVal2) {
+        if (discount > 0) {
+          discRow2.style.display = 'flex';
+          discVal2.textContent = '−' + formatCurrency(discount, curr);
+        } else {
+          discRow2.style.display = 'none';
+        }
+      }
+
+      $('#mTotal2').textContent = formatCurrency(finalTotal, curr);
     }
 
-    $('#mExtras2').textContent = formatCurrency(extrasTotal, curr);
-    if (discount > 0) {
-      $('#mDiscountRow2').style.display = 'flex';
-      $('#mDiscountLabel2').textContent = appliedCoupon.code + ': ' + scopeLabel;
-      $('#mDiscount2').textContent = '−' + formatCurrency(discount, curr);
-    } else {
-      $('#mDiscountRow2').style.display = 'none';
-    }
-    $('#mTotal2').textContent = formatCurrency(finalTotal, curr);
-  }
 
   // ====== COUPONS ======
   async function validateCoupon(code) {
@@ -1916,25 +1956,50 @@ export default function BookingWidget() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            booking: {
-              confirmation_code: primaryRes.confirmation_code,
-              guest_first_name: first,
-              guest_last_name: last,
-              guest_email: email,
-              guest_phone: sharedGuest.phone,
-              room_name: primaryPayload.roomName,
-              check_in: primaryPayload.checkIn,
-              check_out: primaryPayload.checkOut,
-              nights: primaryPayload.nights,
-              adults: primaryPayload.adults,
-              room_subtotal: primaryPayload.roomSubtotal,
-              extras_total: primaryPayload.extrasTotal,
-              discount_amount: primaryPayload.discountAmount,
-              coupon_code: primaryPayload.couponCode,
-              total: primaryPayload.finalTotal,
-              currency: primaryPayload.currency
-            }
-          })
+          booking: {
+            // guest + primary reservation info (kept for backward compatibility)
+            confirmation_code: primaryRes.confirmation_code,
+            guest_first_name: first,
+            guest_last_name: last,
+            guest_email: email,
+            guest_phone: sharedGuest.phone,
+
+            // primary room (first room in the group)
+            room_name: primaryPayload.roomName,
+            check_in: primaryPayload.checkIn,
+            check_out: primaryPayload.checkOut,
+            nights: primaryPayload.nights,
+            adults: primaryPayload.adults,
+            room_subtotal: primaryPayload.roomSubtotal,
+            extras_total: primaryPayload.extrasTotal,
+            discount_amount: primaryPayload.discountAmount,
+            coupon_code: primaryPayload.couponCode,
+            total: primaryPayload.finalTotal,
+            currency: primaryPayload.currency,
+
+            // --- NEW: full group / multi-room details ---
+            is_group_booking: hasMultipleRooms,
+            group_reservation_code: groupCode,
+            group_total: groupFinalTotal || primaryPayload.finalTotal,
+
+            rooms: roomPayloads.map(function (p) {
+              return {
+                room_name: p.roomName,
+                check_in: p.checkIn,
+                check_out: p.checkOut,
+                nights: p.nights,
+                adults: p.adults,
+                room_subtotal: p.roomSubtotal,
+                extras_total: p.extrasTotal,
+                discount_amount: p.discountAmount,
+                coupon_code: p.couponCode,
+                total: p.finalTotal,
+                currency: p.currency
+              };
+            })
+          }
+        })
+
         });
       } catch (emailErr) {
         console.error('Failed to send booking email', emailErr);
@@ -2021,12 +2086,16 @@ export default function BookingWidget() {
       // Discount amount + human description (from getCouponScopeLabel)
       if (discEl) {
         if (discount && discount > 0) {
-          var desc = '';
-          if (typeof getCouponScopeLabel === 'function') {
-            desc = getCouponScopeLabel() || '';
-          }
-          var amtText = '-' + formatCurrency(discount, thanksCurrency);
-          discEl.textContent = desc ? amtText + ' (' + desc + ')' : amtText;
+          var fullDesc = typeof getDiscountDescriptionForDisplay === 'function'
+            ? getDiscountDescriptionForDisplay(thanksCurrency)
+            : '';
+
+          discEl.textContent =
+          '-' + formatCurrency(discount, thanksCurrency) +
+          (fullDesc
+            ? ' (' + (appliedCoupon && appliedCoupon.code ? appliedCoupon.code + ' – ' : '') + fullDesc + ')'
+            : '');
+
         } else {
           discEl.textContent = '—';
         }
@@ -2165,8 +2234,8 @@ input[type="date"] {
   background:#fafafa;
 }
 
-/* left-aligned rows */
-.kv {
+/* left-aligned key/value rows */
+.kv{
   display:flex;
   justify-content:flex-start;
   align-items:flex-start;
@@ -2175,18 +2244,22 @@ input[type="date"] {
   font-size:15px;
   text-align:left;
 }
-.kv span {
-  color:var(--muted);
-  font-weight:500;
-}
-.kv strong {
-  font-weight:700;
+
+.kv span{
+  color:#64748b;
+  font-weight:600;
+  min-width:140px;   /* fixed label width so values line up */
 }
 
-/* extras italic */
+
+.kv strong{
+  font-weight:400;   /* values regular */
+}
+
+/* extras rows – no italics */
 .kv.extras span,
-.kv.extras strong {
-  font-style:italic;
+.kv.extras strong{
+  font-style:normal;
 }
 
 /* discount rows: dark green + light green highlight + divider */
