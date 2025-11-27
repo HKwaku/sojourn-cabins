@@ -2021,11 +2021,6 @@ export default function BookingWidget() {
           })
 
 
-            // --- NEW: full group / multi-room details ---
-            is_group_booking: hasMultipleRooms,
-            group_reservation_code: groupCode,
-            group_total: groupFinalTotal || primaryPayload.finalTotal,
-
             rooms: roomPayloads.map(function (p) {
               return {
                 room_name: p.roomName,
