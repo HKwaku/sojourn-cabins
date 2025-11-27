@@ -1,22 +1,27 @@
-import Mailjet from "node-mailjet";
+// mailjet.js
+// Plain fetch-based Mailjet client – no external "node-mailjet" dependency
 
-export const mailjet = Mailjet.apiConnect(
-  process.env.MAILJET_API_KEY,
-  process.env.MAILJET_SECRET_KEY
-);
+const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
+const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
+const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL;
+const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || "Reservations";
+
+if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
+  console.warn("MAILJET_API_KEY or MAILJET_SECRET_KEY is not set");
+}
+
+function formatMoney(amount, currency) {
+  if (amount == null || isNaN(amount)) return "—";
+  return new Intl.NumberFormat("en-GH", {
+    style: "currency",
+    currency: currency || "GHS",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(amount));
+}
 
 export async function sendBookingEmail({ to, name, booking }) {
   const currency = booking.currency || "GHS";
-
-  function formatMoney(amount) {
-    if (amount == null || isNaN(amount)) return "—";
-    return new Intl.NumberFormat("en-GH", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(amount));
-  }
 
   const guestName =
     `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`
@@ -27,7 +32,7 @@ export async function sendBookingEmail({ to, name, booking }) {
       ? `${booking.check_in} → ${booking.check_out}`
       : "";
 
-  // Use all rooms if provided; otherwise fall back to single room_name
+  // Use all rooms if provided; otherwise fall back to a single room
   const roomsArray =
     Array.isArray(booking.rooms) && booking.rooms.length
       ? booking.rooms
@@ -45,36 +50,55 @@ export async function sendBookingEmail({ to, name, booking }) {
     .map((r) => {
       const nm = r.room_name || "Room";
       const sub =
-        r.room_subtotal != null ? formatMoney(r.room_subtotal) : "—";
+        r.room_subtotal != null
+          ? formatMoney(r.room_subtotal, r.currency || currency)
+          : "—";
       return `${nm}: ${sub}`;
     })
     .join("<br>");
 
-  // Aggregate totals across all rooms
-  const roomSubtotal = roomsArray.reduce(
+  // Aggregate totals across rooms; fall back to group_* fields if provided
+  const summedRoomSubtotal = roomsArray.reduce(
     (sum, r) => sum + (r.room_subtotal ? Number(r.room_subtotal) : 0),
     0
   );
-  const extrasSubtotal = roomsArray.reduce(
+  const summedExtrasSubtotal = roomsArray.reduce(
     (sum, r) => sum + (r.extras_total ? Number(r.extras_total) : 0),
     0
   );
-  const discountTotal = roomsArray.reduce(
+  const summedDiscountTotal = roomsArray.reduce(
     (sum, r) => sum + (r.discount_amount ? Number(r.discount_amount) : 0),
     0
   );
+  const summedTotal = roomsArray.reduce(
+    (sum, r) => sum + (r.total ? Number(r.total) : 0),
+    0
+  );
+
+  const roomSubtotal =
+    booking.group_room_subtotal != null
+      ? Number(booking.group_room_subtotal)
+      : summedRoomSubtotal;
+
+  const extrasSubtotal =
+    booking.group_extras_total != null
+      ? Number(booking.group_extras_total)
+      : summedExtrasSubtotal;
+
+  const discountTotal =
+    booking.group_discount_total != null
+      ? Number(booking.group_discount_total)
+      : summedDiscountTotal;
+
   const totalPaid =
     booking.group_total != null
       ? Number(booking.group_total)
       : booking.total != null
       ? Number(booking.total)
-      : roomsArray.reduce(
-          (sum, r) => sum + (r.total ? Number(r.total) : 0),
-          0
-        );
+      : summedTotal;
 
   const discountText = discountTotal
-    ? `-${formatMoney(Math.abs(discountTotal))}${
+    ? `-${formatMoney(Math.abs(discountTotal), currency)}${
         booking.coupon_code ? ` (${booking.coupon_code})` : ""
       }`
     : "—";
@@ -116,29 +140,19 @@ export async function sendBookingEmail({ to, name, booking }) {
       <tbody>
         <tr>
           <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">Room subtotal:</td>
-          <td style="padding:4px 0;">${formatMoney(
-            booking.group_room_subtotal != null
-              ? booking.group_room_subtotal
-              : roomSubtotal
-          )}</td>
+          <td style="padding:4px 0;">${formatMoney(roomSubtotal, currency)}</td>
         </tr>
         <tr>
           <td style="padding:4px 12px 4px 0; color:#6b7280;">Extras subtotal:</td>
-          <td style="padding:4px 0;">${formatMoney(
-            booking.group_extras_total != null
-              ? booking.group_extras_total
-              : extrasSubtotal
-          )}</td>
+          <td style="padding:4px 0;">${formatMoney(extrasSubtotal, currency)}</td>
         </tr>
         <tr>
-          <td style="padding:8px 12px 8px 0; color:#6b7280; background:#ecfdf3;">Discount:</td>
+          <td style="padding:8px 12px 8px 0; color:#166534; background:#ecfdf3;">Discount:</td>
           <td style="padding:8px 0; background:#ecfdf3;">${discountText}</td>
         </tr>
         <tr>
           <td style="padding:8px 12px 4px 0; font-weight:600;">Total paid:</td>
-          <td style="padding:8px 0; font-weight:600;">${formatMoney(
-            totalPaid
-          )}</td>
+          <td style="padding:8px 0; font-weight:600;">${formatMoney(totalPaid, currency)}</td>
         </tr>
       </tbody>
     </table>
@@ -147,29 +161,41 @@ export async function sendBookingEmail({ to, name, booking }) {
   </div>
   `;
 
-  try {
-    const request = await mailjet.post("send", { version: "v3.1" }).request({
+  const authHeader =
+    "Basic " +
+    Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
+
+  const res = await fetch("https://api.mailjet.com/v3.1/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+    },
+    body: JSON.stringify({
       Messages: [
         {
           From: {
-            Email: process.env.MAILJET_FROM_EMAIL,
-            Name: process.env.MAILJET_FROM_NAME || "Reservations",
+            Email: MAILJET_FROM_EMAIL,
+            Name: MAILJET_FROM_NAME,
           },
           To: [
             {
               Email: to,
-              Name: guestName || name,
+              Name: guestName || name || "",
             },
           ],
           Subject: "Booking Confirmed ✅",
           HTMLPart: html,
         },
       ],
-    });
+    }),
+  });
 
-    return request.body;
-  } catch (err) {
-    console.error("Mailjet Error:", err);
-    throw err;
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Mailjet error:", res.status, text);
+    throw new Error(`Mailjet error ${res.status}`);
   }
+
+  return res.json();
 }
