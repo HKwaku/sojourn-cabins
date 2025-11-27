@@ -1955,27 +1955,71 @@ export default function BookingWidget() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-          booking: {
-            // guest + primary reservation info (kept for backward compatibility)
-            confirmation_code: primaryRes.confirmation_code,
-            guest_first_name: first,
-            guest_last_name: last,
-            guest_email: email,
-            guest_phone: sharedGuest.phone,
+                    body: JSON.stringify({
+            booking: (function () {
+              // Build per-room view for the email
+              var roomsForEmail = roomPayloads.map(function (p) {
+                return {
+                  room_name: p.roomName,
+                  check_in: p.checkIn,
+                  check_out: p.checkOut,
+                  nights: p.nights,
+                  adults: p.adults,
+                  room_subtotal: p.roomSubtotal,
+                  extras_total: p.extrasTotal,
+                  discount_amount: p.discountAmount,
+                  coupon_code: p.couponCode,
+                  total: p.finalTotal,
+                  currency: p.currency
+                };
+              });
 
-            // primary room (first room in the group)
-            room_name: primaryPayload.roomName,
-            check_in: primaryPayload.checkIn,
-            check_out: primaryPayload.checkOut,
-            nights: primaryPayload.nights,
-            adults: primaryPayload.adults,
-            room_subtotal: primaryPayload.roomSubtotal,
-            extras_total: primaryPayload.extrasTotal,
-            discount_amount: primaryPayload.discountAmount,
-            coupon_code: primaryPayload.couponCode,
-            total: primaryPayload.finalTotal,
-            currency: primaryPayload.currency,
+              // Aggregate totals across all rooms
+              function sumField(field) {
+                return roomPayloads.reduce(function (sum, p) {
+                  var v = p[field];
+                  return sum + (v ? Number(v) : 0);
+                }, 0);
+              }
+
+              var aggregateRoomSubtotal   = sumField('roomSubtotal');
+              var aggregateExtrasSubtotal = sumField('extrasTotal');
+              var aggregateDiscountTotal  = sumField('discountAmount');
+              var aggregateTotal          = sumField('finalTotal');
+
+              return {
+                // guest + primary info
+                confirmation_code: primaryRes.confirmation_code,
+                guest_first_name: first,
+                guest_last_name: last,
+                guest_email: email,
+                guest_phone: sharedGuest.phone,
+
+                check_in: primaryPayload.checkIn,
+                check_out: primaryPayload.checkOut,
+                nights: primaryPayload.nights,
+                adults: primaryPayload.adults,
+                currency: primaryPayload.currency,
+
+                // keep primary-room fields for backwards compatibility
+                room_name: primaryPayload.roomName,
+                room_subtotal: primaryPayload.roomSubtotal,
+                extras_total: primaryPayload.extrasTotal,
+                discount_amount: primaryPayload.discountAmount,
+                coupon_code: primaryPayload.couponCode,
+                total: primaryPayload.finalTotal,
+
+                // NEW: full booking details
+                is_group_booking: hasMultipleRooms,
+                group_room_subtotal: aggregateRoomSubtotal,
+                group_extras_total: aggregateExtrasSubtotal,
+                group_discount_total: aggregateDiscountTotal,
+                group_total: aggregateTotal,
+                rooms: roomsForEmail
+              };
+            })()
+          })
+
 
             // --- NEW: full group / multi-room details ---
             is_group_booking: hasMultipleRooms,

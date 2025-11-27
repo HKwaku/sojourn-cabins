@@ -1,188 +1,175 @@
-// mailjet.js – Mailjet send using plain HTTPS
-// @ts-nocheck
+import Mailjet from "node-mailjet";
 
-const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
-const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
-const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL;
-const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || "Reservations";
-
-if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
-  console.warn("MAILJET_API_KEY or MAILJET_SECRET_KEY is not set");
-}
+export const mailjet = Mailjet.apiConnect(
+  process.env.MAILJET_API_KEY,
+  process.env.MAILJET_SECRET_KEY
+);
 
 export async function sendBookingEmail({ to, name, booking }) {
-  const authHeader =
-    "Basic " +
-    Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
+  const currency = booking.currency || "GHS";
 
-  // mirror the booking summary modal structure
-
-  function formatMoney(amount, currency) {
-    const curr = currency || "GHS";
-    const num = Number(amount || 0);
-    try {
-      return new Intl.NumberFormat("en-GB", {
-        style: "currency",
-        currency: curr,
-      }).format(num);
-    } catch {
-      return `${curr} ${num.toFixed(2)}`;
-    }
+  function formatMoney(amount) {
+    if (amount == null || isNaN(amount)) return "—";
+    return new Intl.NumberFormat("en-GH", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(amount));
   }
 
-  const fullName =
-    `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`.trim() ||
-    name ||
-    "";
-  const dates =
+  const guestName =
+    `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`
+      .trim() || name || "";
+
+  const datesText =
     booking.check_in && booking.check_out
       ? `${booking.check_in} → ${booking.check_out}`
-      : "—";
+      : "";
 
-  const roomSubtotal =
-    booking.room_subtotal != null
-      ? formatMoney(booking.room_subtotal, booking.currency)
-      : "—";
-
-  const extrasSubtotal =
-    booking.extras_total != null
-      ? formatMoney(booking.extras_total, booking.currency)
-      : "—";
-
-  const discountText =
-    booking.discount_amount && Number(booking.discount_amount) > 0
-      ? `-${formatMoney(
-          booking.discount_amount,
-          booking.currency
-        )}${booking.coupon_code ? ` (${booking.coupon_code})` : ""}`
-      : "—";
-
-  const totalPaid =
-    booking.total != null
-      ? formatMoney(booking.total, booking.currency)
-      : "—";
-
-  const body = {
-    Messages: [
-      {
-        From: {
-          Email: MAILJET_FROM_EMAIL,
-          Name: MAILJET_FROM_NAME,
-        },
-        To: [
+  // Use all rooms if provided; otherwise fall back to single room_name
+  const roomsArray =
+    Array.isArray(booking.rooms) && booking.rooms.length
+      ? booking.rooms
+      : [
           {
-            Email: to,
-            Name: fullName || name || "",
+            room_name: booking.room_name,
+            room_subtotal: booking.room_subtotal,
+            extras_total: booking.extras_total,
+            discount_amount: booking.discount_amount,
+            total: booking.total,
           },
-        ],
-        Subject: "Your Booking Confirmation",
-        HTMLPart: `
-          <div style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#111827;">
-            <h2 style="font-size:20px;margin:0 0 8px;">Booking Confirmed ✅</h2>
-            <p style="margin:0 0 12px;">Hi ${fullName || ""},</p>
-            <p style="margin:0 0 20px;">Your stay has been confirmed. Here are your booking details:</p>
+        ];
 
-            <!-- Booking details -->
-            <div style="margin-bottom:20px;">
-              <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:8px;">
-                Booking details
-              </div>
-              <table style="border-collapse:collapse;width:100%;max-width:480px;">
-                <tbody>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;width:140px;">Confirmation code:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${booking.confirmation_code || "—"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Guest:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${fullName || "—"}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Dates:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${dates}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Room:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${booking.room_name || "—"}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+  const roomLinesHtml = roomsArray
+    .map((r) => {
+      const nm = r.room_name || "Room";
+      const sub =
+        r.room_subtotal != null ? formatMoney(r.room_subtotal) : "—";
+      return `${nm}: ${sub}`;
+    })
+    .join("<br>");
 
-            <!-- Payment summary -->
-            <div>
-              <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:8px;">
-                Payment summary
-              </div>
-              <table style="border-collapse:collapse;width:100%;max-width:480px;">
-                <tbody>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;width:140px;">Room subtotal:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${roomSubtotal}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#6b7280;">Extras subtotal:</td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;">
-                      ${extrasSubtotal}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:4px 8px 4px 0;text-align:right;color:#166534;background:#ecfdf5;">Discount:</td>
-                    <td style="width:1px;border-left:1px solid #bbf7d0;background:#ecfdf5;"></td>
-                    <td style="padding:4px 0 4px 8px;text-align:left;color:#166534;background:#ecfdf5;">
-                      ${discountText}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:8px 8px 0 0;text-align:right;color:#111827;font-weight:600;border-top:2px solid #e5e7eb;">
-                      Total paid:
-                    </td>
-                    <td style="width:1px;border-left:1px solid #e5e7eb;border-top:2px solid #e5e7eb;"></td>
-                    <td style="padding:8px 0 0 8px;text-align:left;font-weight:600;border-top:2px solid #e5e7eb;">
-                      ${totalPaid}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+  // Aggregate totals across all rooms
+  const roomSubtotal = roomsArray.reduce(
+    (sum, r) => sum + (r.room_subtotal ? Number(r.room_subtotal) : 0),
+    0
+  );
+  const extrasSubtotal = roomsArray.reduce(
+    (sum, r) => sum + (r.extras_total ? Number(r.extras_total) : 0),
+    0
+  );
+  const discountTotal = roomsArray.reduce(
+    (sum, r) => sum + (r.discount_amount ? Number(r.discount_amount) : 0),
+    0
+  );
+  const totalPaid =
+    booking.group_total != null
+      ? Number(booking.group_total)
+      : booking.total != null
+      ? Number(booking.total)
+      : roomsArray.reduce(
+          (sum, r) => sum + (r.total ? Number(r.total) : 0),
+          0
+        );
 
-            <p style="margin-top:20px;">We look forward to hosting you.</p>
-          </div>
-        `,
-      },
-    ],
-  };
+  const discountText = discountTotal
+    ? `-${formatMoney(Math.abs(discountTotal))}${
+        booking.coupon_code ? ` (${booking.coupon_code})` : ""
+      }`
+    : "—";
 
-  const res = await fetch("https://api.mailjet.com/v3.1/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader,
-    },
-    body: JSON.stringify(body),
-  });
+  const html = `
+  <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#111827; font-size:14px;">
+    <h2 style="margin:0 0 12px 0; font-size:20px;">Booking Confirmed ✅</h2>
+    <p style="margin:0 0 16px 0;">Hi ${guestName},</p>
+    <p style="margin:0 0 24px 0;">Your stay has been confirmed. Here are your booking details:</p>
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Mailjet error:", res.status, text);
-    throw new Error(`Mailjet error ${res.status}`);
+    <h3 style="margin:0 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
+      Booking Details
+    </h3>
+    <table style="border-collapse:collapse; width:100%; margin-bottom:24px;">
+      <tbody>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">Confirmation code:</td>
+          <td style="padding:4px 0;">${booking.confirmation_code || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280;">Guest:</td>
+          <td style="padding:4px 0;">${guestName || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280;">Dates:</td>
+          <td style="padding:4px 0;">${datesText || "—"}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280;">Room(s):</td>
+          <td style="padding:4px 0;">${roomLinesHtml}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin:0 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
+      Payment Summary
+    </h3>
+    <table style="border-collapse:collapse; width:100%; margin-bottom:24px;">
+      <tbody>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">Room subtotal:</td>
+          <td style="padding:4px 0;">${formatMoney(
+            booking.group_room_subtotal != null
+              ? booking.group_room_subtotal
+              : roomSubtotal
+          )}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0; color:#6b7280;">Extras subtotal:</td>
+          <td style="padding:4px 0;">${formatMoney(
+            booking.group_extras_total != null
+              ? booking.group_extras_total
+              : extrasSubtotal
+          )}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px 8px 0; color:#6b7280; background:#ecfdf3;">Discount:</td>
+          <td style="padding:8px 0; background:#ecfdf3;">${discountText}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px 4px 0; font-weight:600;">Total paid:</td>
+          <td style="padding:8px 0; font-weight:600;">${formatMoney(
+            totalPaid
+          )}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin:0;">We look forward to hosting you.</p>
+  </div>
+  `;
+
+  try {
+    const request = await mailjet.post("send", { version: "v3.1" }).request({
+      Messages: [
+        {
+          From: {
+            Email: process.env.MAILJET_FROM_EMAIL,
+            Name: process.env.MAILJET_FROM_NAME || "Reservations",
+          },
+          To: [
+            {
+              Email: to,
+              Name: guestName || name,
+            },
+          ],
+          Subject: "Booking Confirmed ✅",
+          HTMLPart: html,
+        },
+      ],
+    });
+
+    return request.body;
+  } catch (err) {
+    console.error("Mailjet Error:", err);
+    throw err;
   }
-
-  return await res.json();
 }
