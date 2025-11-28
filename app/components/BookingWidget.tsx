@@ -213,7 +213,7 @@ export default function BookingWidget() {
     border:1px solid rgba(148,163,184,.7);
     background:#ffffff;
     color:var(--text);
-    font-size:15px;
+    font-size:16px;
     line-height:1.3;
     transition:border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .08s ease;
   }
@@ -534,6 +534,7 @@ export default function BookingWidget() {
     display:flex;
     flex-direction:column;
     overflow:hidden;
+    overflow-x:hidden;
   }
 
   .sheet header{
@@ -671,6 +672,9 @@ export default function BookingWidget() {
 
   /* ---------- Responsive tighten ---------- */
   @media (max-width:640px){
+    input,select,textarea{
+      font-size:16px;
+    }
     .btn{
       padding:12px 18px;
       font-size:13px;
@@ -686,9 +690,11 @@ export default function BookingWidget() {
     .btn{padding:10px 15px;}
   }
 
-  /* Prevent horizontal scroll on very narrow screens */
-  #booking-search, .wrap, .card, .grid, .grid > div { min-width:0; }
+  /* Prevent horizontal scroll and zoom on mobile */
+  #booking-search, .wrap, .card, .grid, .grid > div { min-width:0; max-width:100%; }
   html, body { overflow-x:hidden; }
+  * { box-sizing:border-box; }
+  input, select, textarea { max-width:100%; }
 
     \` +
     '</style>' +
@@ -1989,6 +1995,7 @@ export default function BookingWidget() {
             nights: p.nights,
             adults: p.adults,
             room_subtotal: p.roomSubtotal,
+            extras: p.extras,
             extras_total: p.extrasTotal,
             discount_amount: p.discountAmount,
             coupon_code: p.couponCode,

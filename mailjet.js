@@ -103,6 +103,49 @@ export async function sendBookingEmail({ to, name, booking }) {
       }`
     : "—";
 
+  // Build extras details HTML if extras exist
+  let extrasDetailsHtml = "";
+  if (Array.isArray(booking.rooms) && booking.rooms.length > 0) {
+    // Check if any room has extras
+    const hasExtras = booking.rooms.some(
+      (r) => Array.isArray(r.extras) && r.extras.length > 0
+    );
+
+    if (hasExtras) {
+      const extrasRows = [];
+      booking.rooms.forEach((room) => {
+        if (Array.isArray(room.extras) && room.extras.length > 0) {
+          room.extras.forEach((extra) => {
+            const extraName = extra.name || "—";
+            const extraQty = extra.qty || 1;
+            const extraPrice = extra.price != null ? extra.price : 0;
+            const extraTotal = extraQty * extraPrice;
+            extrasRows.push(`
+              <tr>
+                <td style="padding:4px 12px 4px 0; color:#6b7280;">${extraName}</td>
+                <td style="padding:4px 12px 4px 0; color:#6b7280; text-align:center;">${extraQty}×</td>
+                <td style="padding:4px 0;">${formatMoney(extraTotal, currency)}</td>
+              </tr>
+            `);
+          });
+        }
+      });
+
+      if (extrasRows.length > 0) {
+        extrasDetailsHtml = `
+          <h3 style="margin:24px 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
+            Extras Included
+          </h3>
+          <table style="border-collapse:collapse; width:100%; margin-bottom:24px;">
+            <tbody>
+              ${extrasRows.join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+  }
+
   const html = `
   <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#111827; font-size:14px;">
     <h2 style="margin:0 0 12px 0; font-size:20px;">Booking Confirmed ✅</h2>
@@ -132,6 +175,8 @@ export async function sendBookingEmail({ to, name, booking }) {
         </tr>
       </tbody>
     </table>
+
+    ${extrasDetailsHtml}
 
     <h3 style="margin:0 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
       Payment Summary
