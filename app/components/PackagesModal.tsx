@@ -22,10 +22,8 @@ type PackageRow = {
   nights: number | null;
   valid_from?: string | null;
   valid_until?: string | null;
-  image_url?: string | null;   // 👈 add this line
+  image_url?: string | null;
 };
-
-
 
 type RoomRow = {
   id: number;
@@ -33,7 +31,6 @@ type RoomRow = {
   name: string | null;
   image_url?: string | null;
 };
-
 
 type ExtraRow = {
   id: number;
@@ -93,8 +90,9 @@ async function postJSON<T>(table: string, payload: any | any[]): Promise<T> {
 
 export default function PackagesModal({ isOpen, onClose }: Props) {
   const [packages, setPackages] = useState<PackageRow[]>([]);
-  // dates → filtered package tiles → available rooms → details form
-  const [stage, setStage] = useState<'dates' | 'packages' | 'rooms' | 'details'>('dates');
+  const [stage, setStage] = useState<'dates' | 'packages' | 'rooms' | 'details'>(
+    'dates'
+  );
   const [roomsByPackage, setRoomsByPackage] = useState<Record<number, RoomRow[]>>(
     {}
   );
@@ -123,7 +121,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-    const [confirmation, setConfirmation] = useState<{
+  const [confirmation, setConfirmation] = useState<{
     code: string;
     guestName: string;
     roomName: string;
@@ -135,10 +133,9 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
     packageIncludes?: string | null;
   } | null>(null);
 
-
   const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
- 
+
   const todayISO = useMemo(
     () => new Date().toISOString().slice(0, 10),
     []
@@ -173,7 +170,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         setError(null);
         setSuccess(null);
 
-        // 1) Active packages
         const pkgUrl = `${SUPABASE_URL}/rest/v1/packages?select=id,code,name,description,package_price,currency,nights,is_active,valid_from,valid_until,image_url&is_active=eq.true&order=name`;
 
         const pkgData = await fetchJSON<PackageRow[]>(pkgUrl);
@@ -185,16 +181,13 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         }
         setPackages(pkgData);
 
-        // start each open of the modal from the date selection step
         setStage('dates');
         setFilteredPackages([]);
         setAvailableRoomsByPackage({});
         setAvailableRoomsForSelected([]);
-        
-        // ensure we start on the tile view every time modal opens      
+
         const pkgIds = pkgData.map((p) => p.id);
 
-        // 2) Rooms for those packages
         const roomsUrl = `${SUPABASE_URL}/rest/v1/packages_rooms?select=package_id,room_type_id&package_id=in.(${pkgIds.join(
           ','
         )})`;
@@ -224,7 +217,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         });
         setRoomsByPackage(roomsMap);
 
-        // 3) Extras for those packages
         const pkgExtrasUrl = `${SUPABASE_URL}/rest/v1/package_extras?select=package_id,extra_id,quantity,code&package_id=in.(${pkgIds.join(
           ','
         )})`;
@@ -274,11 +266,8 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
 
         setExtrasByPackage(extrasMap);
 
-        // Default selection (only used once a user chooses a package)
         setSelectedPackageId(null);
         setSelectedRoomId(null);
-        
-
       } catch (err: any) {
         if (cancelled) return;
         console.error(err);
@@ -295,11 +284,10 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
     };
   }, [isOpen]);
 
-  // Keep check-out in sync with check-in + package.nights (or +1 if none)
   useEffect(() => {
     const pkg = packages.find((p) => p.id === selectedPackageId);
-    const nights = pkg?.nights && pkg.nights > 0 ? pkg.nights : 1;
-    setCheckOut(addDaysISO(checkIn, nights));
+    const nightsVal = pkg?.nights && pkg.nights > 0 ? pkg.nights : 1;
+    setCheckOut(addDaysISO(checkIn, nightsVal));
   }, [checkIn, selectedPackageId, packages]);
 
   const selectedPackage = useMemo(
@@ -322,7 +310,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
   let roomSubtotal = packagePrice - extrasTotal;
   if (roomSubtotal < 0) roomSubtotal = 0;
 
-    function rangesOverlap(
+  function rangesOverlap(
     aStart: string | null,
     aEnd: string | null,
     bStart: string,
@@ -341,11 +329,10 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
     ) {
       return false;
     }
-    // overlap if existingStart < newEnd AND existingEnd > newStart
     return A < D && B > C;
   }
 
-    async function runAvailabilitySearch() {
+  async function runAvailabilitySearch() {
     if (!checkIn || !checkOut) {
       setError('Please choose both check-in and check-out dates.');
       return;
@@ -363,7 +350,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       setError(null);
       setSuccess(null);
 
-      // 1) Filter packages by valid_from / valid_until
       const dateFiltered = packages.filter((p) => {
         if (p.valid_from && checkIn < p.valid_from) return false;
         if (p.valid_until && checkOut > p.valid_until) return false;
@@ -377,7 +363,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         return;
       }
 
-      // 2) Collect all room_type_ids for these packages
       const allRoomIds = new Set<number>();
       dateFiltered.forEach((pkg) => {
         (roomsByPackage[pkg.id] || []).forEach((r) => {
@@ -392,7 +377,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         return;
       }
 
-      // 3) Fetch reservations for those room types
       const idList = Array.from(allRoomIds).join(',');
       const resUrl = `${SUPABASE_URL}/rest/v1/reservations?select=room_type_id,check_in,check_out,status&room_type_id=in.(${idList})`;
       const reservations = await fetchJSON<
@@ -471,7 +455,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       setError(null);
       setSuccess(null);
 
-      // Availability check (simple client-side filter)
       const resUrl = `${SUPABASE_URL}/rest/v1/reservations?select=id,check_in,check_out,status,room_type_id,room_type_code`;
       const reservations = await fetchJSON<
         {
@@ -510,15 +493,13 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         return;
       }
 
-      // Insert reservation
       const currency = selectedPackage.currency || 'GHS';
 
-      const confirmation =
+      const confirmationCode =
         'S' +
         Math.random().toString(36).slice(2, 6).toUpperCase() +
         Date.now().toString().slice(-4);
 
-            // Find the selected room so we can persist its code & name
       const roomFromAvailable =
         availableRoomsForSelected.find((r) => r.id === selectedRoomId) ||
         (roomsByPackage[selectedPackage.id] || []).find(
@@ -529,9 +510,8 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       const roomCode = roomFromAvailable?.code || '';
       const roomName = roomFromAvailable?.name || '';
 
-
       const reservationPayload = {
-        confirmation_code: confirmation,
+        confirmation_code: confirmationCode,
         guest_first_name: firstName.trim() || null,
         guest_last_name: lastName.trim() || null,
         guest_email: email.trim() || null,
@@ -560,7 +540,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         reservationPayload
       );
 
-            if (reservation && packageExtras.length) {
+      if (reservation && packageExtras.length) {
         const extrasRows = packageExtras.map((e) => ({
           reservation_id: reservation.id,
           extra_id: e.extra_id,
@@ -573,7 +553,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         await postJSON('reservation_extras', extrasRows);
       }
 
-      
       const packageIncludesText =
         packageExtras.length > 0
           ? packageExtras
@@ -587,7 +566,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
           : null;
 
       setConfirmation({
-        code: reservation?.confirmation_code || confirmation,
+        code: reservation?.confirmation_code || confirmationCode,
         guestName: `${firstName.trim()} ${lastName.trim()}`.trim(),
         roomName:
           reservation?.room_name || roomFromAvailable?.name || 'Selected cabin',
@@ -600,7 +579,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       });
 
       setSuccess(null);
-
     } catch (err: any) {
       console.error(err);
       setError('There was a problem completing your booking. Please try again.');
@@ -613,556 +591,610 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center px-4"
       onClick={onClose}
     >
-    <div
-      className="bg-white max-w-2xl w-full rounded-2xl shadow-2xl p-6 md:p-8 relative max-h-[calc(100vh-3rem)] overflow-y-auto"
-      onClick={(e) => e.stopPropagation()}
-    >
+      <div
+        className="relative w-full max-w-3xl max-h-[calc(100vh-3rem)] overflow-y-auto rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* subtle gradient glow in corner like widget card */}
+        <div className="pointer-events-none absolute -inset-16 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_55%)] opacity-70" />
+        <div className="relative p-5 sm:p-7 md:p-8 space-y-5">
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-400 shadow-sm ring-1 ring-slate-200/70 hover:text-slate-700 hover:bg-slate-50 transition"
+          >
+            ✕
+          </button>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
-        >
-          ✕
-        </button>
+          {/* Header */}
+          <header className="space-y-1 pr-10">
+            <h2 className="text-[22px] md:text-[24px] font-semibold tracking-tight text-slate-900">
+              Curated Stays &amp; Packages
+            </h2>
+            <p className="text-xs md:text-sm text-slate-500">
+              Choose your dates, then pick a package and cabin. Styling matches the
+              main booking flow.
+            </p>
+          </header>
 
-        <h2 className="text-2xl md:text-3xl font-serif mb-2">
-          Curated Stays & Packages
-        </h2>
-        <p className="text-sm md:text-base text-gray-600 mb-6">
-          Select a package to see which cabins are available for your dates
-          
-        </p>
+          {/* Status messages */}
+          {loading && (
+            <div className="text-xs md:text-sm text-slate-500">
+              Loading packages…
+            </div>
+          )}
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50/90 px-3 py-2 text-xs md:text-sm text-red-700 shadow-sm">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-xs md:text-sm text-emerald-700 shadow-sm">
+              {success}
+            </div>
+          )}
 
-        {loading && (
-          <div className="text-sm text-gray-500">Loading packages…</div>
-        )}
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-700">
-            {success}
-          </div>
-        )}
+          {/* Main content card (matches widget sheet feel) */}
+          {!loading && packages.length > 0 && (
+            <div className="rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_10px_30px_rgba(15,23,42,0.08)] px-4 py-4 sm:px-5 sm:py-5 space-y-5">
+              {/* STAGE 1: Date picker */}
+              {stage === 'dates' && (
+                <div className="space-y-4">
+                  <p className="text-xs md:text-sm text-slate-500">
+                    Pick your dates to see which packages and cabins are available.
+                  </p>
 
-                {!loading && packages.length > 0 && (
-          <>
-            {/* STAGE 1: Date picker + "Check packages" */}
-            {stage === 'dates' && (
-              <div className="space-y-5">
-                <p className="text-sm text-gray-600">
-                  Choose your dates to see which packages and cabins are available.
-                </p>
-
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Check-in
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={checkIn}
-                      min={todayISO}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Check-out
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={runAvailabilitySearch}
-                      className="w-full px-4 py-2 rounded-lg bg-black text-white text-sm font-medium hover:bg-gray-900"
-                    >
-                      Check packages
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-                        {/* STAGE 2: Available package tiles */}
-            {stage === 'packages' && (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  
-                </p>
-
-                {filteredPackages.length === 0 ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                    No packages are available for these dates. Please choose different
-                    dates or make a custom booking.
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    {filteredPackages.map((p) => {
-                      const pkgExtras = extrasByPackage[p.id] || [];
-                      const extrasTotalForPkg = pkgExtras.reduce(
-                        (sum, e) => sum + (e.price || 0) * (e.quantity || 1),
-                        0
-                      );
-                      const pkgTotal = Number(p.package_price || 0);
-                      const roomPart = Math.max(pkgTotal - extrasTotalForPkg, 0);
-                      const nightsVal = p.nights && p.nights > 0 ? p.nights : 1;
-
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedPackageId(p.id);
-                            const rooms = availableRoomsByPackage[p.id] || [];
-                            setAvailableRoomsForSelected(rooms);
-                            setStage('rooms');
-                            setError(null);
-                            setSuccess(null);
-                          }}
-                          className="text-left bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg hover:border-gray-300 transition flex flex-col h-full overflow-hidden"
-                        >
-                          <div
-                            className="h-36 w-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
-                            style={
-                              p.image_url
-                                ? {
-                                    backgroundImage: `url(${p.image_url})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                    backgroundRepeat: 'no-repeat',
-                                  }
-                                : undefined
-                            }
-                          />
-                          <div className="p-4 flex flex-col flex-1">
-                            <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
-                              {p.name}
-                            </div>
-
-                            {p.description && (
-                              <p className="text-xs md:text-sm text-gray-600 mb-2 line-clamp-3">
-                                {p.description}
-                              </p>
-                            )}
-
-                            {pkgExtras.length > 0 && (
-                              <p className="text-[11px] text-gray-500 mb-3">
-                                <span className="font-medium">Includes:</span>{' '}
-                                {pkgExtras
-                                  .map((e) =>
-                                    `${
-                                      e.quantity && e.quantity > 1
-                                        ? `${e.quantity}× `
-                                        : ''
-                                    }${e.name || e.code || ''}`.trim()
-                                  )
-                                  .filter(Boolean)
-                                  .map((item, idx, arr) => (
-                                    <span key={idx}>
-                                      {item}
-                                      {idx < arr.length - 1 && <strong> | </strong>}
-                                    </span>
-                                  ))}
-                              </p>
-                            )}
-
-                            <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
-                              <div className="text-sm">
-                                <div className="font-semibold text-gray-900">
-                                  {p.currency || 'GHS'} {pkgTotal.toFixed(2)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {nightsVal} night{nightsVal === 1 ? '' : 's'} •
-                                  room + curated extras
-                                </div>
-                                {roomPart > 0 && (
-                                  <div className="mt-1 text-[11px] text-gray-400">
-                                </div>
-                                )}
-                              </div>
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-900 text-white">
-                                Select
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* back to date selection */}
-                <button
-                  type="button"
-                  onClick={() => setStage('dates')}
-                  className="text-xs text-gray-600 underline decoration-gray-300 hover:text-gray-900"
-                >
-                  ← Back to dates
-                </button>
-              </div>
-            )}
-            
-
-            {/* STAGE 3: Available rooms for chosen package */}
-            {stage === 'rooms' && selectedPackage && (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600">
-                  Choose a cabin for the <span className="font-semibold">{selectedPackage.name}</span> package.
-                </p>
-
-                <div className="flex flex-col gap-4">
-                  {availableRoomsForSelected.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedRoomId(r.id);
-                        setStage('details');
-                      }}
-                      className="text-left bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg hover:border-gray-300 transition flex flex-col h-full overflow-hidden"
-                    >
-                      <div
-                      className="h-24 w-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
-                      style={
-                        r.image_url
-                          ? {
-                              backgroundImage: `url(${r.image_url})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              backgroundRepeat: 'no-repeat',
-                            }
-                          : undefined
-                      }
-                    />
-
-                      <div className="p-4 flex flex-col flex-1">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 mb-1">
-                          {(r.code || '').toUpperCase()}
-                        </div>
-                        <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
-                          {r.name}
-                        </div>
-                        <div className="mt-auto pt-3 border-t border-gray-100 text-xs text-gray-500">
-                          Available for your selected dates.
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setStage('packages')}
-                  className="text-xs text-gray-600 underline decoration-gray-300 hover:text-gray-900"
-                >
-                  ← Back to packages
-                </button>
-              </div>
-            )}
-
-            {/* STAGE 4: Details form */}
-            {stage === 'details' && selectedPackage && selectedRoomId != null && (
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                {/* Summary row */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Package
-                    </label>
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
-                      <div className="font-semibold text-gray-900">
-                        {(selectedPackage.code || '').toUpperCase()} — {selectedPackage.name}
-                      </div>
-                      {selectedPackage.description && (
-                        <p className="mt-1 text-xs text-gray-600 line-clamp-2">
-                          {selectedPackage.description}
-                        </p>
-                      )}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 mb-1">
+                        Check-in
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-400/40 focus:outline-none"
+                        value={checkIn}
+                        min={todayISO}
+                        onChange={(e) => setCheckIn(e.target.value)}
+                      />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Room type
-                    </label>
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
-                      {availableRoomsForSelected.find((r) => r.id === selectedRoomId)?.name ||
-                        'Selected cabin'}
+                    <div>
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 mb-1">
+                        Check-out
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-400/40 focus:outline-none"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
+                      />
                     </div>
-                  </div>
-                </div>
-
-                {/* Dates */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Check-in
-                    </label>
-                    <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                      {checkIn}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Check-out
-                    </label>
-                    <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900">
-                      {checkOut}
-                    </div>
-                  </div>
-                  <div className="flex items-end">
-                    {/* keep your existing price summary card here unchanged */}
-                    <div className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                      <div className="font-semibold text-gray-900 text-sm">
-                        {nights > 0 ? `${nights} night${nights === 1 ? '' : 's'}` : '—'}
-                      </div>
-                      <div>
-                        Room: {selectedPackage.currency || 'GHS'} {roomSubtotal.toFixed(2)}
-                      </div>
-                      <div>
-                        Extras: {selectedPackage.currency || 'GHS'} {extrasTotal.toFixed(2)}
-                      </div>
-                      <div className="mt-1 border-t border-gray-200 pt-1 text-gray-900 font-semibold">
-                        Total: {selectedPackage.currency || 'GHS'} {packagePrice.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-                {/* Guest details */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First name
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last name
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Guests + notes */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Adults
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={adults}
-                      onChange={(e) => setAdults(parseInt(e.target.value || '0', 10) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Children
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={children}
-                      onChange={(e) =>
-                        setChildren(parseInt(e.target.value || '0', 10) || 0)
-                      }
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Special requests
-                    </label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[72px]"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Dietary needs, late check-in, etc."
-                    />
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setStage('rooms')}
-                    className="text-xs text-gray-600 underline decoration-gray-300 hover:text-gray-900"
-                  >
-                    ← Back to cabins
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-black text-white text-sm font-medium hover:bg-gray-900 disabled:opacity-60"
-                  >
-                    {submitting ? 'Booking…' : 'Confirm booking'}
-                  </button>
-                </div>
-                        </form>
-                      )}
-          </>
-        )}
-
-                    {confirmation && (
-                      <div
-                        className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center px-4"
-                        onClick={() => {
-                          setConfirmation(null);
-                          onClose();
-                        }}
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={runAvailabilitySearch}
+                        className="w-full inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-5 py-2.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-900 shadow-[0_14px_30px_rgba(249,115,22,0.35)] hover:shadow-[0_18px_40px_rgba(249,115,22,0.45)] hover:from-orange-500 hover:to-orange-500 transition"
                       >
-                        <div
-                          className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 md:p-8 relative"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        Check packages
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STAGE 2: Packages */}
+              {stage === 'packages' && (
+                <div className="space-y-4">
+                  {filteredPackages.length === 0 ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs md:text-sm text-amber-800">
+                      No packages are available for these dates. Please choose
+                      different dates or make a custom booking.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {filteredPackages.map((p) => {
+                        const pkgExtras = extrasByPackage[p.id] || [];
+                        const extrasTotalForPkg = pkgExtras.reduce(
+                          (sum, e) => sum + (e.price || 0) * (e.quantity || 1),
+                          0
+                        );
+                        const pkgTotal = Number(p.package_price || 0);
+                        const roomPart = Math.max(pkgTotal - extrasTotalForPkg, 0);
+                        const nightsVal = p.nights && p.nights > 0 ? p.nights : 1;
+
+                        return (
                           <button
+                            key={p.id}
                             type="button"
                             onClick={() => {
-                              setConfirmation(null);
-                              onClose();
+                              setSelectedPackageId(p.id);
+                              const rooms = availableRoomsByPackage[p.id] || [];
+                              setAvailableRoomsForSelected(rooms);
+                              setStage('rooms');
+                              setError(null);
+                              setSuccess(null);
                             }}
-                            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+                            className="text-left bg-white/95 border border-slate-200 rounded-2xl shadow-[0_10px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] hover:border-orange-400/80 transition flex flex-col h-full overflow-y-auto"
                           >
-                            ×
-                          </button>
-
-                          <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1">
-                            Booking confirmed! 🎉
-                          </h2>
-                          <p className="text-sm text-gray-600 mb-5">
-                            Thank you! Your reservation is confirmed.
-                          </p>
-
-                          <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 md:px-5 md:py-4 space-y-3 text-sm">
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-600">
-                                Confirmation code
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                {confirmation.code}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-600">Guest</span>
-                              <span className="text-gray-900">
-                                {confirmation.guestName || '—'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-600">Dates</span>
-                              <span className="text-gray-900">
-                                {confirmation.checkIn} → {confirmation.checkOut}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-600">Room</span>
-                              <span className="text-gray-900">
-                                {confirmation.roomName}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="font-medium text-gray-600">Package</span>
-                              <span className="text-gray-900">
-                                {confirmation.packageName}
-                              </span>
-                            </div>
-                            {confirmation.packageIncludes && (
-                              <div className="flex flex-col">
-                                <span className="font-medium text-gray-600 mb-1">
-                                  Package includes
-                                </span>
-                                <ul className="text-gray-900 text-sm list-disc list-inside space-y-1">
-                                  {confirmation.packageIncludes.split(', ').map((item, idx) => (
-                                    <li key={idx}>{item}</li>
-                                  ))}
-                                </ul>
+                            <div
+                              className="h-48 w-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
+                              style={
+                                p.image_url
+                                  ? {
+                                      backgroundImage: `url(${p.image_url})`,
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center',
+                                      backgroundRepeat: 'no-repeat',
+                                    }
+                                  : undefined
+                              }
+                            />
+                            <div className="p-4 flex flex-col flex-1">
+                              <div className="text-sm md:text-base font-semibold text-slate-900 mb-1">
+                                {p.name}
                               </div>
-                            )}
-                            <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
-                              <span className="font-semibold text-gray-800">
-                                Total paid
-                              </span>
-                              <span className="font-semibold text-gray-900">
-                                {confirmation.currency}{' '}
-                                {confirmation.total.toFixed(2)}
-                              </span>
+
+                              {p.description && (
+                                <p className="text-[11px] md:text-xs text-slate-600 mb-2 line-clamp-3">
+                                  {p.description}
+                                </p>
+                              )}
+
+                              {pkgExtras.length > 0 && (
+                                <p className="text-[11px] text-slate-500 mb-3">
+                                  <span className="font-medium">Includes:</span>{' '}
+                                  {pkgExtras
+                                    .map((e) =>
+                                      `${
+                                        e.quantity && e.quantity > 1
+                                          ? `${e.quantity}× `
+                                          : ''
+                                      }${e.name || e.code || ''}`.trim()
+                                    )
+                                    .filter(Boolean)
+                                    .map((item, idx, arr) => (
+                                      <span key={idx}>
+                                        {item}
+                                        {idx < arr.length - 1 && (
+                                          <strong> · </strong>
+                                        )}
+                                      </span>
+                                    ))}
+                                </p>
+                              )}
+
+                              <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                                <div className="text-xs md:text-sm">
+                                  <div className="font-semibold text-slate-900">
+                                    {p.currency || 'GHS'} {pkgTotal.toFixed(2)}
+                                  </div>
+                                  <div className="text-[11px] text-slate-500">
+                                    {nightsVal} night{nightsVal === 1 ? '' : 's'} •
+                                    room + curated extras
+                                  </div>
+                                  {roomPart > 0 && (
+                                    <div className="mt-1 text-[11px] text-slate-400" />
+                                  )}
+                                </div>
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-gradient-to-r from-orange-500 to-orange-400 text-slate-900 shadow-sm uppercase tracking-[0.16em]">
+                                  Select
+                                </span>
+                              </div>
                             </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setStage('dates')}
+                    className="text-[11px] text-slate-500 hover:text-slate-800 underline decoration-slate-300"
+                  >
+                    ← Back to dates
+                  </button>
+                </div>
+              )}
+
+              {/* STAGE 3: Rooms */}
+              {stage === 'rooms' && selectedPackage && (
+                <div className="space-y-4">
+                  <p className="text-xs md:text-sm text-slate-500">
+                    Choose a cabin for the{' '}
+                    <span className="font-semibold text-slate-800">
+                      {selectedPackage.name}
+                    </span>{' '}
+                    package.
+                  </p>
+
+                  <div className="flex flex-col gap-4">
+                    {availableRoomsForSelected.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRoomId(r.id);
+                          setStage('details');
+                        }}
+                        className="text-left bg-white/95 border border-slate-200 rounded-2xl shadow-[0_10px_26px_rgba(15,23,42,0.06)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] hover:border-orange-400/80 transition flex flex-col h-full overflow-y-auto"
+                      >
+                        <div
+                          className="h-48 w-full bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300"
+                          style={
+                            r.image_url
+                              ? {
+                                  backgroundImage: `url(${r.image_url})`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center',
+                                  backgroundRepeat: 'no-repeat',
+                                }
+                              : undefined
+                          }
+                        />
+
+                        <div className="p-4 flex flex-col flex-1">
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500 mb-1">
+                            {(r.code || '').toUpperCase()}
                           </div>
+                          <div className="text-sm md:text-base font-semibold text-slate-900 mb-1">
+                            {r.name}
+                          </div>
+                          <div className="mt-auto pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                            Available for your selected dates.
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
 
-                          <p className="mt-4 text-xs md:text-sm text-gray-500">
-                            A confirmation email will be sent to you shortly.
-                          </p>
+                  <button
+                    type="button"
+                    onClick={() => setStage('packages')}
+                    className="text-[11px] text-slate-500 hover:text-slate-800 underline decoration-slate-300"
+                  >
+                    ← Back to packages
+                  </button>
+                </div>
+              )}
 
-                          <div className="mt-5 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setConfirmation(null);
-                                onClose();
-                              }}
-                              className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-black"
-                            >
-                              Close
-                            </button>
+              {/* STAGE 4: Details – styled to match booking widget guest modal */}
+              {stage === 'details' &&
+                selectedPackage &&
+                selectedRoomId != null && (
+                  <form className="space-y-5" onSubmit={handleSubmit}>
+                    {/* Top row – package + room, same pill card vibe */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 mb-1">
+                          Package
+                        </label>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm shadow-sm">
+                          <div className="font-semibold text-slate-900">
+                            {(selectedPackage.code || '').toUpperCase()} —{' '}
+                            {selectedPackage.name}
+                          </div>
+                          {selectedPackage.description && (
+                            <p className="mt-1 text-xs text-slate-600 line-clamp-2">
+                              {selectedPackage.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 mb-1">
+                          Room type
+                        </label>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm shadow-sm">
+                          {availableRoomsForSelected.find(
+                            (r) => r.id === selectedRoomId
+                          )?.name || 'Selected cabin'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Guest form fields in same 2-column layout as package/room */}
+                    <div className="space-y-5">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            First name
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder="Enter first name"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            Last name
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Enter last name"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            Email address
+                          </label>
+                          <input
+                            type="email"
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="your@email.com"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            Phone number <span className="text-slate-400 font-normal normal-case">(optional)</span>
+                          </label>
+                          <input
+                            type="tel"
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+233 XX XXX XXXX"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            Adults
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={adults}
+                            onChange={(e) =>
+                              setAdults(parseInt(e.target.value || '0', 10) || 0)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                            Children
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={children}
+                            onChange={(e) =>
+                              setChildren(
+                                parseInt(e.target.value || '0', 10) || 0
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Full width fields */}
+                      <div>
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                          Special requests <span className="text-slate-400 font-normal normal-case">(optional)</span>
+                        </label>
+                        <textarea
+                          className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow resize-none min-h-[96px]"
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Any special requests or requirements..."
+                        />
+                      </div>
+
+                      {/* Booking summary – moved below form fields */}
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-4 md:px-5 md:py-5 shadow-sm space-y-3 text-sm">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Booking summary
+                        </div>
+
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Dates</span>
+                            <span className="font-medium text-slate-900">
+                              {checkIn} → {checkOut}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Room</span>
+                            <span className="font-medium text-slate-900">
+                              {availableRoomsForSelected.find(
+                                (r) => r.id === selectedRoomId
+                              )?.name || 'Selected cabin'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Nights</span>
+                            <span className="font-medium text-slate-900">
+                              {nights > 0
+                                ? `${nights} night${nights === 1 ? '' : 's'}`
+                                : '—'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 pt-2 border-t border-slate-200 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              Room subtotal
+                            </span>
+                            <span className="font-medium text-slate-900">
+                              {selectedPackage.currency || 'GHS'}{' '}
+                              {roomSubtotal.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">Extras</span>
+                            <span className="font-medium text-slate-900">
+                              {selectedPackage.currency || 'GHS'}{' '}
+                              {extrasTotal.toFixed(2)}
+                            </span>
+                          </div>
+                          {/* No discount for packages right now, so mimic widget with just total */}
+                          <div className="flex items-center justify-between pt-2 mt-1 border-t border-slate-200">
+                            <span className="text-xs font-semibold text-slate-700">
+                              Total to pay
+                            </span>
+                            <span className="font-semibold text-slate-900">
+                              {selectedPackage.currency || 'GHS'}{' '}
+                              {packagePrice.toFixed(2)}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Actions – match guest modal footer behaviour */}
+                    <div className="flex items-center justify-between pt-1 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setStage('rooms')}
+                        className="text-[11px] text-slate-500 hover:text-slate-800 underline decoration-slate-300"
+                      >
+                        ← Back to cabins
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-2.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-900 shadow-[0_14px_30px_rgba(249,115,22,0.35)] hover:shadow-[0_18px_40px_rgba(249,115,22,0.45)] hover:from-orange-500 hover:to-orange-500 transition disabled:opacity-60"
+                      >
+                        {submitting ? 'Booking…' : 'Confirm booking'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+            </div>
+          )}
+
+          {/* Confirmation overlay (styled like widget "thanks" sheet) */}
+          {confirmation && (
+            <div
+              className="fixed inset-0 z-[60] bg-slate-900/45 backdrop-blur-sm flex items-center justify-center px-4"
+              onClick={() => {
+                setConfirmation(null);
+                onClose();
+              }}
+            >
+              <div
+                className="relative bg-gradient-to-br from-white via-slate-50 to-slate-100 max-w-lg w-full rounded-3xl shadow-[0_22px_60px_rgba(15,23,42,0.25)] border border-slate-200/80 p-6 md:p-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmation(null);
+                    onClose();
+                  }}
+                  className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-slate-400 shadow-sm ring-1 ring-slate-200/70 hover:text-slate-700 hover:bg-slate-50 transition"
+                >
+                  ×
+                </button>
+
+                <h2 className="text-xl md:text-2xl font-semibold text-slate-900 mb-1">
+                  Booking confirmed! 🎉
+                </h2>
+                <p className="text-sm text-slate-600 mb-5">
+                  Thank you! Your reservation is confirmed.
+                </p>
+
+                <div className="rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 md:px-5 md:py-4 space-y-3 text-sm shadow-[0_10px_26px_rgba(15,23,42,0.08)]">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-slate-600">
+                      Confirmation code
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {confirmation.code}
+                    </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-slate-600">Guest</span>
+                    <span className="text-slate-900">
+                      {confirmation.guestName || '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-slate-600">Dates</span>
+                    <span className="text-slate-900">
+                      {confirmation.checkIn} → {confirmation.checkOut}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-slate-600">Room</span>
+                    <span className="text-slate-900">
+                      {confirmation.roomName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-slate-600">Package</span>
+                    <span className="text-slate-900">
+                      {confirmation.packageName}
+                    </span>
+                  </div>
+                  {confirmation.packageIncludes && (
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-600 mb-1">
+                        Package includes
+                      </span>
+                      <ul className="text-slate-900 text-sm list-disc list-inside space-y-1">
+                        {confirmation.packageIncludes
+                          .split(', ')
+                          .map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
+                    <span className="font-semibold text-slate-800">
+                      Total paid
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {confirmation.currency}{' '}
+                      {confirmation.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs md:text-sm text-slate-500">
+                  A confirmation email will be sent to you shortly.
+                </p>
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConfirmation(null);
+                      onClose();
+                    }}
+                    className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-2.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-900 shadow-[0_14px_30px_rgba(249,115,22,0.35)] hover:shadow-[0_18px_40px_rgba(249,115,22,0.45)] hover:from-orange-500 hover:to-orange-500 transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

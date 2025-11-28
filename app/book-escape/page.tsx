@@ -558,7 +558,7 @@ export default function Page() {
       </section>
 
       {/* Booking Widget Section */}
-      <section className="py-20 md:py-28 px-6 md:px-8 lg:px-12 bg-stone-50">
+      <section className="py-20 md:py-28 px-3 md:px-8 lg:px-12 bg-stone-50">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-12">
@@ -575,7 +575,7 @@ export default function Page() {
           </div>
 
           {/* Booking Widget Container */}
-          <div className="bg-white rounded-3xl shadow-sm border border-stone-100 p-6 md:p-10">
+          <div className="bg-white rounded-3xl shadow-sm border border-stone-100 p-3 md:p-10">
             <BookingWidget />
           </div>
         </div>
