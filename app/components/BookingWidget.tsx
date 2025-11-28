@@ -124,13 +124,13 @@ export default function BookingWidget() {
   /* ---------- Container ---------- */
   .wrap{
     max-width:960px;
-    margin:32px auto;
-    padding:0 20px 32px;
+    margin:0 auto;
+    padding:40px 20px;
   }
   @media (max-width:640px){
     .wrap{
-      padding:12px 8px 28px;
-      margin:12px 0 0 0;
+      padding:12px;
+      margin:0;
     }
   }
 

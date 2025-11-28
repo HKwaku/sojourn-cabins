@@ -575,9 +575,7 @@ export default function Page() {
           </div>
 
           {/* Booking Widget Container */}
-          <div className="bg-white rounded-3xl shadow-sm border border-stone-100 p-3 md:p-10">
-            <BookingWidget />
-          </div>
+          <BookingWidget />
         </div>
       </section>
 
