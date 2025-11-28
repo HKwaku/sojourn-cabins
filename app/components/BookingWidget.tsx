@@ -402,6 +402,13 @@ export default function BookingWidget() {
     height:16px;
     border-radius:6px;
   }
+  @media (max-width:640px){
+    .room-select input[type="checkbox"]{
+      width:20px;
+      height:20px;
+      border-radius:7px;
+    }
+  }
   .price{
     font-weight:700;
     font-size:14px;
@@ -590,6 +597,13 @@ export default function BookingWidget() {
     font-weight:700;
     color:#374151;
   }
+  @media (max-width:640px){
+    .qty button{
+      width:40px;
+      height:40px;
+      font-size:16px;
+    }
+  }
 
   /* ---------- Coupon row ---------- */
   .coupon-input{
@@ -656,6 +670,16 @@ export default function BookingWidget() {
   #extras-list .qty{margin-left:auto;}
 
   /* ---------- Responsive tighten ---------- */
+  @media (max-width:640px){
+    .btn{
+      padding:12px 18px;
+      font-size:13px;
+      min-height:44px;
+    }
+    .btn.secondary{
+      min-height:44px;
+    }
+  }
   @media (max-width:380px){
     .wrap{padding-left:10px;padding-right:10px;}
     input,select{padding:10px 11px;}
