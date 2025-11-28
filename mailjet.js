@@ -99,8 +99,8 @@ export async function sendBookingEmail({ to, name, booking }) {
 
   const discountText = discountTotal
     ? `-${formatMoney(Math.abs(discountTotal), currency)}${
-        booking.coupon_description && booking.coupon_code
-          ? ` (${booking.coupon_description} - ${booking.coupon_code})`
+        booking.coupon_code && booking.coupon_description
+          ? ` (${booking.coupon_code} – ${booking.coupon_description})`
           : booking.coupon_code
           ? ` (${booking.coupon_code})`
           : ""
@@ -124,11 +124,11 @@ export async function sendBookingEmail({ to, name, booking }) {
             const extraQty = extra.qty || 1;
             const extraPrice = extra.price != null ? extra.price : 0;
             const extraTotal = extraQty * extraPrice;
+            const extraLabel = extraQty > 1 ? `${extraName}: ${extraQty}×` : extraName;
             extrasRows.push(`
               <tr>
-                <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">${extraName}</td>
-                <td style="padding:4px 12px 4px 0; color:#6b7280; text-align:right; width:60px;">${extraQty}×</td>
-                <td style="padding:4px 0; text-align:left;">${formatMoney(extraTotal, currency)}</td>
+                <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">${extraLabel}</td>
+                <td style="padding:4px 0;">${formatMoney(extraTotal, currency)}</td>
               </tr>
             `);
           });
