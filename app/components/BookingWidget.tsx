@@ -2009,6 +2009,9 @@ export default function BookingWidget() {
         var aggregateDiscountTotal  = sumField('discountAmount');
         var aggregateTotal          = sumField('finalTotal');
 
+        // Get human-readable discount description
+        var discountDescription = appliedCoupon ? getDiscountDescriptionForDisplay(curr) : null;
+
         await fetch('/api/send-booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2033,7 +2036,7 @@ export default function BookingWidget() {
               extras_total: primaryPayload.extrasTotal,
               discount_amount: primaryPayload.discountAmount,
               coupon_code: primaryPayload.couponCode,
-              coupon_description: appliedCoupon ? appliedCoupon.description : null,
+              discount_description: discountDescription,
               total: primaryPayload.finalTotal,
 
               // NEW: full group details
