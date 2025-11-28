@@ -2033,6 +2033,7 @@ export default function BookingWidget() {
               extras_total: primaryPayload.extrasTotal,
               discount_amount: primaryPayload.discountAmount,
               coupon_code: primaryPayload.couponCode,
+              coupon_description: appliedCoupon ? appliedCoupon.description : null,
               total: primaryPayload.finalTotal,
 
               // NEW: full group details
