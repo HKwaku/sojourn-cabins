@@ -15,7 +15,7 @@ export default function RatesPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
         <div className="relative z-10 text-center text-white px-6 max-w-4xl">
           <p className="text-sm tracking-[0.3em] uppercase mb-4 text-white/90">Exclusive Rates</p>
-          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight">Rates & Packages</h1>
+          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight">Rates</h1>
           <p className="text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed text-white/90">
             All rates include complimentary walking tour of Anomabo and continental breakfast
           </p>
@@ -74,7 +74,7 @@ export default function RatesPage() {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="text-xs text-gray-600 leading-relaxed">
                   <span className="font-medium">Occupancy:</span> Up to 2 guests • 
-                  <span className="font-medium"> Min Stay:</span> 2 nights on weekends
+                  <span className="font-medium"></span>
                 </p>
               </div>
 
@@ -130,7 +130,7 @@ export default function RatesPage() {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="text-xs text-gray-600 leading-relaxed">
                   <span className="font-medium">Occupancy:</span> Up to 2 guests • 
-                  <span className="font-medium"> Min Stay:</span> 2 nights on weekends
+                  <span className="font-medium"> </span> 
                 </p>
               </div>
 
@@ -186,7 +186,7 @@ export default function RatesPage() {
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <p className="text-xs text-gray-600 leading-relaxed">
                   <span className="font-medium">Occupancy:</span> Up to 2 guests • 
-                  <span className="font-medium"> Min Stay:</span> 2 nights on weekends
+                  <span className="font-medium"> </span> 
                 </p>
               </div>
 
@@ -472,12 +472,12 @@ export default function RatesPage() {
 
           <div className="border-l-2 border-gray-300 pl-6">
             <h3 className="text-xl font-medium mb-3">Cancellation Policy</h3>
-            <p className="text-gray-600 leading-relaxed">Free cancellation up to 7 days before arrival. Cancellations within 7 days of arrival will incur a 50% charge. No-shows will be charged the full booking amount.</p>
+            <p className="text-gray-600 leading-relaxed">Free cancellation up to 14 days before arrival. Cancellations within 7 days of arrival will incur a 100% charge. No-shows will be charged the full booking amount.</p>
           </div>
 
           <div className="border-l-2 border-gray-300 pl-6">
             <h3 className="text-xl font-medium mb-3">Payment Terms</h3>
-            <p className="text-gray-600 leading-relaxed">A 50% deposit is required to confirm your reservation, with the balance due 14 days prior to arrival. We accept bank transfers and mobile money payments.</p>
+            <p className="text-gray-600 leading-relaxed">A 100% deposit is required to confirm your reservation. We accept payment via our website, bank transfers and mobile money payments.</p>
           </div>
 
           <div className="border-l-2 border-gray-300 pl-6">
