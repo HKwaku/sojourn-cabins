@@ -578,6 +578,57 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         packageIncludes: packageIncludesText,
       });
 
+      // Send booking confirmation email
+      try {
+        const extrasForEmail = packageExtras.map((e) => ({
+          name: e.name || e.code || '',
+          qty: e.quantity || 1,
+          price: e.price || 0,
+        }));
+
+        await fetch('/api/send-booking-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking: {
+              confirmation_code: reservation?.confirmation_code || confirmationCode,
+              guest_first_name: firstName.trim(),
+              guest_last_name: lastName.trim(),
+              guest_email: email.trim(),
+              guest_phone: phone.trim() || null,
+              check_in: checkIn,
+              check_out: checkOut,
+              nights: n,
+              adults,
+              children,
+              currency,
+              room_name: roomName,
+              room_subtotal: roomSubtotal,
+              extras_total: extrasTotal,
+              discount_amount: 0,
+              total: packagePrice,
+              rooms: [
+                {
+                  room_name: roomName,
+                  check_in: checkIn,
+                  check_out: checkOut,
+                  nights: n,
+                  adults,
+                  room_subtotal: roomSubtotal,
+                  extras: extrasForEmail,
+                  extras_total: extrasTotal,
+                  discount_amount: 0,
+                  total: packagePrice,
+                  currency,
+                },
+              ],
+            },
+          }),
+        });
+      } catch (emailErr) {
+        console.error('Failed to send booking email', emailErr);
+      }
+
       setSuccess(null);
     } catch (err: any) {
       console.error(err);
