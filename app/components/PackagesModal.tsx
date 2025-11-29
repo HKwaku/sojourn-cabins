@@ -12,6 +12,24 @@ const HEADERS: HeadersInit = {
   Prefer: 'return=representation',
 };
 
+const COUNTRY_OPTIONS = [
+  { code: '+233', label: '🇬🇭 Ghana (+233)' },
+  { code: '+234', label: '🇳🇬 Nigeria (+234)' },
+  { code: '+27', label: '🇿🇦 South Africa (+27)' },
+  { code: '+254', label: '🇰🇪 Kenya (+254)' },
+  { code: '+44', label: '🇬🇧 United Kingdom (+44)' },
+  { code: '+1', label: '🇺🇸 United States (+1)' },
+  { code: '+1', label: '🇨🇦 Canada (+1)' },
+  { code: '+33', label: '🇫🇷 France (+33)' },
+  { code: '+49', label: '🇩🇪 Germany (+49)' },
+  { code: '+34', label: '🇪🇸 Spain (+34)' },
+  { code: '+39', label: '🇮🇹 Italy (+39)' },
+  { code: '+91', label: '🇮🇳 India (+91)' },
+  { code: '+86', label: '🇨🇳 China (+86)' },
+  { code: '+971', label: '🇦🇪 UAE (+971)' },
+  { code: '+61', label: '🇦🇺 Australia (+61)' },
+];
+
 type PackageRow = {
   id: number;
   code: string | null;
@@ -148,9 +166,46 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+233');
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
   const [notes, setNotes] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showExperiencesModal, setShowExperiencesModal] = useState(false);
+  const [currentExperienceSlide, setCurrentExperienceSlide] = useState(0);
+
+  const experiencesData = [
+    {
+      title: 'Private Chef Experience',
+      image: '/experiences/chef.jpg',
+      description: 'Experience the epitome of culinary excellence with our private chef service. Our executive chef crafts personalized menus using the finest locally-sourced ingredients and international flavors.'
+    },
+    {
+      title: 'Wellness & Rejuvenation',
+      image: '/experiences/wellness.jpg',
+      description: 'Restore balance and tranquility with our comprehensive wellness treatments. Our skilled therapists offer a range of services designed to rejuvenate your body and mind.'
+    },
+    {
+      title: 'Saxophone Experience',
+      image: '/experiences/sax.jpg',
+      description: 'Elevate your evening with the soulful sounds of our professional saxophonist. Perfect for romantic dinners or special celebrations.'
+    },
+    {
+      title: 'Dinner Under The Stars',
+      image: '/experiences/dinner.jpg',
+      description: 'Create magical memories with an intimate dinner under the African sky. Our team sets up a beautiful beachside dining experience complete with elegant table settings and a crackling bonfire.'
+    },
+    {
+      title: 'Tour Experience',
+      image: '/experiences/tour.jpg',
+      description: 'Discover the rich history and culture of Anomabo with our guided tour of the historic Fort William. Our knowledgeable guides bring history to life.'
+    },
+    {
+      title: 'Creative Expression',
+      image: '/experiences/paint.jpg',
+      description: 'Unleash your inner artist in our relaxed sip and paint sessions. Guided by talented local artists, create your own masterpiece while enjoying refreshing drinks.'
+    }
+  ];
 
   // Load packages / rooms / extras when modal opens
   useEffect(() => {
@@ -431,6 +486,11 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       return;
     }
 
+    if (!termsAccepted) {
+      setError('Please accept the terms and conditions to continue.');
+      return;
+    }
+
     if (!checkIn || !checkOut) {
       setError('Please select both check-in and check-out dates.');
       return;
@@ -516,11 +576,11 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         guest_last_name: lastName.trim() || null,
         guest_email: email.trim() || null,
         guest_phone: phone.trim() || null,
+        country_code: countryCode || null,
         check_in: checkIn,
         check_out: checkOut,
         nights: n,
         adults,
-        children,
         status: 'confirmed',
         payment_status: 'unpaid',
         currency,
@@ -600,7 +660,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               check_out: checkOut,
               nights: n,
               adults,
-              children,
               currency,
               room_name: roomName,
               room_subtotal: roomSubtotal,
@@ -646,7 +705,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-3xl max-h-[calc(100vh-3rem)] overflow-y-auto rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+        className="relative w-full max-w-3xl max-h-[calc(100vh-3rem)] overflow-y-auto overflow-x-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* subtle gradient glow in corner like widget card */}
@@ -695,6 +754,30 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               {/* STAGE 1: Date picker */}
               {stage === 'dates' && (
                 <div className="space-y-4">
+                  {/* View All Experiences Banner */}
+                  <button
+                    type="button"
+                    onClick={() => setShowExperiencesModal(true)}
+                    className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-4 shadow-lg hover:shadow-xl transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-sm font-semibold text-white">View All Package Experiences</div>
+                          <div className="text-xs text-white/90">Discover what's included in our curated packages</div>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+
                   <p className="text-xs md:text-sm text-slate-500">
                     Pick your dates to see which packages and cabins are available.
                   </p>
@@ -739,6 +822,30 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               {/* STAGE 2: Packages */}
               {stage === 'packages' && (
                 <div className="space-y-4">
+                  {/* View All Experiences Banner */}
+                  <button
+                    type="button"
+                    onClick={() => setShowExperiencesModal(true)}
+                    className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-4 shadow-lg hover:shadow-xl transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-sm font-semibold text-white">View All Package Experiences</div>
+                          <div className="text-xs text-white/90">Discover what's included in our curated packages</div>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+
                   {filteredPackages.length === 0 ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-xs md:text-sm text-amber-800">
                       No packages are available for these dates. Please choose
@@ -854,6 +961,30 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               {/* STAGE 3: Rooms */}
               {stage === 'rooms' && selectedPackage && (
                 <div className="space-y-4">
+                  {/* View All Experiences Banner */}
+                  <button
+                    type="button"
+                    onClick={() => setShowExperiencesModal(true)}
+                    className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-4 shadow-lg hover:shadow-xl transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-sm font-semibold text-white">View All Package Experiences</div>
+                          <div className="text-xs text-white/90">Discover what's included in our curated packages</div>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+
                   <p className="text-xs md:text-sm text-slate-500">
                     Choose a cabin for the{' '}
                     <span className="font-semibold text-slate-800">
@@ -917,6 +1048,30 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                 selectedPackage &&
                 selectedRoomId != null && (
                   <form className="space-y-5" onSubmit={handleSubmit}>
+                    {/* View All Experiences Banner */}
+                    <button
+                      type="button"
+                      onClick={() => setShowExperiencesModal(true)}
+                      className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-4 shadow-lg hover:shadow-xl transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                          </div>
+                          <div className="text-left">
+                            <div className="text-sm font-semibold text-white">View All Package Experiences</div>
+                            <div className="text-xs text-white/90">Discover what's included in our curated packages</div>
+                          </div>
+                        </div>
+                        <svg className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+
                     {/* Top row – package + room, same pill card vibe */}
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -978,19 +1133,36 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                         </div>
                       </div>
 
+                      <div>
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
+                          Email address
+                        </label>
+                        <input
+                          type="email"
+                          className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="your@email.com"
+                          required
+                        />
+                      </div>
+
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
-                            Email address
+                            Country Code
                           </label>
-                          <input
-                            type="email"
-                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="your@email.com"
-                            required
-                          />
+                          <select
+                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                          >
+                            {COUNTRY_OPTIONS.map((country) => (
+                              <option key={country.code + country.label} value={country.code}>
+                                {country.label}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
@@ -1001,12 +1173,12 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                             className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            placeholder="+233 XX XXX XXXX"
+                            placeholder="123456789"
                           />
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid md:grid-cols-1 gap-4">
                         <div>
                           <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
                             Adults
@@ -1018,22 +1190,6 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                             value={adults}
                             onChange={(e) =>
                               setAdults(parseInt(e.target.value || '0', 10) || 0)
-                            }
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-600 mb-2">
-                            Children
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            className="w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-orange-400 transition-shadow"
-                            value={children}
-                            onChange={(e) =>
-                              setChildren(
-                                parseInt(e.target.value || '0', 10) || 0
-                              )
                             }
                           />
                         </div>
@@ -1112,6 +1268,27 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                           </div>
                         </div>
                       </div>
+
+                      {/* Terms and Conditions Checkbox */}
+                      <div className="flex items-start gap-3 p-4 bg-slate-50/80 rounded-xl border border-slate-200">
+                        <input
+                          type="checkbox"
+                          id="terms-checkbox-packages"
+                          checked={termsAccepted}
+                          onChange={(e) => setTermsAccepted(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-400 cursor-pointer"
+                        />
+                        <label htmlFor="terms-checkbox-packages" className="text-sm text-slate-700 cursor-pointer">
+                          I have read and agree to the{' '}
+                          <button
+                            type="button"
+                            onClick={() => setShowTermsModal(true)}
+                            className="text-orange-600 underline hover:text-orange-700"
+                          >
+                            Terms and Conditions
+                          </button>
+                        </label>
+                      </div>
                     </div>
 
                     {/* Actions – match guest modal footer behaviour */}
@@ -1125,7 +1302,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                       </button>
                       <button
                         type="submit"
-                        disabled={submitting}
+                        disabled={submitting || !termsAccepted}
                         className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-2.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-900 shadow-[0_14px_30px_rgba(249,115,22,0.35)] hover:shadow-[0_18px_40px_rgba(249,115,22,0.45)] hover:from-orange-500 hover:to-orange-500 transition disabled:opacity-60"
                       >
                         {submitting ? 'Booking…' : 'Confirm booking'}
@@ -1240,6 +1417,157 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                   >
                     Close
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Experiences Carousel Modal */}
+          {showExperiencesModal && (
+            <div
+              className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-sm flex items-center justify-center p-5"
+              onClick={() => setShowExperiencesModal(false)}
+            >
+              <div
+                className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setShowExperiencesModal(false)}
+                  className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 hover:bg-white flex items-center justify-center text-slate-900 shadow-lg transition"
+                >
+                  <span className="text-2xl leading-none">×</span>
+                </button>
+
+                {/* Carousel content */}
+                <div className="overflow-hidden">
+                  <div
+                    className="flex transition-transform duration-500 ease-in-out"
+                    style={{ transform: `translateX(-${currentExperienceSlide * 100}%)` }}
+                  >
+                    {experiencesData.map((exp, idx) => (
+                      <div key={idx} className="min-w-full px-8 py-10">
+                        <img
+                          src={exp.image}
+                          alt={exp.title}
+                          className="w-full h-64 object-cover rounded-2xl mb-6"
+                        />
+                        <h3 className="text-3xl font-serif font-light text-slate-900 mb-4">
+                          {exp.title}
+                        </h3>
+                        <p className="text-base leading-relaxed text-slate-600">
+                          {exp.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex items-center justify-between px-8 pb-8">
+                  <button
+                    onClick={() => setCurrentExperienceSlide(Math.max(0, currentExperienceSlide - 1))}
+                    disabled={currentExperienceSlide === 0}
+                    className="w-11 h-11 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center hover:border-orange-500 hover:bg-orange-50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Indicators */}
+                  <div className="flex gap-2">
+                    {experiencesData.map((_, idx) => (
+                      <div
+                        key={idx}
+                        className={`h-2 rounded-full transition-all ${
+                          idx === currentExperienceSlide
+                            ? 'w-8 bg-orange-500'
+                            : 'w-2 bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentExperienceSlide(Math.min(experiencesData.length - 1, currentExperienceSlide + 1))}
+                    disabled={currentExperienceSlide === experiencesData.length - 1}
+                    className="w-11 h-11 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center hover:border-orange-500 hover:bg-orange-50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Terms and Conditions Modal */}
+          {showTermsModal && (
+            <div
+              className="fixed inset-0 z-[70] bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setShowTermsModal(false)}
+            >
+              <div
+                className="relative bg-white max-w-4xl w-full rounded-3xl shadow-2xl overflow-hidden overflow-x-hidden my-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-5 flex items-center justify-between z-10">
+                  <h3 className="text-2xl font-serif font-light text-slate-900">
+                    Terms & Conditions
+                  </h3>
+                  <button
+                    onClick={() => setShowTermsModal(false)}
+                    className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="px-6 py-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+                  <div className="prose prose-slate max-w-none">
+                    <h2 className="text-2xl font-serif font-light mb-6 pb-4 border-b border-slate-200">Introduction</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      These Booking Terms & Conditions and the General Booking Information contained on our web
+                      site will form the basis of your agreement with Sojourn Cabins ("the Company"). They apply
+                      only to holiday arrangements which you book with us and which we agree to make, provide or
+                      perform as applicable as part of our agreement with you and no other third party. This
+                      Agreement shall be governed and construed in all respects in accordance with the laws of
+                      Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Contract</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      A contract only exists between Sojourn Cabins ("we/our/us") and the "clients" from the time
+                      a Confirmation Invoice is dispatched / received and a payment must be made by the available
+                      means on our payment portal.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Payment</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Full payment is required at the time of booking to confirm your reservation.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Cancellation Policy</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Cancellations made more than 30 days before check-in will receive a full refund minus a 10% processing fee.
+                      Cancellations made 15-30 days before check-in will receive a 50% refund. Cancellations made less than 15 days
+                      before check-in are non-refundable.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Check-in and Check-out</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Check-in time is 3:00 PM and check-out time is 11:00 AM. Early check-in or late check-out may be arranged
+                      subject to availability and additional charges.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Guest Responsibilities</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Guests are responsible for any damage to the property beyond normal wear and tear. Guests must comply with
+                      all house rules and local regulations.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

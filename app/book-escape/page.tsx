@@ -648,7 +648,7 @@ export default function Page() {
               </div>
               <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Seamless Check-In</h3>
               <p className="text-sm text-stone-500 leading-relaxed">
-                Self check-in details shared before arrival. Your retreat starts smoothly.
+                Check-in details shared before arrival. Your retreat starts smoothly.
               </p>
             </div>
           </div>

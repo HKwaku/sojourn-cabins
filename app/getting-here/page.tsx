@@ -65,7 +65,7 @@ export default function GettingHerePage() {
                   </svg>
                   <h4 className="text-lg font-medium">From Accra</h4>
                 </div>
-                <p className="text-3xl font-light text-gray-900 mb-2">2.5 hours</p>
+                <p className="text-3xl font-light text-gray-900 mb-2">3.5 hours</p>
                 <p className="text-sm text-gray-600">Approximately 145 km via coastal route</p>
               </div>
 

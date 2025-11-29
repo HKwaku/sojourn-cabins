@@ -670,6 +670,273 @@ export default function BookingWidget() {
   #extras-list .price{font-size:13px;}
   #extras-list .qty{margin-left:auto;}
 
+  /* ---------- Experiences Carousel ---------- */
+  .experiences-banner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:linear-gradient(to right, #f97316, #fb923c);
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:16px;
+    cursor:pointer;
+    box-shadow:0 10px 25px rgba(249,115,22,0.3);
+    transition:all 0.3s;
+    border:0;
+    width:100%;
+  }
+  .experiences-banner:hover{
+    box-shadow:0 14px 35px rgba(249,115,22,0.4);
+    transform:translateY(-2px);
+  }
+  .experiences-banner-content{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .experiences-banner-icon{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .experiences-banner-text{
+    text-align:left;
+  }
+  .experiences-banner-title{
+    font-size:14px;
+    font-weight:600;
+    color:#fff;
+    margin-bottom:2px;
+  }
+  .experiences-banner-subtitle{
+    font-size:12px;
+    color:rgba(255,255,255,0.9);
+  }
+  .experiences-banner-arrow{
+    color:#fff;
+    transition:transform 0.3s;
+    flex-shrink:0;
+  }
+  .experiences-banner:hover .experiences-banner-arrow{
+    transform:translateX(4px);
+  }
+  .experiences-carousel-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.85);
+    backdrop-filter:blur(8px);
+    z-index:10000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .experiences-carousel-modal.active{
+    display:flex;
+  }
+  .carousel-container{
+    position:relative;
+    width:100%;
+    max-width:600px;
+    background:#fff;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,0.3);
+  }
+  .carousel-close{
+    position:absolute;
+    top:16px;
+    right:16px;
+    z-index:10;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.95);
+    border:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:24px;
+    color:#111827;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  }
+  .carousel-close:hover{
+    background:#fff;
+  }
+  .carousel-track{
+    display:flex;
+    transition:transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .carousel-slide{
+    min-width:100%;
+    padding:40px 30px 30px;
+  }
+  .carousel-image{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+    border-radius:16px;
+    margin-bottom:20px;
+  }
+  .carousel-title{
+    font-size:24px;
+    font-weight:300;
+    font-family:serif;
+    margin-bottom:12px;
+    color:#111827;
+  }
+  .carousel-description{
+    font-size:15px;
+    line-height:1.6;
+    color:#6b7280;
+    margin-bottom:16px;
+  }
+  .carousel-nav{
+    display:flex;
+    justify-content:space-between;
+    padding:0 30px 30px;
+  }
+  .carousel-btn{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:2px solid #e5e7eb;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .carousel-btn:disabled{
+    opacity:0.3;
+    cursor:not-allowed;
+  }
+  .carousel-btn:not(:disabled):hover{
+    border-color:#f97316;
+    background:#fef3f2;
+  }
+  .carousel-indicators{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .carousel-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#d1d5db;
+    transition:all 0.2s;
+  }
+  .carousel-dot.active{
+    width:24px;
+    border-radius:4px;
+    background:#f97316;
+  }
+
+  /* ---------- Terms Checkbox ---------- */
+  .terms-checkbox-container{
+    display:flex;
+    align-items:start;
+    gap:10px;
+    margin:20px 0;
+    padding:16px;
+    background:#f9fafb;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+  }
+  .terms-checkbox{
+    width:18px;
+    height:18px;
+    margin-top:2px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .terms-label{
+    font-size:14px;
+    line-height:1.5;
+    color:#374151;
+    cursor:pointer;
+  }
+  .terms-link{
+    color:#f97316;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .terms-link:hover{
+    color:#ea580c;
+  }
+  .terms-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter:blur(4px);
+    z-index:10001;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow-y:auto;
+  }
+  .terms-modal.active{
+    display:flex;
+  }
+  .terms-content{
+    position:relative;
+    width:100%;
+    max-width:900px;
+    max-height:90vh;
+    background:#fff;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:0 25px 60px rgba(0,0,0,0.3);
+  }
+  .terms-header{
+    padding:24px 30px;
+    border-bottom:1px solid #e5e7eb;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#fff;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  .terms-title{
+    font-size:24px;
+    font-weight:300;
+    font-family:serif;
+    color:#111827;
+  }
+  .terms-close{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    background:#f3f4f6;
+    border:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:20px;
+    color:#6b7280;
+  }
+  .terms-close:hover{
+    background:#e5e7eb;
+    color:#111827;
+  }
+  .terms-body{
+    padding:30px;
+    overflow-y:auto;
+    max-height:calc(90vh - 88px);
+  }
+
   /* ---------- Responsive tighten ---------- */
   @media (max-width:640px){
     input,select,textarea{
@@ -743,8 +1010,25 @@ export default function BookingWidget() {
     '</div></div>' +
 
     '<div id="modal-extras" class="modal" aria-hidden="true"><div class="sheet">' +
-      '<header><div>Choose extras</div><button class="x" data-close="extras">×</button></header>' +
-      '<main><div id="extras-list"></div>' +
+      '<header><div>Choose Curated Experiences</div><button class="x" data-close="extras">×</button></header>' +
+      '<main>' +
+        '<button class="experiences-banner" id="view-experiences-link">' +
+          '<div class="experiences-banner-content">' +
+            '<div class="experiences-banner-icon">' +
+              '<svg style="width:20px;height:20px;color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>' +
+              '</svg>' +
+            '</div>' +
+            '<div class="experiences-banner-text">' +
+              '<div class="experiences-banner-title">View All Experiences</div>' +
+              '<div class="experiences-banner-subtitle">Discover what is included in your booking</div>' +
+            '</div>' +
+          '</div>' +
+          '<svg class="experiences-banner-arrow" style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' +
+          '</svg>' +
+        '</button>' +
+        '<div id="extras-list"></div>' +
         '<div class="summary" style="margin-top:16px">' +
           '<div class="kv"><span>Nights</span><strong id="mN1">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom1">—</strong></div>' +
@@ -759,11 +1043,28 @@ export default function BookingWidget() {
     '<div id="modal-guest" class="modal" aria-hidden="true"><div class="sheet">' +
       '<header><div>Guest details</div><button class="x" data-close="guest">×</button></header>' +
       '<main>' +
+        '<button class="experiences-banner" id="view-experiences-link-guest">' +
+          '<div class="experiences-banner-content">' +
+            '<div class="experiences-banner-icon">' +
+              '<svg style="width:20px;height:20px;color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>' +
+              '</svg>' +
+            '</div>' +
+            '<div class="experiences-banner-text">' +
+              '<div class="experiences-banner-title">View All Experiences</div>' +
+              '<div class="experiences-banner-subtitle">Discover what is included in your booking</div>' +
+            '</div>' +
+          '</div>' +
+          '<svg class="experiences-banner-arrow" style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' +
+          '</svg>' +
+        '</button>' +
         '<div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">' +
           '<div><label>First name *</label><input id="gFirst" placeholder="Jane" required></div>' +
           '<div><label>Last name *</label><input id="gLast" placeholder="Doe" required></div>' +
-          '<div><label>Email *</label><input id="gEmail" type="email" placeholder="jane@example.com" required></div>' +
-          '<div><label>Phone</label><input id="gPhone" placeholder="+44 ..."></div>' +
+          '<div style="grid-column:span 2"><label>Email *</label><input id="gEmail" type="email" placeholder="jane@example.com" required></div>' +
+          '<div><label>Country Code</label><select id="gCountryCode"></select></div>' +
+          '<div><label>Phone</label><input id="gPhone" placeholder="123456789"></div>' +
         '</div>' +
         '<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">' +
           '<label>Have a coupon code?</label>' +
@@ -779,6 +1080,12 @@ export default function BookingWidget() {
           '<div class="kv extras"><span>Extras</span><strong id="mExtras2">£0.00</strong></div>' +
           '<div class="kv discount" id="mDiscountRow2" style="display:none"><span>Discount</span><strong id="mDiscount2">−£0.00</strong></div>' +
           '<div class="kv total"><span>Total to pay</span><strong id="mTotal2">—</strong></div>' +
+        '</div>' +
+        '<div class="terms-checkbox-container">' +
+          '<input type="checkbox" id="terms-checkbox" class="terms-checkbox">' +
+          '<label for="terms-checkbox" class="terms-label">' +
+            'I have read and agree to the <span class="terms-link" id="open-terms">Terms and Conditions</span>' +
+          '</label>' +
         '</div>' +
       '</main>' +
       '<footer><button class="btn secondary" data-back="guest">Back</button><button class="btn" id="confirm">Confirm booking</button></footer>' +
@@ -811,7 +1118,31 @@ export default function BookingWidget() {
         '<p class="sub" style="margin-top:10px">A confirmation email will be sent to you shortly.</p>' +
       '</main>' +
       '<footer><button class="btn" id="thanks-close">Close</button></footer>' +
-    '</div></div>';
+    '</div></div>' +
+
+    // Experiences Carousel Modal
+    '<div id="experiences-carousel-modal" class="experiences-carousel-modal">' +
+      '<div class="carousel-container">' +
+        '<button class="carousel-close" id="close-experiences">×</button>' +
+        '<div class="carousel-track" id="carousel-track"></div>' +
+        '<div class="carousel-nav">' +
+          '<button class="carousel-btn" id="carousel-prev">‹</button>' +
+          '<div class="carousel-indicators" id="carousel-indicators"></div>' +
+          '<button class="carousel-btn" id="carousel-next">›</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // Terms and Conditions Modal
+    '<div id="terms-modal" class="terms-modal">' +
+      '<div class="terms-content">' +
+        '<div class="terms-header">' +
+          '<div class="terms-title">Terms & Conditions</div>' +
+          '<button class="terms-close" id="close-terms">×</button>' +
+        '</div>' +
+        '<div class="terms-body" id="terms-body"></div>' +
+      '</div>' +
+    '</div>';
 
   // ====== HELPERS ======
   function $(s) { return document.querySelector(s); }
@@ -1347,6 +1678,7 @@ export default function BookingWidget() {
         guest_last_name: payload.guest.last,
         guest_email: payload.guest.email,
         guest_phone: payload.guest.phone || '',
+        country_code: payload.guest.countryCode || '',
         status: 'confirmed',
         // 👇 new fields for grouping multi-room bookings
         group_reservation_id: payload.groupReservationId || null,
@@ -1644,8 +1976,9 @@ export default function BookingWidget() {
     list.forEach(function (x) {
       var row = document.createElement('div');
       row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff';
+      var descriptionHtml = x.description ? '<div class="desc" style="margin-top:4px">' + x.description + '</div>' : '';
       row.innerHTML =
-        '<div><div style="font-weight:700">' + x.name + '</div><div class="muted" style="color:#6b7280;font-size:14px">' + formatCurrency(x.price, selected ? selected.currency : CURRENCY) + '</div></div>' +
+        '<div><div style="font-weight:700">' + x.name + '</div>' + descriptionHtml + '<div class="muted" style="color:#6b7280;font-size:14px;margin-top:4px">' + formatCurrency(x.price, selected ? selected.currency : CURRENCY) + '</div></div>' +
         '<div class="qty"><button class="btn secondary" data-minus="' + x.code + '">−</button><span id="qty-' + x.code + '">0</span><button class="btn secondary" data-plus="' + x.code + '">+</button></div>';
       host.appendChild(row);
     });
@@ -1704,6 +2037,294 @@ export default function BookingWidget() {
   document.querySelectorAll('[data-back="extras"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('extras'); }); });
   document.querySelectorAll('[data-back="guest"]').forEach(function (b) {
     b.addEventListener('click', function(){ closeModal('guest'); openModal('extras'); });
+  });
+
+  // ====== EXPERIENCES CAROUSEL ======
+  var COUNTRY_OPTIONS = [
+    { region: "Africa", code: "+233", label: "🇬🇭 Ghana (+233)" },
+    { region: "Africa", code: "+234", label: "🇳🇬 Nigeria (+234)" },
+    { region: "Africa", code: "+27", label: "🇿🇦 South Africa (+27)" },
+    { region: "Africa", code: "+254", label: "🇰🇪 Kenya (+254)" },
+    { region: "Africa", code: "+256", label: "🇺🇬 Uganda (+256)" },
+    { region: "Africa", code: "+255", label: "🇹🇿 Tanzania (+255)" },
+    { region: "Africa", code: "+20", label: "🇪🇬 Egypt (+20)" },
+    { region: "Africa", code: "+213", label: "🇩🇿 Algeria (+213)" },
+    { region: "Africa", code: "+244", label: "🇦🇴 Angola (+244)" },
+    { region: "Africa", code: "+229", label: "🇧🇯 Benin (+229)" },
+    { region: "Africa", code: "+267", label: "🇧🇼 Botswana (+267)" },
+    { region: "Africa", code: "+226", label: "🇧🇫 Burkina Faso (+226)" },
+    { region: "Africa", code: "+257", label: "🇧🇮 Burundi (+257)" },
+    { region: "Africa", code: "+237", label: "🇨🇲 Cameroon (+237)" },
+    { region: "Africa", code: "+238", label: "🇨🇻 Cape Verde (+238)" },
+    { region: "Africa", code: "+236", label: "🇨🇫 Central African Republic (+236)" },
+    { region: "Africa", code: "+235", label: "🇹🇩 Chad (+235)" },
+    { region: "Africa", code: "+269", label: "🇰🇲 Comoros (+269)" },
+    { region: "Africa", code: "+242", label: "🇨🇬 Congo (+242)" },
+    { region: "Africa", code: "+243", label: "🇨🇩 Congo (DRC) (+243)" },
+    { region: "Africa", code: "+225", label: "🇨🇮 Côte d'Ivoire (+225)" },
+    { region: "Africa", code: "+253", label: "🇩🇯 Djibouti (+253)" },
+    { region: "Africa", code: "+240", label: "🇬🇶 Equatorial Guinea (+240)" },
+    { region: "Africa", code: "+291", label: "🇪🇷 Eritrea (+291)" },
+    { region: "Africa", code: "+251", label: "🇪🇹 Ethiopia (+251)" },
+    { region: "Africa", code: "+241", label: "🇬🇦 Gabon (+241)" },
+    { region: "Africa", code: "+220", label: "🇬🇲 Gambia (+220)" },
+    { region: "Africa", code: "+224", label: "🇬🇳 Guinea (+224)" },
+    { region: "Africa", code: "+245", label: "🇬🇼 Guinea-Bissau (+245)" },
+    { region: "Africa", code: "+266", label: "🇱🇸 Lesotho (+266)" },
+    { region: "Africa", code: "+231", label: "🇱🇷 Liberia (+231)" },
+    { region: "Africa", code: "+218", label: "🇱🇾 Libya (+218)" },
+    { region: "Africa", code: "+261", label: "🇲🇬 Madagascar (+261)" },
+    { region: "Africa", code: "+265", label: "🇲🇼 Malawi (+265)" },
+    { region: "Africa", code: "+223", label: "🇲🇱 Mali (+223)" },
+    { region: "Africa", code: "+222", label: "🇲🇷 Mauritania (+222)" },
+    { region: "Africa", code: "+230", label: "🇲🇺 Mauritius (+230)" },
+    { region: "Africa", code: "+212", label: "🇲🇦 Morocco (+212)" },
+    { region: "Africa", code: "+258", label: "🇲🇿 Mozambique (+258)" },
+    { region: "Africa", code: "+264", label: "🇳🇦 Namibia (+264)" },
+    { region: "Africa", code: "+227", label: "🇳🇪 Niger (+227)" },
+    { region: "Africa", code: "+250", label: "🇷🇼 Rwanda (+250)" },
+    { region: "Africa", code: "+239", label: "🇸🇹 Sao Tome & Principe (+239)" },
+    { region: "Africa", code: "+221", label: "🇸🇳 Senegal (+221)" },
+    { region: "Africa", code: "+248", label: "🇸🇨 Seychelles (+248)" },
+    { region: "Africa", code: "+232", label: "🇸🇱 Sierra Leone (+232)" },
+    { region: "Africa", code: "+252", label: "🇸🇴 Somalia (+252)" },
+    { region: "Africa", code: "+211", label: "🇸🇸 South Sudan (+211)" },
+    { region: "Africa", code: "+249", label: "🇸🇩 Sudan (+249)" },
+    { region: "Africa", code: "+268", label: "🇸🇿 Eswatini (+268)" },
+    { region: "Africa", code: "+216", label: "🇹🇳 Tunisia (+216)" },
+    { region: "Africa", code: "+260", label: "🇿🇲 Zambia (+260)" },
+    { region: "Africa", code: "+263", label: "🇿🇼 Zimbabwe (+263)" },
+    { region: "Europe", code: "+44", label: "🇬🇧 United Kingdom (+44)" },
+    { region: "Europe", code: "+33", label: "🇫🇷 France (+33)" },
+    { region: "Europe", code: "+49", label: "🇩🇪 Germany (+49)" },
+    { region: "Europe", code: "+34", label: "🇪🇸 Spain (+34)" },
+    { region: "Europe", code: "+39", label: "🇮🇹 Italy (+39)" },
+    { region: "Europe", code: "+31", label: "🇳🇱 Netherlands (+31)" },
+    { region: "Europe", code: "+41", label: "🇨🇭 Switzerland (+41)" },
+    { region: "Europe", code: "+46", label: "🇸🇪 Sweden (+46)" },
+    { region: "Europe", code: "+47", label: "🇳🇴 Norway (+47)" },
+    { region: "Europe", code: "+45", label: "🇩🇰 Denmark (+45)" },
+    { region: "Europe", code: "+48", label: "🇵🇱 Poland (+48)" },
+    { region: "Europe", code: "+351", label: "🇵🇹 Portugal (+351)" },
+    { region: "Europe", code: "+30", label: "🇬🇷 Greece (+30)" },
+    { region: "Europe", code: "+43", label: "🇦🇹 Austria (+43)" },
+    { region: "Europe", code: "+32", label: "🇧🇪 Belgium (+32)" },
+    { region: "Europe", code: "+353", label: "🇮🇪 Ireland (+353)" },
+    { region: "Europe", code: "+358", label: "🇫🇮 Finland (+358)" },
+    { region: "Europe", code: "+420", label: "🇨🇿 Czechia (+420)" },
+    { region: "Europe", code: "+40", label: "🇷🇴 Romania (+40)" },
+    { region: "Europe", code: "+36", label: "🇭🇺 Hungary (+36)" },
+    { region: "Europe", code: "+7", label: "🇷🇺 Russia (+7)" },
+    { region: "Europe", code: "+380", label: "🇺🇦 Ukraine (+380)" },
+    { region: "Europe", code: "+355", label: "🇦🇱 Albania (+355)" },
+    { region: "Europe", code: "+359", label: "🇧🇬 Bulgaria (+359)" },
+    { region: "Europe", code: "+385", label: "🇭🇷 Croatia (+385)" },
+    { region: "Europe", code: "+357", label: "🇨🇾 Cyprus (+357)" },
+    { region: "Europe", code: "+372", label: "🇪🇪 Estonia (+372)" },
+    { region: "Europe", code: "+354", label: "🇮🇸 Iceland (+354)" },
+    { region: "Europe", code: "+371", label: "🇱🇻 Latvia (+371)" },
+    { region: "Europe", code: "+370", label: "🇱🇹 Lithuania (+370)" },
+    { region: "Europe", code: "+352", label: "🇱🇺 Luxembourg (+352)" },
+    { region: "Europe", code: "+356", label: "🇲🇹 Malta (+356)" },
+    { region: "Europe", code: "+373", label: "🇲🇩 Moldova (+373)" },
+    { region: "Europe", code: "+377", label: "🇲🇨 Monaco (+377)" },
+    { region: "Europe", code: "+382", label: "🇲🇪 Montenegro (+382)" },
+    { region: "Europe", code: "+381", label: "🇷🇸 Serbia (+381)" },
+    { region: "Europe", code: "+421", label: "🇸🇰 Slovakia (+421)" },
+    { region: "Europe", code: "+386", label: "🇸🇮 Slovenia (+386)" },
+    { region: "Americas", code: "+1", label: "🇺🇸 United States (+1)" },
+    { region: "Americas", code: "+1", label: "🇨🇦 Canada (+1)" },
+    { region: "Americas", code: "+52", label: "🇲🇽 Mexico (+52)" },
+    { region: "Americas", code: "+55", label: "🇧🇷 Brazil (+55)" },
+    { region: "Americas", code: "+54", label: "🇦🇷 Argentina (+54)" },
+    { region: "Americas", code: "+57", label: "🇨🇴 Colombia (+57)" },
+    { region: "Americas", code: "+56", label: "🇨🇱 Chile (+56)" },
+    { region: "Americas", code: "+51", label: "🇵🇪 Peru (+51)" },
+    { region: "Americas", code: "+58", label: "🇻🇪 Venezuela (+58)" },
+    { region: "Asia", code: "+91", label: "🇮🇳 India (+91)" },
+    { region: "Asia", code: "+86", label: "🇨🇳 China (+86)" },
+    { region: "Asia", code: "+81", label: "🇯🇵 Japan (+81)" },
+    { region: "Asia", code: "+82", label: "🇰🇷 South Korea (+82)" },
+    { region: "Asia", code: "+65", label: "🇸🇬 Singapore (+65)" },
+    { region: "Asia", code: "+971", label: "🇦🇪 United Arab Emirates (+971)" },
+    { region: "Asia", code: "+966", label: "🇸🇦 Saudi Arabia (+966)" },
+    { region: "Asia", code: "+62", label: "🇮🇩 Indonesia (+62)" },
+    { region: "Asia", code: "+60", label: "🇲🇾 Malaysia (+60)" },
+    { region: "Asia", code: "+66", label: "🇹🇭 Thailand (+66)" },
+    { region: "Asia", code: "+63", label: "🇵🇭 Philippines (+63)" },
+    { region: "Asia", code: "+84", label: "🇻🇳 Vietnam (+84)" },
+    { region: "Asia", code: "+92", label: "🇵🇰 Pakistan (+92)" },
+    { region: "Asia", code: "+880", label: "🇧🇩 Bangladesh (+880)" },
+    { region: "Asia", code: "+90", label: "🇹🇷 Turkey (+90)" },
+    { region: "Asia", code: "+972", label: "🇮🇱 Israel (+972)" },
+    { region: "Asia", code: "+98", label: "🇮🇷 Iran (+98)" },
+    { region: "Asia", code: "+964", label: "🇮🇶 Iraq (+964)" },
+    { region: "Asia", code: "+962", label: "🇯🇴 Jordan (+962)" },
+    { region: "Asia", code: "+965", label: "🇰🇼 Kuwait (+965)" },
+    { region: "Asia", code: "+961", label: "🇱🇧 Lebanon (+961)" },
+    { region: "Asia", code: "+968", label: "🇴🇲 Oman (+968)" },
+    { region: "Asia", code: "+974", label: "🇶🇦 Qatar (+974)" },
+    { region: "Asia", code: "+94", label: "🇱🇰 Sri Lanka (+94)" },
+    { region: "Asia", code: "+886", label: "🇹🇼 Taiwan (+886)" },
+    { region: "Asia", code: "+93", label: "🇦🇫 Afghanistan (+93)" },
+    { region: "Asia", code: "+374", label: "🇦🇲 Armenia (+374)" },
+    { region: "Asia", code: "+994", label: "🇦🇿 Azerbaijan (+994)" },
+    { region: "Asia", code: "+975", label: "🇧🇹 Bhutan (+975)" },
+    { region: "Asia", code: "+673", label: "🇧🇳 Brunei (+673)" },
+    { region: "Asia", code: "+855", label: "🇰🇭 Cambodia (+855)" },
+    { region: "Asia", code: "+7", label: "🇰🇿 Kazakhstan (+7)" },
+    { region: "Asia", code: "+996", label: "🇰🇬 Kyrgyzstan (+996)" },
+    { region: "Asia", code: "+856", label: "🇱🇦 Laos (+856)" },
+    { region: "Asia", code: "+960", label: "🇲🇻 Maldives (+960)" },
+    { region: "Asia", code: "+976", label: "🇲🇳 Mongolia (+976)" },
+    { region: "Asia", code: "+977", label: "🇳🇵 Nepal (+977)" },
+    { region: "Asia", code: "+998", label: "🇺🇿 Uzbekistan (+998)" },
+    { region: "Oceania", code: "+61", label: "🇦🇺 Australia (+61)" },
+    { region: "Oceania", code: "+64", label: "🇳🇿 New Zealand (+64)" },
+    { region: "Oceania", code: "+679", label: "🇫🇯 Fiji (+679)" },
+    { region: "Oceania", code: "+685", label: "🇼🇸 Samoa (+685)" },
+    { region: "Oceania", code: "+676", label: "🇹🇴 Tonga (+676)" }
+  ];
+
+  var experiencesData = [
+    {
+      title: 'Private Chef Experience',
+      image: '/experiences/chef.jpg',
+      description: 'Experience the epitome of culinary excellence with our private chef service. Our executive chef crafts personalized menus using the finest locally-sourced ingredients and international flavors.'
+    },
+    {
+      title: 'Wellness & Rejuvenation',
+      image: '/experiences/wellness.jpg',
+      description: 'Restore balance and tranquility with our comprehensive wellness treatments. Our skilled therapists offer a range of services designed to rejuvenate your body and mind.'
+    },
+    {
+      title: 'Saxophone Experience',
+      image: '/experiences/sax.jpg',
+      description: 'Elevate your evening with the soulful sounds of our professional saxophonist. Perfect for romantic dinners or special celebrations.'
+    },
+    {
+      title: 'Dinner Under The Stars',
+      image: '/experiences/dinner.jpg',
+      description: 'Create magical memories with an intimate dinner under the African sky. Our team sets up a beautiful beachside dining experience complete with elegant table settings and a crackling bonfire.'
+    },
+    {
+      title: 'Tour Experience',
+      image: '/experiences/tour.jpg',
+      description: 'Discover the rich history and culture of Anomabo with our guided tour of the historic Fort William. Our knowledgeable guides bring history to life.'
+    },
+    {
+      title: 'Creative Expression',
+      image: '/experiences/paint.jpg',
+      description: 'Unleash your inner artist in our relaxed sip and paint sessions. Guided by talented local artists, create your own masterpiece while enjoying refreshing drinks.'
+    }
+  ];
+
+  var currentSlide = 0;
+  var carouselModal = $('#experiences-carousel-modal');
+  var carouselTrack = $('#carousel-track');
+  var carouselIndicators = $('#carousel-indicators');
+  var prevBtn = $('#carousel-prev');
+  var nextBtn = $('#carousel-next');
+
+  function renderCarousel() {
+    carouselTrack.innerHTML = experiencesData.map(function(exp) {
+      return '<div class="carousel-slide">' +
+        '<img src="' + exp.image + '" alt="' + exp.title + '" class="carousel-image">' +
+        '<h3 class="carousel-title">' + exp.title + '</h3>' +
+        '<p class="carousel-description">' + exp.description + '</p>' +
+      '</div>';
+    }).join('');
+
+    carouselIndicators.innerHTML = experiencesData.map(function(_, i) {
+      return '<div class="carousel-dot' + (i === 0 ? ' active' : '') + '"></div>';
+    }).join('');
+
+    updateCarousel();
+  }
+
+  function updateCarousel() {
+    carouselTrack.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+    prevBtn.disabled = currentSlide === 0;
+    nextBtn.disabled = currentSlide === experiencesData.length - 1;
+    
+    var dots = carouselIndicators.querySelectorAll('.carousel-dot');
+    dots.forEach(function(dot, i) {
+      if (i === currentSlide) dot.classList.add('active');
+      else dot.classList.remove('active');
+    });
+  }
+
+  $('#view-experiences-link').addEventListener('click', function() {
+    carouselModal.classList.add('active');
+    renderCarousel();
+  });
+
+  // Add click handlers for experiences banners in other modals
+  var guestBanner = $('#view-experiences-link-guest');
+  if (guestBanner) {
+    guestBanner.addEventListener('click', function() {
+      carouselModal.classList.add('active');
+      renderCarousel();
+    });
+  }
+
+  $('#close-experiences').addEventListener('click', function() {
+    carouselModal.classList.remove('active');
+  });
+
+  prevBtn.addEventListener('click', function() {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateCarousel();
+    }
+  });
+
+  nextBtn.addEventListener('click', function() {
+    if (currentSlide < experiencesData.length - 1) {
+      currentSlide++;
+      updateCarousel();
+    }
+  });
+
+  carouselModal.addEventListener('click', function(e) {
+    if (e.target === carouselModal) {
+      carouselModal.classList.remove('active');
+    }
+  });
+
+  // ====== COUNTRY CODE DROPDOWN ======
+  var countryCodeSelect = $('#gCountryCode');
+  if (countryCodeSelect) {
+    // Populate country code dropdown
+    COUNTRY_OPTIONS.forEach(function(country) {
+      var option = document.createElement('option');
+      option.value = country.code;
+      option.textContent = country.label;
+      countryCodeSelect.appendChild(option);
+    });
+    // Set Ghana as default
+    countryCodeSelect.value = '+233';
+  }
+
+  // ====== TERMS MODAL ======
+  var termsModal = $('#terms-modal');
+  var termsBody = $('#terms-body');
+  
+  var termsContent = '<div style="max-width:800px"><h2 style="font-size:24px;font-weight:300;font-family:serif;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Introduction</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">These Booking Terms & Conditions and the General Booking Information contained on our web site will form the basis of your agreement with Sojourn Cabins ("the Company"). They apply only to holiday arrangements which you book with us and which we agree to make, provide or perform as applicable as part of our agreement with you and no other third party. This Agreement shall be governed and construed in all respects in accordance with the laws of Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Contract</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">A contract only exists between Sojourn Cabins ("we/our/us") and the "clients" from the time a Confirmation Invoice is dispatched / received and a payment must be made by the available means on our payment portal.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Payment</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Full payment is required at the time of booking to confirm your reservation.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Cancellation Policy</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Cancellations made more than 30 days before check-in will receive a full refund minus a 10% processing fee. Cancellations made 15-30 days before check-in will receive a 50% refund. Cancellations made less than 15 days before check-in are non-refundable.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Check-in and Check-out</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Check-in time is 3:00 PM and check-out time is 11:00 AM. Early check-in or late check-out may be arranged subject to availability and additional charges.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Guest Responsibilities</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Guests are responsible for any damage to the property beyond normal wear and tear. Guests must comply with all house rules and local regulations.</p></div>';
+
+  $('#open-terms').addEventListener('click', function() {
+    termsBody.innerHTML = termsContent;
+    termsModal.classList.add('active');
+  });
+
+  $('#close-terms').addEventListener('click', function() {
+    termsModal.classList.remove('active');
+  });
+
+  termsModal.addEventListener('click', function(e) {
+    if (e.target === termsModal) {
+      termsModal.classList.remove('active');
+    }
   });
 
   document.getElementById('thanks-close').addEventListener('click', function(){ closeModal('thanks'); });
@@ -1812,7 +2433,8 @@ export default function BookingWidget() {
     var firstEl = document.getElementById('gFirst'),
         lastEl  = document.getElementById('gLast'),
         emailEl = document.getElementById('gEmail'),
-        phoneEl = document.getElementById('gPhone');
+        phoneEl = document.getElementById('gPhone'),
+        termsCheckbox = document.getElementById('terms-checkbox');
 
     var first = firstEl && firstEl.value ? firstEl.value.trim() : '';
     var last  = lastEl  && lastEl.value  ? lastEl.value.trim()  : '';
@@ -1820,6 +2442,10 @@ export default function BookingWidget() {
 
     if (!first || !last || !email) {
       alert('Please enter first name, last name, and email.');
+      return;
+    }
+    if (!termsCheckbox || !termsCheckbox.checked) {
+      alert('Please accept the terms and conditions to continue.');
       return;
     }
     if (!selected || !selected.code) {
@@ -1852,11 +2478,13 @@ export default function BookingWidget() {
     var checkInVal  = document.getElementById('ci').value;
     var checkOutVal = document.getElementById('co').value;
     var adultsVal   = Number((document.getElementById('ad') || {}).value || 2);
+    var countryCodeEl = document.getElementById('gCountryCode');
     var sharedGuest = {
       first: first,
       last: last,
       email: email,
-      phone: phoneEl && phoneEl.value ? phoneEl.value.trim() : ''
+      phone: phoneEl && phoneEl.value ? phoneEl.value.trim() : '',
+      countryCode: countryCodeEl && countryCodeEl.value ? countryCodeEl.value : ''
     };
     var curr = selected.currency || CURRENCY || 'GHS';
 
