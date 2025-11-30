@@ -61,6 +61,7 @@ type ExtraRow = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  initialPackageId?: number | null;
 };
 
 function addDaysISO(iso: string, days: number): string {
@@ -106,7 +107,7 @@ async function postJSON<T>(table: string, payload: any | any[]): Promise<T> {
   return res.json();
 }
 
-export default function PackagesModal({ isOpen, onClose }: Props) {
+export default function PackagesModal({ isOpen, onClose, initialPackageId }: Props) {
   const [packages, setPackages] = useState<PackageRow[]>([]);
   const [stage, setStage] = useState<'dates' | 'packages' | 'rooms' | 'details'>(
     'dates'
@@ -321,8 +322,9 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
 
         setExtrasByPackage(extrasMap);
 
-        setSelectedPackageId(null);
+        setSelectedPackageId(initialPackageId ?? null);
         setSelectedRoomId(null);
+
       } catch (err: any) {
         if (cancelled) return;
         console.error(err);
@@ -337,7 +339,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [isOpen]);
+  }, [isOpen, initialPackageId]);
 
   useEffect(() => {
     const pkg = packages.find((p) => p.id === selectedPackageId);
@@ -387,7 +389,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
     return A < D && B > C;
   }
 
-  async function runAvailabilitySearch() {
+    async function runAvailabilitySearch() {
     if (!checkIn || !checkOut) {
       setError('Please choose both check-in and check-out dates.');
       return;
@@ -405,6 +407,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       setError(null);
       setSuccess(null);
 
+      // 1) Filter packages by validity window for the chosen dates
       const dateFiltered = packages.filter((p) => {
         if (p.valid_from && checkIn < p.valid_from) return false;
         if (p.valid_until && checkOut > p.valid_until) return false;
@@ -414,24 +417,29 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
       if (!dateFiltered.length) {
         setFilteredPackages([]);
         setAvailableRoomsByPackage({});
+        setAvailableRoomsForSelected([]);
         setStage('packages');
         return;
       }
 
+      // 2) Collect all room_type_ids attached to these packages
       const allRoomIds = new Set<number>();
       dateFiltered.forEach((pkg) => {
-        (roomsByPackage[pkg.id] || []).forEach((r) => {
-          allRoomIds.add(r.id);
+        (roomsByPackage[pkg.id] || []).forEach((room) => {
+          allRoomIds.add(room.id);
         });
       });
 
       if (!allRoomIds.size) {
+        // No cabins mapped to these packages
         setFilteredPackages([]);
         setAvailableRoomsByPackage({});
+        setAvailableRoomsForSelected([]);
         setStage('packages');
         return;
       }
 
+      // 3) Fetch reservations for those room types
       const idList = Array.from(allRoomIds).join(',');
       const resUrl = `${SUPABASE_URL}/rest/v1/reservations?select=room_type_id,check_in,check_out,status&room_type_id=in.(${idList})`;
       const reservations = await fetchJSON<
@@ -458,19 +466,31 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         );
       }
 
+      // 4) For each package, keep only rooms that are actually free
       dateFiltered.forEach((pkg) => {
-        const rooms = (roomsByPackage[pkg.id] || []).filter((r) =>
-          roomIsFree(r.id)
-        );
+        const allRooms = roomsByPackage[pkg.id] || [];
+        const rooms = allRooms.filter((r) => roomIsFree(r.id));
         if (rooms.length) {
           availableByPkg[pkg.id] = rooms;
           finalPackages.push(pkg);
         }
       });
 
-      setFilteredPackages(finalPackages);
       setAvailableRoomsByPackage(availableByPkg);
-      setStage('packages');
+
+      // 5) If a package is already selected and has available rooms,
+      // go straight to the room selection stage for that package
+      if (selectedPackageId && availableByPkg[selectedPackageId]) {
+        setFilteredPackages(
+          finalPackages.filter((p) => p.id === selectedPackageId)
+        );
+        setAvailableRoomsForSelected(availableByPkg[selectedPackageId]);
+        setStage('rooms');
+      } else {
+        setFilteredPackages(finalPackages);
+        setAvailableRoomsForSelected([]);
+        setStage('packages');
+      }
     } catch (err) {
       console.error(err);
       setError('Could not check availability right now. Please try again.');
@@ -1258,7 +1278,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-slate-500">Extras</span>
+                            <span className="text-xs text-slate-500">Experiences</span>
                             <span className="font-medium text-slate-900">
                               {selectedPackage.currency || 'GHS'}{' '}
                               {extrasTotal.toFixed(2)}

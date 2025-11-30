@@ -126,8 +126,24 @@ export async function sendBookingEmail({ to, name, booking }) {
             const extraTotal = extraQty * extraPrice;
             extrasRows.push(`
               <tr>
-                <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">${extraName}</td>
-                <td style="padding:4px 0;">${formatMoney(extraTotal, currency)} ${extraQty > 1 ? `<span style="color:#6b7280;">${extraQty}×</span>` : ''}</td>
+                <td style="
+                  padding:4px 12px 4px 0;
+                  color:#6b7280;
+                  width:160px;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                ">
+                  ${extraName}
+                </td>
+                <td style="
+                  padding:4px 0;
+                  text-align: right;
+                  white-space: nowrap;
+                ">
+                  ${formatMoney(extraTotal, currency)}
+                  ${extraQty > 1 ? `<span style="color:#6b7280;"> ${extraQty}×</span>` : ''}
+                </td>
               </tr>
             `);
           });
@@ -137,7 +153,7 @@ export async function sendBookingEmail({ to, name, booking }) {
       if (extrasRows.length > 0) {
         extrasDetailsHtml = `
           <h3 style="margin:24px 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
-            Extras Included
+            Experiences Included
           </h3>
           <table style="border-collapse:collapse; width:100%; margin-bottom:24px;">
             <tbody>
@@ -151,9 +167,9 @@ export async function sendBookingEmail({ to, name, booking }) {
 
   // Map room names to image URLs
   const roomImageMap = {
-    'SEA Cabin': 'https://res.cloudinary.com/dvsalazae/image/upload/v1738159935/SEA_Cabin_t6jkdv.jpg',
-    'SAND Cabin': 'https://res.cloudinary.com/dvsalazae/image/upload/v1738159935/SAND_Cabin_klxwai.jpg',
-    'SUN Cabin': 'https://res.cloudinary.com/dvsalazae/image/upload/v1738159935/SUN_Cabin_wiqc7f.jpg',
+    'SEA Cabin': 'https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/WhatsApp%20Image%202023-12-04%20at%2002.09.06_31bd0e74.jpg',
+    'SAND Cabin': 'https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/rooms/SAND/1762814626395.jpg',
+    'SUN Cabin': 'https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/WhatsApp%20Image%202023-12-04%20at%2002.09.17_b44450d1.jpg',
   };
 
   // Get unique rooms and their images
@@ -344,7 +360,7 @@ export async function sendBookingEmail({ to, name, booking }) {
             <!-- Header with Logo -->
             <tr>
               <td style="padding: 32px 32px 24px 32px; text-align: center; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
-                <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159935/logo_white_tg5ubv.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
+                <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
               </td>
             </tr>
 
@@ -383,7 +399,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                 </div>
 
                 ${extrasDetailsHtml ? `
-                <h3 style="margin: 0 0 12px 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Extras Included</h3>
+                <h3 style="margin: 0 0 12px 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Expereinces Included</h3>
                 <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
                   ${extrasDetailsHtml}
                 </div>
@@ -397,7 +413,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                       <td style="padding: 6px 0; font-size: 14px; color: #111827; text-align: right;">${formatMoney(roomSubtotal, currency)}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Extras subtotal:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Experiences subtotal:</td>
                       <td style="padding: 6px 0; font-size: 14px; color: #111827; text-align: right;">${formatMoney(extrasSubtotal, currency)}</td>
                     </tr>
                     <tr>
@@ -432,7 +448,7 @@ export async function sendBookingEmail({ to, name, booking }) {
               <td style="padding: 0 32px 32px 32px;">
                 <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; padding: 24px; text-align: center;">
                   <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff; font-weight: 600;">Explore Our Cabins & Experiences</p>
-                  <a href="https://www.sojourncabins.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">VISIT WEBSITE</a>
+                  <a href="https://www.sojourngh.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">VISIT WEBSITE</a>
                 </div>
               </td>
             </tr>
@@ -449,9 +465,9 @@ export async function sendBookingEmail({ to, name, booking }) {
                   </tr>
                   <tr>
                     <td style="text-align: center; padding-bottom: 16px;">
-                      <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 reservations@sojourncabins.com</p>
+                      <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 theteam@sojourngh.com</p>
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📱 +233 54 748 4568</p>
-                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
                     </td>
                   </tr>
                   <tr>

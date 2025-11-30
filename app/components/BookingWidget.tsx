@@ -984,7 +984,7 @@ export default function BookingWidget() {
     '<div class="summary">' +
       '<div class="kv"><span>Nights</span><strong id="sN">0</strong></div>' +
       '<div class="kv"><span>Room subtotal</span><strong id="sRoom">—</strong></div>' +
-        '<div class="kv extras"><span>Extras</span><strong id="sExtras">£0.00</strong></div>' +
+        '<div class="kv extras"><span>Experiences</span><strong id="sExtras">£0.00</strong></div>' +
       '<div class="kv discount" id="sDiscountRow" style="display:none"><span>Discount (<span id="sDiscountLabel"></span>)</span><strong id="sDiscount">−£0.00</strong></div>' +
       '<div class="kv total"><span>Estimated total</span><strong id="sTotal">—</strong></div>' +
     '</div>' +
@@ -1021,7 +1021,7 @@ export default function BookingWidget() {
             '</div>' +
             '<div class="experiences-banner-text">' +
               '<div class="experiences-banner-title">View All Experiences</div>' +
-              '<div class="experiences-banner-subtitle">Discover what is included in your booking</div>' +
+              '<div class="experiences-banner-subtitle">Discover all our experiences</div>' +
             '</div>' +
           '</div>' +
           '<svg class="experiences-banner-arrow" style="width:20px;height:20px" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
@@ -1032,7 +1032,7 @@ export default function BookingWidget() {
         '<div class="summary" style="margin-top:16px">' +
           '<div class="kv"><span>Nights</span><strong id="mN1">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom1">—</strong></div>' +
-          '<div class="kv extras"><span>Extras</span><strong id="mExtras1">£0.00</strong></div>' +
+          '<div class="kv extras"><span>Experiences</span><strong id="mExtras1">£0.00</strong></div>' +
           '<div class="kv discount" id="mDiscountRow1" style="display:none"><span>Discount (<span id="mDiscountLabel1"></span>)</span><strong id="mDiscount1">−£0.00</strong></div>' +
           '<div class="kv total"><span>Estimated total</span><strong id="mTotal1">—</strong></div>' +
         '</div>' +
@@ -1077,7 +1077,7 @@ export default function BookingWidget() {
           '<div class="kv"><span>Room</span><strong id="mRoomName2">—</strong></div>' +
           '<div class="kv"><span>Nights</span><strong id="mN2">0</strong></div>' +
           '<div class="kv"><span>Room subtotal</span><strong id="mRoom2">—</strong></div>' +
-          '<div class="kv extras"><span>Extras</span><strong id="mExtras2">£0.00</strong></div>' +
+          '<div class="kv extras"><span>Experiences</span><strong id="mExtras2">£0.00</strong></div>' +
           '<div class="kv discount" id="mDiscountRow2" style="display:none"><span>Discount</span><strong id="mDiscount2">−£0.00</strong></div>' +
           '<div class="kv total"><span>Total to pay</span><strong id="mTotal2">—</strong></div>' +
         '</div>' +
@@ -1109,8 +1109,8 @@ export default function BookingWidget() {
           // Payment summary section
           '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Payment summary</div>' +
           '<div class="kv"><span class="label">Room subtotal:</span><span class="divider"></span><span class="value" id="tRoomSub">—</span></div>' +
-          '<div class="kv extras"><span class="label">Extras:</span><span class="divider"></span><span class="value" id="tExtras">—</span></div>' +
-          '<div class="kv extras"><span class="label">Extras subtotal:</span><span class="divider"></span><span class="value" id="tExtrasSub">—</span></div>' +
+          '<div class="kv extras"><span class="label">Experiences:</span><span class="divider"></span><span class="value" id="tExtras">—</span></div>' +
+          '<div class="kv extras"><span class="label">Experiences subtotal:</span><span class="divider"></span><span class="value" id="tExtrasSub">—</span></div>' +
           '<div class="kv discount"><span class="label">Discount:</span><span class="divider"></span><span class="value" id="tDisc">—</span></div>' +
           '<div class="kv total"><span class="label">Total paid:</span><span class="divider"></span><span class="value" id="tTotal">—</span></div>' +
         '</div>' +
@@ -1283,7 +1283,7 @@ export default function BookingWidget() {
       }
       
       if (labels.length === 0) {
-        scopeLabel = 'Room and Extras';
+        scopeLabel = 'Room and Experiences';
       } else if (labels.length === 1) {
         scopeLabel = 'Room and ' + labels[0];
       } else if (labels.length === 2) {
@@ -1306,7 +1306,7 @@ export default function BookingWidget() {
       }
       
       if (labels.length === 0) {
-        scopeLabel = 'Extras';
+        scopeLabel = 'Experiences';
       } else if (labels.length === 1) {
         scopeLabel = labels[0];
       } else if (labels.length === 2) {
@@ -1469,7 +1469,7 @@ export default function BookingWidget() {
       var finalTotal = Math.max(0, selected.total + extrasTotal - discount);
       var scopeLabel = getCouponScopeLabel();
 
-      // Modal 1 (Extras)
+      // Modal 1 (Experiences)
       $('#mN1').textContent = String(selected.nights || 0);
 
       var mRoom1El = $('#mRoom1');
@@ -1489,7 +1489,7 @@ export default function BookingWidget() {
 
       $('#mExtras1').textContent = formatCurrency(extrasTotal, curr);
 
-      // Modal 1 (Extras) – keep full description
+      // Modal 1 (Experiences) – keep full description
       if (discount > 0) {
         $('#mDiscountRow1').style.display = 'flex';
         $('#mDiscountLabel1').textContent = discountDescription || 'Discount';
@@ -1716,6 +1716,36 @@ export default function BookingWidget() {
 
   // ====== RENDER ROOMS ======
   async function renderRooms(items, ci, co, adults) {
+    // ===== GROUP BOOKING: Global capacity filter =====
+    var totalAdults = parseInt(adults, 10) || 1;
+    if (totalAdults <= 0) totalAdults = 1;
+
+    // Compute total max capacity across *all* available rooms
+    var totalCapacityAllRooms = 0;
+    if (items && items.length) {
+      items.forEach(function(it) {
+        var cap = it.maxAdults != null ? parseInt(it.maxAdults, 10) : 0;
+        if (!Number.isFinite(cap) || cap < 0) cap = 0;
+        totalCapacityAllRooms += cap;
+      });
+    }
+
+    // If even ALL rooms combined cannot fit the adults → no availability
+    if (totalCapacityAllRooms < totalAdults) {
+      var r = RESULTS_SEL();
+      hideMsg();
+      showMsg(
+        'No cabins available: total capacity (' + totalCapacityAllRooms + ') is below the number of guests (' + totalAdults + ').',
+        'err'
+      );
+      r.innerHTML =
+        '<div class="notice err" style="display:block;text-align:left;line-height:1.6">' +
+          '<p><strong>No cabins can host your group size for ' + ci + ' → ' + co + '.</strong></p>' +
+          '<p>Please reduce the number of guests or choose different dates.</p>' +
+        '</div>';
+      return;
+    }
+
     var r = RESULTS_SEL(); r.innerHTML = '';
       if (!items || !items.length) {
       // Tell the guest there is no availability for the chosen dates
@@ -2757,7 +2787,7 @@ export default function BookingWidget() {
         }
       }
 
-      // Extras subtotal
+      // Experiences subtotal
       if (extrasSubEl) {
         extrasSubEl.textContent = extrasTotal
           ? formatCurrency(extrasTotal, thanksCurrency)

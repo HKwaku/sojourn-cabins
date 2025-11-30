@@ -95,9 +95,7 @@ export default function TermsPage() {
               raise an additional charge for such accommodation etc, which shall be the joint and several
               liability of the clients. Additionally, should any activity or large gathering of people other
               than those noted on our invoice take place (e.g. party, wedding reception) we must be informed
-              about it at the time of booking or through any of our Representatives beforehand. You will be
-              charged an extra cost for cleaning / maid service / chef surcharge and a further security
-              deposit may apply. Our cabins are let for holiday purposes only and commercial activities may
+              about it at the time of booking or through any of our Representatives beforehand.Our cabins are let for holiday purposes only and commercial activities may
               only be carried out with our prior knowledge and or written approval on our invoice. This extra
               charge varies depending on the property and can be deducted from your credit or debit card
               without further notice.
@@ -126,12 +124,8 @@ export default function TermsPage() {
             <h2 className="text-3xl md:text-4xl font-serif font-light mb-6 pb-4 border-b border-gray-200">Methods of Payment</h2>
             <p className="text-gray-600 leading-relaxed">
               Payments can be made by: debit/credit card, or mobile money transfer via our booking website.
-              All prices are in USD and payments have to be received in USD or GHS equivalent. If you wish to
-              make payments in GHS, the{' '}
-              <a href="https://www.bog.gov.gh" target="_blank" rel="noreferrer" className="text-black font-medium hover:underline">
-                Bank of Ghana Official Daily Interbank FX Rates
-              </a>{' '}
-              will apply.
+              All prices are in GHS and payments have to be received in GHS unless otherwise agreed.
+
             </p>
           </div>
 
@@ -187,7 +181,7 @@ export default function TermsPage() {
               Cancellation by Sojourn Cabins: we reserve the right to cancel your booking if outstanding
               payments are not received on or before due dates specified on your booking invoice. Where
               cancellation is required for this reason, all monies already paid less any bank charges and
-              administration costs of GHS 50 or equivalent in USD will be refunded to you. Should you wish to
+              administration costs of GHS 50 will be refunded to you. Should you wish to
               make alternative payment arrangements, it is your responsibility to contact us immediately to
               discuss options. We reserve the right in our absolute discretion to refuse a booking without
               giving reasons.
@@ -219,7 +213,7 @@ export default function TermsPage() {
             <p className="text-gray-600 leading-relaxed">
               Change of party leader or composition: if you wish to transfer your confirmed booking to another
               person, this can be done provided that we are notified, the full payment is received and an
-              administration charge of £100 is paid. The transferee must provide the information we require
+              administration charge of GHS 50 is paid. The transferee must provide the information we require
               and satisfy all the requirements set out in these terms. Both transferor and transferee will be
               jointly and severally liable for the holiday price and additional charges which will be due at
               the time of transfer.
@@ -237,20 +231,16 @@ export default function TermsPage() {
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-4">
               <ul className="space-y-3">
                 <li className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">More than 56 days before departure</span>
-                  <span className="font-medium text-gray-900">Loss of deposit</span>
+                  <span className="text-gray-600">More than 14 days before check-in</span>
+                  <span className="font-medium text-gray-900">Full refund less transaction and administration fees</span>
                 </li>
                 <li className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">42 to 56 days before departure</span>
-                  <span className="font-medium text-gray-900">60% of total price</span>
-                </li>
-                <li className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">28 to 41 days before departure</span>
-                  <span className="font-medium text-gray-900">80% of total price</span>
+                  <span className="text-gray-600">Between 7 and 14 days before check-in</span>
+                  <span className="font-medium text-gray-900">50% of total price less transaction and administration fees</span>
                 </li>
                 <li className="flex justify-between py-2">
-                  <span className="text-gray-600">Less than 28 days before departure</span>
-                  <span className="font-medium text-gray-900">100% of total price</span>
+                  <span className="text-gray-600">Less than 7 days before check-in</span>
+                  <span className="font-medium text-gray-900">Non-refundable</span>
                 </li>
               </ul>
             </div>
@@ -282,7 +272,7 @@ export default function TermsPage() {
           <div className="mb-16">
             <h2 className="text-3xl md:text-4xl font-serif font-light mb-6 pb-4 border-b border-gray-200">Arrival & Departure Times</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              Normal Check in time: Guests can arrive on the cabin at any time after 3pm on the arrival day.
+              Normal Check in time: Guests can arrive on the cabin at any time after 2pm on the arrival day.
               Check out must be by 11am on the departure day. If you arrive or depart early or late, you must
               make prior arrangements with us – additional charges may apply.
             </p>

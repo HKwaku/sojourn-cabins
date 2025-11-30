@@ -62,10 +62,12 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'Experiences', href: '/#experiences' },
     { name: 'Cabins', href: '/#cabins' },
+    { name: 'Amenities', href: '/#amenities' },
+    { name: 'Chef Menu', href: '/chef-menu' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Rates', href: '/rates' },
     { name: 'Directions', href: '/getting-here' },
-    { name: 'Terms & Conditions', href: '/terms-and-conditions' },
+    { name: 'T&C', href: '/terms-and-conditions' },
   ]
 
   return (

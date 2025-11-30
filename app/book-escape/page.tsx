@@ -41,6 +41,7 @@ export default function Page() {
   const [packagesOpen, setPackagesOpen] = useState(false)
 
   const [featuredPackages, setFeaturedPackages] = useState<FeaturedPackage[]>([])
+  const [initialPackageId, setInitialPackageId] = useState<number | null>(null)
   const [loadingPackages, setLoadingPackages] = useState(true)
   const [packagesError, setPackagesError] = useState<string | null>(null)
 
@@ -524,11 +525,14 @@ export default function Page() {
                       {/* Book Button */}
                       <button
                         type="button"
-                        onClick={() => setPackagesOpen(true)}
+                        onClick={() => {
+                          setInitialPackageId(pkg.id)
+                          setPackagesOpen(true)
+                        }}
                         className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm tracking-wide font-medium hover:bg-stone-800 active:scale-[0.98] transition-all duration-300"
-                      >
+                        >
                         Book Package
-                      </button>
+                        </button>
                     </div>
                   </div>
                 </div>
@@ -541,7 +545,10 @@ export default function Page() {
             <div className="mt-16 text-center">
               <button
                 type="button"
-                onClick={() => setPackagesOpen(true)}
+                onClick={() => {
+                  setInitialPackageId(null)
+                  setPackagesOpen(true)
+                }}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm tracking-wide font-medium hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] transition-all duration-300"
               >
                 <span>View All Packages</span>
@@ -656,9 +663,13 @@ export default function Page() {
       </section>
 
       {/* Packages Modal */}
-      <PackagesModal
+            <PackagesModal
         isOpen={packagesOpen}
-        onClose={() => setPackagesOpen(false)}
+        initialPackageId={initialPackageId}
+        onClose={() => {
+          setPackagesOpen(false)
+          setInitialPackageId(null)
+        }}
       />
     </div>
   )
