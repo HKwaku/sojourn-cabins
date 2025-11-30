@@ -588,12 +588,14 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         room_type_code: roomCode,
         room_name: roomName,
         package_id: selectedPackage.id,
+        package_code: confirmationCode,   // 👈 NEW: store package confirmation code
         room_subtotal: roomSubtotal,
         extras_total: extrasTotal,
         discount_amount: 0,
         total: packagePrice,
         notes: notes || null,
       };
+
 
       const [reservation] = await postJSON<any[]>(
         'reservations',
@@ -649,7 +651,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
         await fetch('/api/send-booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+                    body: JSON.stringify({
             booking: {
               confirmation_code: reservation?.confirmation_code || confirmationCode,
               guest_first_name: firstName.trim(),
@@ -666,6 +668,11 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               extras_total: extrasTotal,
               discount_amount: 0,
               total: packagePrice,
+
+              // 👇 Mark this as a package booking for the email template
+              package_code: selectedPackage.code || null,
+              package_name: selectedPackage.name || null,
+
               rooms: [
                 {
                   room_name: roomName,
@@ -683,6 +690,7 @@ export default function PackagesModal({ isOpen, onClose }: Props) {
               ],
             },
           }),
+
         });
       } catch (emailErr) {
         console.error('Failed to send booking email', emailErr);
