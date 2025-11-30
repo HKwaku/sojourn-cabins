@@ -2647,6 +2647,7 @@ export default function BookingWidget() {
             booking: {
               // guest + primary reservation info
               confirmation_code: primaryRes.confirmation_code,
+              group_reservation_code: hasMultipleRooms ? groupCode : null,
               guest_first_name: first,
               guest_last_name: last,
               guest_email: email,
