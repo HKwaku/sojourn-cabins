@@ -238,79 +238,58 @@ export async function sendBookingEmail({ to, name, booking }) {
               </td>
             </tr>
 
-            <!-- Celebration Icon & Title -->
+            <!-- Title -->
             <tr>
-              <td style="padding: 32px 32px 0 32px; text-align: center;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
-                <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Booking confirmed!</h1>
+              <td style="padding: 32px 32px 16px 32px;">
+                <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827;">Booking confirmed! 🎉</h1>
                 <p style="margin: 0; font-size: 16px; color: #6b7280;">Thank you! Your reservation is confirmed.</p>
               </td>
             </tr>
 
             <!-- Booking Details Card -->
             <tr>
-              <td style="padding: 32px;">
+              <td style="padding: 0 32px 32px 32px;">
                 <div style="background: #f9fafb; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
                   <table role="presentation" style="width: 100%; border-collapse: collapse;">
                     <tr>
-                      <td style="padding: 8px 0; font-size: 14px; color: #6b7280; width: 45%;">Confirmation code</td>
-                      <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 600; text-align: right;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Confirmation code</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 600; text-align: right;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Guest</td>
-                      <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${guestName || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Guest</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${guestName || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Dates</td>
-                      <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Dates</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Room</td>
-                      <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomsList}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Room</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomsList}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 8px 0; font-size: 14px; color: #6b7280;">Package</td>
-                      <td style="padding: 8px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${booking.package_code || booking.package_name || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Package</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_code || booking.package_name || "—"}</td>
                     </tr>
                   </table>
 
                   ${packageDetailsHtml}
 
                   <!-- Total Paid -->
-                  <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
-                    <table role="presentation" style="width: 100%;">
-                      <tr>
-                        <td style="font-size: 15px; color: #111827; font-weight: 600;">Total paid</td>
-                        <td style="font-size: 18px; color: #111827; font-weight: 700; text-align: right;">${formatMoney(totalPaid, currency)}</td>
-                      </tr>
-                    </table>
-                  </div>
+                  <table role="presentation" style="width: 100%; margin-top: 20px;">
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 15px; color: #111827; font-weight: 600;">Total paid</td>
+                      <td style="padding: 10px 0; font-size: 18px; color: #111827; font-weight: 700; text-align: right;">${formatMoney(totalPaid, currency)}</td>
+                    </tr>
+                  </table>
                 </div>
-              </td>
-            </tr>
-
-            <!-- Cabin Images -->
-            <tr>
-              <td style="padding: 0 32px 32px 32px;">
-                ${cabinImagesHtml}
               </td>
             </tr>
 
             <!-- Confirmation Message -->
             <tr>
               <td style="padding: 0 32px 32px 32px; text-align: center;">
-                <p style="margin: 0 0 8px 0; font-size: 15px; color: #374151; line-height: 1.6;">A confirmation email will be sent to you shortly.</p>
-                <p style="margin: 0; font-size: 15px; color: #374151; line-height: 1.6;">We look forward to hosting you!</p>
-              </td>
-            </tr>
-
-            <!-- Explore Section -->
-            <tr>
-              <td style="padding: 0 32px 32px 32px;">
-                <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; padding: 24px; text-align: center;">
-                  <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff; font-weight: 600;">Explore Our Cabins & Experiences</p>
-                  <a href="https://www.sojourncabins.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">VISIT WEBSITE</a>
-                </div>
+                <p style="margin: 0; font-size: 14px; color: #6b7280;">A confirmation email will be sent to you shortly.</p>
               </td>
             </tr>
 
