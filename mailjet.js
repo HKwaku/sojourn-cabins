@@ -162,7 +162,7 @@ export async function sendBookingEmail({ to, name, booking }) {
       <tbody>
         <tr>
           <td style="padding:4px 12px 4px 0; color:#6b7280; width:160px;">Confirmation code:</td>
-          <td style="padding:4px 0;">${booking.confirmation_code || "—"}</td>
+          <td style="padding:4px 0;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
         </tr>
         <tr>
           <td style="padding:4px 12px 4px 0; color:#6b7280;">Guest:</td>
