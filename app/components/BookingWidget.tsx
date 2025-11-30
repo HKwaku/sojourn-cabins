@@ -2674,7 +2674,11 @@ export default function BookingWidget() {
               group_extras_total: aggregateExtrasSubtotal,
               group_discount_total: aggregateDiscountTotal,
               group_total: aggregateTotal,
-              rooms: roomsForEmail
+              rooms: roomsForEmail,
+              
+              // Package details
+              package_code: primaryRes.package_code || null,
+              package_name: primaryRes.package_name || null
             }
           })
         });

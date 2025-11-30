@@ -180,8 +180,35 @@ export async function sendBookingEmail({ to, name, booking }) {
   // Build room list for display
   const roomsList = roomsArray.map(r => r.room_name || 'Room').join(', ');
 
-  // Check if this is a package booking
-  const hasPackage = booking.package_code || booking.package_name;
+
+  // Check if this is a package booking - look for package-related extras
+  let hasPackage = false;
+  let packageName = "";
+  
+  if (Array.isArray(booking.rooms) && booking.rooms.length > 0) {
+    booking.rooms.forEach((room) => {
+      if (Array.isArray(room.extras) && room.extras.length > 0) {
+        room.extras.forEach((extra) => {
+          const extraCode = (extra.code || "").toLowerCase();
+          const extraName = (extra.name || "").toLowerCase();
+          // Check if this extra is a package (contains "package" or starts with package codes)
+          if (extraCode.includes("package") || extraName.includes("package") || 
+              extraCode.startsWith("mult") || extraCode.startsWith("pkg")) {
+            hasPackage = true;
+            if (!packageName && extra.code) {
+              packageName = extra.code;
+            }
+          }
+        });
+      }
+    });
+  }
+  
+  // Fallback to booking.package_code or booking.package_name if provided
+  if (!hasPackage && (booking.package_code || booking.package_name)) {
+    hasPackage = true;
+    packageName = booking.package_code || booking.package_name;
+  }
   
   // Build package details if exists
   let packageDetailsHtml = '';
@@ -269,7 +296,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                     </tr>
                     <tr>
                       <td style="padding: 10px 0; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Package</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_code || booking.package_name || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${packageName || "—"}</td>
                     </tr>
                   </table>
 
