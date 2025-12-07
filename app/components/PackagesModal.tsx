@@ -500,7 +500,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     async function loadDisabledDates() {
       try {
         const pkg = packages.find((p) => p.id === selectedPackageId);
-        const rooms = roomsByPackage[selectedPackageId] ?? [];
+        const rooms =
+          selectedPackageId != null ? roomsByPackage[selectedPackageId] ?? [] : [];
+
 
         // If we don't have a package or it has no linked cabins, don't block anything here
         if (!pkg || rooms.length === 0) {
@@ -671,7 +673,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     async function loadInvalidCheckoutDates() {
       try {
         const pkg = packages.find((p) => p.id === selectedPackageId);
-        const rooms = roomsByPackage[selectedPackageId] ?? [];
+        const rooms =
+          selectedPackageId != null ? roomsByPackage[selectedPackageId] ?? [] : [];
+
 
         if (!pkg || rooms.length === 0) {
           invalidCheckoutDatesRef.current = [];
@@ -849,7 +853,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       return;
     }
 
-    const rooms = roomsByPackage[selectedPackageId] ?? [];
+    const rooms =
+    selectedPackageId != null ? roomsByPackage[selectedPackageId] ?? [] : [];
+
     if (!rooms.length) {
       setAvailableRoomsForSelected([]);
       return;
