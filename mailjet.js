@@ -285,7 +285,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                     </tr>
                     <tr>
                       <td style="padding: 10px 0; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Package</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_code || booking.package_name || "—"}</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_name || "—"}</td>
                     </tr>
                   </table>
 

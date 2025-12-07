@@ -35,6 +35,8 @@ type FeaturedPackage = {
   image_url?: string | null
   appliesTo?: string | null
   extrasSummary?: string | null
+  valid_from?: string | null
+  valid_until?: string | null
 }
 
 export default function Page() {
@@ -270,14 +272,19 @@ export default function Page() {
           const roomIdsForPkg = roomIdsByPackage[pkg.id] || []
           let nextAvailable: string | null = null
 
-          if (roomIdsForPkg.length) {
+                    if (roomIdsForPkg.length) {
+            // Start from the later of today or the package's valid_from
+            const startFrom =
+              pkg.valid_from && pkg.valid_from > todayISO
+                ? pkg.valid_from
+                : todayISO
+
             for (let offset = 0; offset < horizonDays; offset++) {
-              const ci = addDaysISO(todayISO, offset)
+              const ci = addDaysISO(startFrom, offset)
               const co = addDaysISO(ci, nights)
 
-              // Respect valid_from / valid_until like in PackagesModal
-              if (pkg.valid_from && ci < pkg.valid_from) continue
-              if (pkg.valid_until && co > pkg.valid_until) continue
+              // If we've gone past valid_until, no need to keep checking
+              if (pkg.valid_until && co > pkg.valid_until) break
 
               let hasFreeRoom = false
 
@@ -298,6 +305,7 @@ export default function Page() {
               }
             }
           }
+
 
           // Cabin summary: "Applies to SAND and SEA Cabins"
           const roomsForPkg = roomsDisplayByPackage[pkg.id] || []
@@ -342,6 +350,8 @@ export default function Page() {
             nextAvailable,
             appliesTo,
             extrasSummary,
+            valid_from: pkg.valid_from,
+            valid_until: pkg.valid_until,
           }
         })
 
@@ -423,7 +433,13 @@ export default function Page() {
 
           {/* Packages Grid */}
           {!loadingPackages && !packagesError && featuredPackages.length > 0 && (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className={`grid gap-8 ${
+              featuredPackages.length === 1 
+                ? 'md:grid-cols-1 max-w-2xl mx-auto' 
+                : featuredPackages.length === 2 
+                ? 'md:grid-cols-2 max-w-4xl mx-auto' 
+                : 'md:grid-cols-2 lg:grid-cols-3'
+            }`}>
               {featuredPackages.map((pkg, index) => (
                 <div
                   key={pkg.id}
@@ -458,51 +474,97 @@ export default function Page() {
                   </div>
 
                   {/* Package Content */}
-                  <div className="p-6 md:p-8 flex flex-col flex-1">
-                    <div className="flex-1 space-y-4">
-                      {/* Package Name */}
-                      <h3 className="text-xl md:text-2xl font-serif font-light text-stone-900 leading-tight">
-                        {pkg.name}
-                      </h3>
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    {/* Package Name */}
+                    <h3 className="text-xl md:text-2xl font-serif font-light text-stone-900 leading-tight mb-2">
+                      {pkg.name}
+                    </h3>
 
-                      {/* Package Details */}
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <span className="inline-flex items-center gap-1.5 text-stone-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                          </svg>
-                          {pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}
-                        </span>
-                        <span className="text-stone-300">•</span>
-                        {pkg.package_price != null && (
-                          <span className="font-medium text-stone-900">
-                            {pkg.currency || 'GHS'} {pkg.package_price.toLocaleString()}
-                          </span>
+                    {/* Price immediately under name */}
+                    {pkg.package_price != null && (
+                      <p className="font-bold text-2xl text-stone-900 mb-4">
+                        {pkg.currency || 'GHS'} {pkg.package_price.toLocaleString()}
+                      </p>
+                    )}
+
+                    {/* Separator */}
+                    <div className="h-px bg-stone-200 mb-4" />
+
+                    {/* Package Details - Nights & Room Types on same line */}
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 text-sm text-stone-600">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <span>{pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}</span>
+                        {pkg.appliesTo && (
+                          <>
+                            <span className="text-stone-300">•</span>
+                            <span>
+                              {pkg.appliesTo
+                                .replace('Applies to ', '')
+                                .replace(/ and /i, ' or ')
+                                .replace(/ Cabins?/i, ' Cabin')
+                                .trim()}
+                            </span>
+                          </>
                         )}
                       </div>
-
-                      {/* Cabin Info */}
-                      {pkg.appliesTo && (
-                        <p className="text-sm text-stone-500">
-                          {pkg.appliesTo
-                            .replace('Applies to ', '')
-                            .replace(/ and /i, ' or ')
-                            .replace(/ Cabins?/i, ' Cabin')
-                            .trim()}
-                        </p>
-                      )}
-
-                      {/* Extras Summary */}
-                      {pkg.extrasSummary && (
-                        <p className="text-xs text-stone-500 bg-stone-50 px-3 py-2 rounded-lg">
-                          <span className="text-stone-400 mr-1">Includes:</span>
-                          {pkg.extrasSummary}
-                        </p>
-                      )}
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-6 pt-6 border-t border-stone-100 space-y-4">
+                    {/* Separator */}
+                    <div className="h-px bg-stone-200 mb-4" />
+
+                    {/* Includes Section with background */}
+                    {pkg.extrasSummary && (
+                      <>
+                        <div className="mb-4 p-3 bg-emerald-50 rounded-lg">
+                          <p className="text-xs tracking-widest uppercase text-stone-500 mb-2">Includes</p>
+                          <ul className="space-y-1.5">
+                            {pkg.extrasSummary.split(', ').map((extra, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm text-stone-700">
+                                <svg className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>{extra.trim()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        {/* Separator */}
+                        <div className="h-px bg-stone-200 mb-4" />
+                      </>
+                    )}
+
+                    {/* Validity Period with background */}
+                    {(pkg.valid_from || pkg.valid_until) && (
+                      <>
+                        <div className="mb-4 p-3 bg-amber-50 rounded-lg">
+                          <p className="text-xs tracking-widest uppercase text-stone-500 mb-1.5">Valid Period</p>
+                          <p className="text-sm text-stone-700 font-medium">
+                            {pkg.valid_from && new Date(pkg.valid_from).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                            {pkg.valid_from && pkg.valid_until && ' – '}
+                            {pkg.valid_until && new Date(pkg.valid_until).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        {/* Separator */}
+                        <div className="h-px bg-stone-200 mb-4" />
+                      </>
+                    )}
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* Footer - Availability & Button */}
+                    <div className="space-y-3">
                       {/* Availability */}
                       <div className="flex items-center gap-2 text-sm">
                         <div className={`w-2 h-2 rounded-full ${pkg.nextAvailable ? 'bg-emerald-400' : 'bg-stone-300'}`} />
@@ -511,14 +573,14 @@ export default function Page() {
                             Available from{' '}
                             <span className="font-medium text-stone-900">
                               {new Date(pkg.nextAvailable).toLocaleDateString('en-GB', {
-                                day: '2-digit',
+                                day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </span>
                           </span>
                         ) : (
-                          <span className="text-stone-400">No availability in the next year</span>
+                          <span className="text-stone-400">No availability soon</span>
                         )}
                       </div>
 

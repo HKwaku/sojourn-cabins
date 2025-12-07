@@ -141,7 +141,7 @@ export default function BookingWidget() {
     box-shadow:var(--shadow);
     padding:22px 22px 20px;
     position:relative;
-    overflow:hidden;
+    overflow:visible;
   }
   .card::before{
     content:"";
@@ -157,6 +157,10 @@ export default function BookingWidget() {
     position:relative;
     z-index:1;
   }
+      .card > .grid{
+    z-index: 2; /* ensure date-picker (inside grid) sits above the summary */
+  }
+
   @media (max-width:640px){
     .card{
       padding:18px 16px 18px;
@@ -239,6 +243,12 @@ export default function BookingWidget() {
   }
   @supports (-webkit-touch-callout:none){
     input[type="date"]{padding-right:40px;}
+  }
+    .date-unavailable{
+    text-decoration: line-through;
+    color:#9ca3af;
+    background:#fef2f2;
+    border-color:#fecaca;
   }
 
   /* ---------- Inline layout ---------- */
@@ -963,15 +973,146 @@ export default function BookingWidget() {
   * { box-sizing:border-box; }
   input, select, textarea { max-width:100%; }
 
+  /* Custom Date Picker Styles */
+    .date-picker-wrapper {
+    position: relative;
+    width: 100%;
+    /* ensure the picker and its dropdown sit above the summary pane */
+    z-index: 20;
+  }
+  .date-picker-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+  }
+  .date-picker-input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  }
+  .date-picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    /* sit above everything else in the card */
+    z-index: 99999;
+    display: none;
+    padding: 16px;
+  }
+
+  .date-picker-dropdown.active {
+    display: block;
+  }
+  .date-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .date-picker-nav {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    color: #374151;
+  }
+  .date-picker-nav:hover {
+    color: var(--brand);
+  }
+  .date-picker-month {
+    font-weight: 600;
+    font-size: 14px;
+    color: #111827;
+  }
+  .date-picker-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .date-picker-weekday {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    padding: 4px;
+  }
+  .date-picker-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .date-picker-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    background: white;
+    color: #111827;
+    position: relative;
+  }
+  .date-picker-day:hover:not(.disabled):not(.empty) {
+    background: #f3f4f6;
+  }
+  .date-picker-day.selected {
+    background: var(--brand);
+    color: white;
+  }
+  .date-picker-day.in-range {
+    background: rgba(249, 115, 22, 0.1);
+  }
+  .date-picker-day.disabled {
+    color: #d1d5db;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+  .date-picker-day.empty {
+    cursor: default;
+    visibility: hidden;
+  }
+  .date-picker-day.today {
+    border: 2px solid var(--brand);
+  }
+
     \` +
     '</style>' +
 
     '<div class="wrap"><div class="card">' +
-    '<h1>Choose your cabin</h1><p class="sub">Pick your dates to see available cabins and prices.</p>' +
+    '<h1>Choose your cabin</h1><p class="sub"></p>' +
+    '<div style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);border-left:4px solid #f59e0b;padding:12px 16px;border-radius:8px;margin:0 0 20px 0;display:flex;align-items:center;gap:12px;">' +
+      '<svg style="width:20px;height:20px;color:#f59e0b;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>' +
+      '</svg>' +
+      '<span style="color:#92400e;font-size:14px;font-weight:500;">Select the number of guests to see availability in the calendar.</span>' +
+    '</div>' +
     '<div class="grid cols-3">' +
-      '<div><label>Check-in</label><input id="ci" type="date"></div>' +
-      '<div><label>Check-out</label><input id="co" type="date"></div>' +
       '<div><label>Adults</label><select id="ad"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>' +
+      '<div class="date-picker-wrapper">' +
+        '<label>Check-in</label>' +
+        '<input id="ci" type="text" readonly class="date-picker-input" placeholder="Select date">' +
+        '<div id="ci-picker" class="date-picker-dropdown"></div>' +
+      '</div>' +
+      '<div class="date-picker-wrapper">' +
+        '<label>Check-out</label>' +
+        '<input id="co" type="text" readonly class="date-picker-input" placeholder="Select date">' +
+        '<div id="co-picker" class="date-picker-dropdown"></div>' +
+      '</div>' +
     '</div>' +
     '<div class="row" style="align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px">' +
       '<div class="row" style="gap:10px">' +
@@ -1220,17 +1361,19 @@ export default function BookingWidget() {
   }
 
     function updateNightsDisplay() {
-    var nn = nights($('#ci').value, $('#co').value);
+    var ciVal = selectedDates.ci || '';
+    var coVal = selectedDates.co || '';
+    var nn = nights(ciVal, coVal);
 
     // Match admin: never show less than 1 night when dates are set
-    if (nn < 1 && $('#ci').value && $('#co').value) nn = 1;
+    if (nn < 1 && ciVal && coVal) nn = 1;
 
     $('#nn').textContent = nn;
     $('#nn-s').textContent = nn === 1 ? '' : 's';
     $('#sN').textContent = nn;
 
     // Calculate and show weekday/weekend breakdown
-    var breakdown = calculateWeekdayWeekend($('#ci').value, $('#co').value);
+    var breakdown = calculateWeekdayWeekend(ciVal, coVal);
     if (breakdown.weekday > 0 || breakdown.weekend > 0) {
       $('#wd').textContent = String(breakdown.weekday);
       $('#we').textContent = String(breakdown.weekend);
@@ -1242,6 +1385,308 @@ export default function BookingWidget() {
     // Keep selected.nights in sync if a room is already chosen
     if (selected) selected.nights = nn;
   }
+
+    // ====== CUSTOM DATE PICKER ======
+  var disabledDates = [];
+  var disabledDatesGeneration = 0;   // track latest async computation
+  var currentPickerMonth = { ci: new Date(), co: new Date() };
+
+  var selectedDates = { ci: null, co: null };
+  var activePickerId = null;
+
+  function initDatePickers() {
+    var ciInput = $('#ci');
+    var coInput = $('#co');
+    var ciPicker = $('#ci-picker');
+    var coPicker = $('#co-picker');
+
+    // Set default values
+    var t = new Date();
+    var ci = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 1));
+    var ciIso = iso(ci);
+    var coIso = addDaysISO(ciIso, 2);
+    
+    selectedDates.ci = ciIso;
+    selectedDates.co = coIso;
+    ciInput.value = formatDisplayDate(ciIso);
+    coInput.value = formatDisplayDate(coIso);
+
+    ciInput.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (activePickerId === 'ci') {
+        closeDatePicker();
+      } else {
+        openDatePicker('ci');
+      }
+    });
+
+    coInput.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (activePickerId === 'co') {
+        closeDatePicker();
+      } else {
+        openDatePicker('co');
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      var isClickInside = ciPicker.contains(e.target) || coPicker.contains(e.target) ||
+                          ciInput.contains(e.target) || coInput.contains(e.target);
+      if (!isClickInside && activePickerId) {
+        closeDatePicker();
+      }
+    });
+  }
+
+  function formatDisplayDate(isoDate) {
+    if (!isoDate) return '';
+    var d = new Date(isoDate + 'T00:00:00');
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function openDatePicker(pickerId) {
+    closeDatePicker();
+    activePickerId = pickerId;
+    var picker = $('#' + pickerId + '-picker');
+    picker.classList.add('active');
+    
+    var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
+    currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+    
+    renderCalendar(pickerId);
+  }
+
+  function closeDatePicker() {
+    if (activePickerId) {
+      var picker = $('#' + activePickerId + '-picker');
+      picker.classList.remove('active');
+      activePickerId = null;
+    }
+  }
+
+  function renderCalendar(pickerId) {
+    var picker = $('#' + pickerId + '-picker');
+    var month = currentPickerMonth[pickerId];
+    
+    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    var html = '<div class="date-picker-header">' +
+               '<button type="button" class="date-picker-nav" data-action="prev">‹</button>' +
+               '<div class="date-picker-month">' + monthNames[month.getMonth()] + ' ' + month.getFullYear() + '</div>' +
+               '<button type="button" class="date-picker-nav" data-action="next">›</button>' +
+               '</div>';
+    
+    html += '<div class="date-picker-weekdays">';
+    ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(function(day) {
+      html += '<div class="date-picker-weekday">' + day + '</div>';
+    });
+    html += '</div>';
+    
+    html += '<div class="date-picker-days">';
+    
+    var firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
+    var daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    
+    // Empty cells before first day
+    for (var i = 0; i < firstDay; i++) {
+      html += '<button class="date-picker-day empty"></button>';
+    }
+    
+    var today = iso(new Date());
+    
+    // Days of the month
+    for (var day = 1; day <= daysInMonth; day++) {
+      var dateObj = new Date(month.getFullYear(), month.getMonth(), day);
+      var dateStr = iso(dateObj);
+      var isDisabled = false;
+      
+      // Different blocking logic for check-in vs check-out
+      if (pickerId === 'ci') {
+        // For check-in: block if that specific date has no availability
+        isDisabled = disabledDates.indexOf(dateStr) !== -1 || dateStr < today;
+      } else if (pickerId === 'co') {
+        // For check-out: block if date is before/equal to check-in, or if there's any blocked date in the interval
+        if (!selectedDates.ci || dateStr <= selectedDates.ci) {
+          isDisabled = true;
+        } else {
+          // Check if any date in the interval [check-in, check-out) is blocked
+          var checkInDate = selectedDates.ci;
+          var hasBlockedDateInInterval = false;
+          var currentDate = checkInDate;
+          
+          while (currentDate < dateStr) {
+            if (disabledDates.indexOf(currentDate) !== -1) {
+              hasBlockedDateInInterval = true;
+              break;
+            }
+            currentDate = addDaysISO(currentDate, 1);
+          }
+          
+          isDisabled = hasBlockedDateInInterval;
+        }
+      }
+      
+      var isSelected = dateStr === selectedDates[pickerId];
+      var isToday = dateStr === today;
+      var isInRange = false;
+      
+      if (selectedDates.ci && selectedDates.co) {
+        isInRange = dateStr > selectedDates.ci && dateStr < selectedDates.co;
+      }
+      
+      var classes = 'date-picker-day';
+      if (isDisabled) classes += ' disabled';
+      if (isSelected) classes += ' selected';
+      if (isToday) classes += ' today';
+      if (isInRange) classes += ' in-range';
+      
+      html += '<button class="' + classes + '" data-date="' + dateStr + '"' +
+              (isDisabled ? ' disabled' : '') + '>' + day + '</button>';
+    }
+    
+    html += '</div>';
+    picker.innerHTML = html;
+    
+    // Add event listeners
+    picker.querySelectorAll('[data-action="prev"]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+        renderCalendar(pickerId);
+      });
+    });
+    
+    picker.querySelectorAll('[data-action="next"]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+        renderCalendar(pickerId);
+      });
+    });
+    
+    picker.querySelectorAll('.date-picker-day:not(.disabled):not(.empty)').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var dateStr = btn.getAttribute('data-date');
+        selectDate(pickerId, dateStr);
+      });
+    });
+  }
+
+  function selectDate(pickerId, dateStr) {
+    selectedDates[pickerId] = dateStr;
+    $('#' + pickerId).value = formatDisplayDate(dateStr);
+    
+    if (pickerId === 'ci') {
+      // Find the nearest available checkout date
+      if (!selectedDates.co || selectedDates.co <= dateStr) {
+        var checkoutDate = addDaysISO(dateStr, 1);
+        var maxLookahead = 90; // Look ahead up to 90 days
+        var found = false;
+        
+        // Check each potential checkout date
+        for (var i = 1; i <= maxLookahead; i++) {
+          checkoutDate = addDaysISO(dateStr, i);
+          var hasBlockedDate = false;
+          
+          // Check if any date in the interval [check-in, checkout) is blocked
+          var currentDate = dateStr;
+          while (currentDate < checkoutDate) {
+            if (disabledDates.indexOf(currentDate) !== -1) {
+              hasBlockedDate = true;
+              break;
+            }
+            currentDate = addDaysISO(currentDate, 1);
+          }
+          
+          // If no blocked dates in the interval, this is a valid checkout date
+          if (!hasBlockedDate) {
+            found = true;
+            break;
+          }
+        }
+        
+        // Set the checkout date (either found valid date or default to check-in+1)
+        selectedDates.co = checkoutDate;
+        $('#co').value = formatDisplayDate(checkoutDate);
+      }
+      // If check-out picker is open, refresh it to show updated blocking
+      if (activePickerId === 'co') {
+        renderCalendar('co');
+      }
+    }
+    
+    closeDatePicker();
+    updateNightsDisplay();
+  }
+
+    async function updateDisabledDates() {
+    var adultsVal = Number(($('#ad') || {}).value || 2) || 1;
+    var todayIso = iso(new Date());
+
+    // Start a new generation for this async run
+    var gen = ++disabledDatesGeneration;
+
+    var newDisabled = [];
+
+    // 1) Always disable past dates
+    for (var i = -365; i < 0; i++) {
+      newDisabled.push(addDaysISO(todayIso, i));
+    }
+
+    // 2) For the next 90 days, disable any date where the
+    //    *combined capacity* of all available cabins is
+    //    less than the selected number of adults.
+    var MAX_LOOKAHEAD_DAYS = 90;
+
+    for (var offset = 0; offset <= MAX_LOOKAHEAD_DAYS; offset++) {
+      // If a newer run started, abort this one
+      if (gen !== disabledDatesGeneration) return;
+
+      var ciIso = addDaysISO(todayIso, offset);
+      var coIso = addDaysISO(ciIso, 1); // 1-night stay probe
+
+      try {
+        var rooms = await getAvailableRooms(ciIso, coIso, adultsVal);
+
+        if (!rooms || !rooms.length) {
+          // No rooms at all for that night → disable date
+          newDisabled.push(ciIso);
+        } else {
+          // Sum capacity across all available cabins
+          var totalCap = 0;
+          rooms.forEach(function (room) {
+            var cap =
+              room.maxAdults != null ? parseInt(room.maxAdults, 10) : 0;
+            if (!Number.isFinite(cap) || cap < 0) cap = 0;
+            totalCap += cap;
+          });
+
+          // If combined capacity can't host the selected adults → disable date
+          if (totalCap < adultsVal) {
+            newDisabled.push(ciIso);
+          }
+        }
+      } catch (e) {
+        // On error, skip this date (don't disable it)
+      }
+    }
+
+    // If another run started while we were waiting, don't overwrite
+    if (gen !== disabledDatesGeneration) return;
+
+    disabledDates = newDisabled;
+
+    // Refresh calendar if one is open
+    if (activePickerId) {
+      renderCalendar(activePickerId);
+    }
+  }
+
+
 
   function renderSkeletons(){
     var r = RESULTS_SEL(); r.innerHTML = '';
@@ -1943,7 +2388,7 @@ export default function BookingWidget() {
         name: nameParts.join(' + '),             // e.g. "Cabin A + Cabin B"
         total: totalRoom,                        // combined room subtotal
         currency: curr,
-        nights: nights(document.getElementById('ci').value, document.getElementById('co').value),
+        nights: nights(selectedDates.ci, selectedDates.co),
         capacity: totalCapacity                  // combined adult capacity across selected rooms
       };
 
@@ -2392,23 +2837,20 @@ export default function BookingWidget() {
 
   // ====== EVENTS ======
   setDefaults(); updateSummary();
+  initDatePickers(); 
+  updateDisabledDates();
 
-    // Match admin: whenever check-in changes, set check-out = check-in + 1 day
-  document.getElementById('ci').addEventListener('change', function () {
-    var ci = document.getElementById('ci').value;
-    if (ci) {
-      document.getElementById('co').value = addDaysISO(ci, 1);
+  // Update disabled dates when adults selection changes
+  $('#ad').addEventListener('change', function() {
+    updateDisabledDates();
+    // Refresh the calendar if one is currently open
+    if (activePickerId) {
+      renderCalendar(activePickerId);
     }
-    updateNightsDisplay();
-  });
-
-  // Just recompute nights when check-out changes (validation happens on "See cabins")
-  document.getElementById('co').addEventListener('change', function () {
-    updateNightsDisplay();
   });
 
   document.getElementById('load').addEventListener('click', async function () {
-    var ci = document.getElementById('ci').value, co = document.getElementById('co').value;
+    var ci = selectedDates.ci, co = selectedDates.co;
     var adEl = document.getElementById('ad'); var ad = adEl && adEl.value ? adEl.value : 2;
 
     if (!ci || !co) { showMsg('Please choose both dates.', 'err'); return; }
@@ -2452,7 +2894,7 @@ export default function BookingWidget() {
   document.getElementById('to-guest').addEventListener('click', function () {
     if (!selected) return;
     closeModal('extras');
-    var ci = document.getElementById('ci').value, co = document.getElementById('co').value;
+    var ci = selectedDates.ci, co = selectedDates.co;
     document.getElementById('mDates2').textContent = ci + ' → ' + co;
     document.getElementById('mRoomName2').textContent = selected.name;
     updateModalSummaries();
@@ -2505,8 +2947,8 @@ export default function BookingWidget() {
     }
 
     // Base data shared across all reservations in this booking
-    var checkInVal  = document.getElementById('ci').value;
-    var checkOutVal = document.getElementById('co').value;
+    var checkInVal  = selectedDates.ci;
+    var checkOutVal = selectedDates.co;
     var adultsVal   = Number((document.getElementById('ad') || {}).value || 2);
     var countryCodeEl = document.getElementById('gCountryCode');
     var sharedGuest = {
@@ -2670,7 +3112,7 @@ export default function BookingWidget() {
         // Get human-readable discount description
         var discountDescription = appliedCoupon ? getDiscountDescriptionForDisplay(curr) : null;
 
-        await fetch('/api/send-booking-email', {
+        await fetch('/api/booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
