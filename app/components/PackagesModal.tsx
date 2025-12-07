@@ -173,17 +173,22 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
   const [confirmation, setConfirmation] = useState<{
-    code: string;
-    guestName: string;
-    roomName: string;
-    total: number;
-    currency: string;
-    checkIn: string;
-    checkOut: string;
-    packageName: string;
-    packageIncludes?: string | null;
-  } | null>(null);
+  code: string;
+  guestName: string;
+  roomName: string;
+  total: number;
+  currency: string;
+  checkIn: string;
+  checkOut: string;
+  packageName: string;
+  packageIncludes?: string | null;
+  // NEW fields to match setConfirmation payload
+  packageExtras?: any[];
+  packageNights: number;
+} | null>(null);
+
 
   const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
