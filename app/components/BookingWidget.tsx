@@ -3112,7 +3112,7 @@ export default function BookingWidget() {
         // Get human-readable discount description
         var discountDescription = appliedCoupon ? getDiscountDescriptionForDisplay(curr) : null;
 
-        var emailResponse = await fetch('/api/booking-email', {
+        var emailResponse = await fetch('/api/send-booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
