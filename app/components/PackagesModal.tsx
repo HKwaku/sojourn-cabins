@@ -1094,26 +1094,10 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
     // Send confirmation email
     try {
-      // Get package extras for the email
-      const pkgExtras = extrasByPackage[selectedPackageId] ?? [];
-      const extrasForEmail = pkgExtras.map(ex => ({
-        name: ex.name,
-        price: ex.price,
-        qty: ex.quantity || 1
-      }));
-
-      const emailResponse = await fetch('/api/booking-email', {
+      const emailResponse = await fetch('api/send-booking-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          booking: {
-            ...inserted[0],
-            rooms: [{
-              room_name: room.name,
-              extras: extrasForEmail
-            }]
-          }
-        }),
+        body: JSON.stringify({ booking: inserted[0] }),
       });
       
       if (!emailResponse.ok) {

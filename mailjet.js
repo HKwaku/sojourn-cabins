@@ -223,15 +223,14 @@ export async function sendBookingEmail({ to, name, booking }) {
     }
 
     // 2) Fallback: derive from rooms[].extras (booking widget style)
-    if (packageItems.length === 0 && Array.isArray(booking.rooms)) {
+    if (packageItems.length === 0 && Array.isArray(booking.rooms) && booking.rooms.length > 0) {
       const collected = [];
       booking.rooms.forEach((room) => {
-        if (!room || !Array.isArray(room.extras)) return;
+        if (!room || !Array.isArray(room.extras) || room.extras.length === 0) return;
         room.extras.forEach((ex) => {
           if (!ex) return;
           const label = ex.name || ex.extra_name || ex.title || '';
-          const qty =
-            ex.quantity || ex.qty || ex.count || ex.num || 1;
+          const qty = ex.quantity || ex.qty || ex.count || ex.num || 1;
           if (!label) return;
           collected.push(qty > 1 ? `${label} x${qty}` : label);
         });
