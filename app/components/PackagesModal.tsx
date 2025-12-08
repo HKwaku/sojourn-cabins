@@ -1094,7 +1094,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
     // Send confirmation email
     try {
-      const emailResponse = await fetch('/send-booking-email', {
+      const emailResponse = await fetch('api/send-booking-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ booking: inserted[0] }),
