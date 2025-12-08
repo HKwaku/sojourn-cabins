@@ -221,7 +221,7 @@ export async function sendBookingEmail({ to, name, booking }) {
     if (packageItems.length > 0) {
       packageDetailsHtml = `
         <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 24px 0;">
-          <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 600; color: #111827;">Package includes</h3>
+          <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 600; color: #111827;">Package Includes</h3>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
             ${packageItems.map(item => `<li style="margin-bottom: 6px;">${item}</li>`).join('')}
           </ul>
@@ -250,7 +250,7 @@ export async function sendBookingEmail({ to, name, booking }) {
             <!-- Header with Logo -->
             <tr>
               <td style="padding: 32px 32px 24px 32px; text-align: center; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
-                <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159935/logo_white_tg5ubv.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
+                <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
               </td>
             </tr>
 
@@ -305,7 +305,7 @@ export async function sendBookingEmail({ to, name, booking }) {
             <!-- Confirmation Message -->
             <tr>
               <td style="padding: 0 32px 32px 32px; text-align: center;">
-                <p style="margin: 0; font-size: 14px; color: #6b7280;">A confirmation email will be sent to you shortly.</p>
+                <p style="margin: 0; font-size: 14px; color: #6b7280;"></p>
               </td>
             </tr>
 
