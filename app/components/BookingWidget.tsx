@@ -3112,7 +3112,7 @@ export default function BookingWidget() {
         // Get human-readable discount description
         var discountDescription = appliedCoupon ? getDiscountDescriptionForDisplay(curr) : null;
 
-        await fetch('/api/booking-email', {
+        var emailResponse = await fetch('/api/booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3154,8 +3154,13 @@ export default function BookingWidget() {
             }
           })
         });
+        
+        if (!emailResponse.ok) {
+          var errorText = await emailResponse.text();
+          console.error('Email API error:', errorText);
+        }
       } catch (emailErr) {
-        console.error('Failed to send booking email', emailErr);
+        console.error('Failed to send booking email:', emailErr);
       }
     }
 

@@ -1092,15 +1092,20 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       }
     }
 
-    // Send confirmation email (non-blocking for the user)
+    // Send confirmation email
     try {
-      await fetch('/api/booking-email', {
+      const emailResponse = await fetch('/api/booking-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ booking: inserted[0] }),
       });
+      
+      if (!emailResponse.ok) {
+        const errorText = await emailResponse.text();
+        console.error('Email API error:', errorText);
+      }
     } catch (emailErr) {
-      console.error('Failed to send booking email', emailErr);
+      console.error('Failed to send booking email:', emailErr);
     }
 
     setConfirmation({
