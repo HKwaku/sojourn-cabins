@@ -1416,7 +1416,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                               </svg>
-                              <span>{pkg.nights} night{pkg.nights !== 1 ? 's' : ''} minimum</span>
+                              <span>{pkg.nights} night{pkg.nights !== 1 ? 's' : ''} exact</span>
                             </div>
                           </div>
 
@@ -1444,22 +1444,6 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                             </>
                           )}
 
-                          {/* Validity Period with background */}
-                          {(pkg.valid_from || pkg.valid_until) && (
-                            <>
-                              <div className="mb-4 p-3 bg-amber-50 rounded-lg">
-                                <p className="text-xs tracking-widest uppercase text-stone-500 mb-1.5">Valid Period</p>
-                                <p className="text-sm text-stone-700 font-medium">
-                                  {pkg.valid_from && formatDate(pkg.valid_from)}
-                                  {pkg.valid_from && pkg.valid_until && ' – '}
-                                  {pkg.valid_until && formatDate(pkg.valid_until)}
-                                </p>
-                              </div>
-                              {/* Separator */}
-                              <div className="h-px bg-stone-200 mb-4" />
-                            </>
-                          )}
-                          
                           {/* Validity Period with background */}
                           {(pkg.valid_from || pkg.valid_until) && (
                             <>
@@ -1539,7 +1523,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                       {selectedPkg.name}
                     </h3>
                     <div className="flex items-center gap-6 text-sm text-slate-700">
-                      <span>{selectedPkg.nights} night{selectedPkg.nights !== 1 ? 's' : ''} minimum</span>
+                      <span>{selectedPkg.nights} night{selectedPkg.nights !== 1 ? 's' : ''} exact</span>
                       <span className="font-semibold">
                         {selectedPkg.currency} {selectedPkg.package_price?.toFixed(2)}
                       </span>
@@ -1585,7 +1569,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                       {activePickerId === 'ci' && renderCalendar('ci')}
                     </div>
 
-                    {/* Check-out (editable with minimum nights validation) */}
+                    {/* Check-out (locked - auto-calculated from check-in) */}
                     <div className="relative">
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Check-out
@@ -1594,15 +1578,11 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                         type="text"
                         value={checkOut}
                         readOnly
-                        onClick={() => setActivePickerId(activePickerId === 'co' ? null : 'co')}
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-white cursor-pointer hover:border-orange-500 focus:border-orange-500 focus:outline-none transition"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-slate-50 cursor-not-allowed text-slate-600"
                       />
                       <p className="mt-1 text-xs text-slate-500">
-                        Minimum {selectedPkg?.nights} night{selectedPkg?.nights !== 1 ? 's' : ''}
+                        Exact {selectedPkg?.nights} night{selectedPkg?.nights !== 1 ? 's' : ''}
                       </p>
-                      
-                      {/* Custom Date Picker for Check-out */}
-                      {activePickerId === 'co' && renderCalendar('co')}
                     </div>
                   </div>
 

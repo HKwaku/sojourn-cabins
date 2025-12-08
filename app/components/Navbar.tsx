@@ -100,12 +100,12 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-3">
               {navLinks.map((link) => (
                 <div
                   key={link.name}
                   onClick={() => handleNav(link.href)}
-                  className={`cursor-pointer text-sm tracking-wider uppercase font-light transition-all duration-300 hover:opacity-60 ${
+                  className={`cursor-pointer text-sm tracking-wider uppercase font-light px-1 transition-all duration-300 hover:opacity-60 ${
                     scrolled ? 'text-black' : 'text-white'
                   }`}
                 >
@@ -227,8 +227,8 @@ export default function Navbar() {
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full pt-36 pb-8 px-6">
-          <div className="flex-1 flex flex-col gap-6">
+        <div className="flex flex-col h-full pt-36 pb-7 px-5">
+          <div className="flex-1 flex flex-col gap-5">
             {navLinks.map((link) => (
               <div
                 key={link.name}

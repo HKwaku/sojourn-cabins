@@ -398,8 +398,70 @@ export default function Page() {
         </div>
       </section>
 
+      {/* Choose Package or Customise Section */}
+      <section className="py-20 md:py-24 px-6 md:px-8 lg:px-12 bg-gradient-to-b from-white via-amber-50/30 to-white">
+        <div className="max-w-5xl mx-auto">
+          {/* Decorative top element */}
+          <div className="flex items-center justify-center mb-10">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+            <div className="mx-4 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+          </div>
+
+          {/* Main heading with link */}
+          <h2 className="text-center text-3xl md:text-4xl lg:text-5xl font-serif font-light leading-tight tracking-wide mb-3">
+            <a 
+              href="#featured-packages"
+              className="group inline-flex items-center gap-2 text-stone-900 hover:text-amber-700 transition-colors duration-300"
+            >
+              <span>Choose from one of our packages</span>
+              <svg 
+                className="w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-300 group-hover:translate-x-1 text-amber-600" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </h2>
+          
+          {/* Divider text */}
+          <div className="flex items-center justify-center gap-4 mb-3">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
+            <span className="text-xs tracking-[0.3em] uppercase text-amber-600 font-medium">or</span>
+            <div className="h-px w-16 bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
+          </div>
+
+          {/* Customise link */}
+          <div className="text-center">
+            <a 
+              href="#booking-widget" 
+              className="group inline-flex items-center gap-2 text-2xl md:text-3xl font-serif font-light text-stone-900 hover:text-amber-700 transition-colors duration-300"
+            >
+              <span>customise your stay</span>
+              <svg 
+                className="w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-300 group-hover:translate-x-1 text-amber-600" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Decorative bottom element */}
+          <div className="flex items-center justify-center mt-10">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+            <div className="mx-4 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+          </div>
+        </div>
+      </section>
+
       {/* Featured Packages Section */}
-      <section className="py-20 md:py-28 px-6 md:px-8 lg:px-12">
+      <section id="featured-packages" className="py-20 md:py-28 px-6 md:px-8 lg:px-12">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
@@ -434,10 +496,12 @@ export default function Page() {
           {/* Packages Grid */}
           {!loadingPackages && !packagesError && featuredPackages.length > 0 && (
             <div className={`grid gap-8 ${
-              featuredPackages.length === 1 
-                ? 'md:grid-cols-1 max-w-2xl mx-auto' 
-                : featuredPackages.length === 2 
-                ? 'md:grid-cols-2 max-w-4xl mx-auto' 
+              featuredPackages.length === 1
+                ? 'md:grid-cols-1 max-w-2xl mx-auto'
+                : featuredPackages.length === 2
+                ? 'md:grid-cols-2 max-w-4xl mx-auto'
+                : featuredPackages.length === 4
+                ? 'md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto'
                 : 'md:grid-cols-2 lg:grid-cols-3'
             }`}>
               {featuredPackages.map((pkg, index) => (
@@ -627,7 +691,7 @@ export default function Page() {
       </section>
 
       {/* Booking Widget Section */}
-      <section className="py-20 md:py-28 px-3 md:px-8 lg:px-12 bg-stone-50">
+      <section id="booking-widget" className="py-20 md:py-28 px-3 md:px-8 lg:px-12 bg-stone-50">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-12">
