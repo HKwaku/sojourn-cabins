@@ -1094,10 +1094,26 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
     // Send confirmation email
     try {
-      const emailResponse = await fetch('api/send-booking-email', {
+      // Get package extras for the email
+      const pkgExtras = extrasByPackage[selectedPackageId] ?? [];
+      const extrasForEmail = pkgExtras.map(ex => ({
+        name: ex.name,
+        price: ex.price,
+        qty: ex.quantity || 1
+      }));
+
+      const emailResponse = await fetch('/api/booking-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking: inserted[0] }),
+        body: JSON.stringify({ 
+          booking: {
+            ...inserted[0],
+            rooms: [{
+              room_name: room.name,
+              extras: extrasForEmail
+            }]
+          }
+        }),
       });
       
       if (!emailResponse.ok) {
@@ -1215,7 +1231,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
 
   // Format date as YYYY-MM-DD (EXACT logic from BookingWidget)
-  function formatDateYYYYMMDD(year: number, month: number, day: number): string {
+  function formatDateDDMMYYYY(day: number, month: number, year: number): string {
     const yyyy = year;
     const mm = String(month + 1).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
@@ -1315,7 +1331,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
               return <div key={`empty-${idx}`} />;
             }
 
-            const dateStr = formatDateYYYYMMDD(year, month, day);
+            const dateStr = formatDateDDMMYYYY(day, month, year);
             const disabled = isDateDisabled(dateStr, pickerId);
             const isSelected = dateStr === (pickerId === 'ci' ? checkIn : checkOut);
 
