@@ -200,30 +200,71 @@ export async function sendBookingEmail({ to, name, booking }) {
   const hasPackage = booking.package_code || booking.package_name;
   
   // Build package details if exists
-  let packageDetailsHtml = '';
+    let packageDetailsHtml = '';
+
   if (hasPackage) {
-    const packageItems = [];
-    
-    // Add package extras if they exist
-    if (Array.isArray(booking.rooms) && booking.rooms.length > 0) {
+    // Build a list of "Package Includes" items so that emails match the confirmation modal.
+    let packageItems = [];
+
+    // 1) Prefer an explicit packageExtras array if the caller provided one
+    if (Array.isArray(booking.packageExtras) && booking.packageExtras.length > 0) {
+      packageItems = booking.packageExtras
+        .map((ex) => {
+          if (!ex) return null;
+          // Accept either plain strings or objects with common name fields
+          if (typeof ex === 'string') return ex.trim();
+          const label = ex.name || ex.extra_name || ex.title || '';
+          const qty =
+            ex.quantity || ex.qty || ex.count || ex.num || 1;
+          if (!label) return null;
+          return qty > 1 ? `${label} x${qty}` : label;
+        })
+        .filter(Boolean);
+    }
+
+    // 2) Fallback: derive from rooms[].extras (booking widget style)
+    if (packageItems.length === 0 && Array.isArray(booking.rooms)) {
+      const collected = [];
       booking.rooms.forEach((room) => {
-        if (Array.isArray(room.extras) && room.extras.length > 0) {
-          room.extras.forEach((extra) => {
-            const extraName = extra.name || "—";
-            if (!packageItems.includes(extraName)) {
-              packageItems.push(extraName);
-            }
-          });
-        }
+        if (!room || !Array.isArray(room.extras)) return;
+        room.extras.forEach((ex) => {
+          if (!ex) return;
+          const label = ex.name || ex.extra_name || ex.title || '';
+          const qty =
+            ex.quantity || ex.qty || ex.count || ex.num || 1;
+          if (!label) return;
+          collected.push(qty > 1 ? `${label} x${qty}` : label);
+        });
       });
+      const uniqueItems = Array.from(new Set(collected));
+      packageItems = uniqueItems;
+    }
+
+    // 3) Final fallback: split a description string into bullet items
+    if (
+      packageItems.length === 0 &&
+      typeof booking.packageIncludes === 'string' &&
+      booking.packageIncludes.trim() !== ''
+    ) {
+      const splitItems = booking.packageIncludes
+        .split(/[\n,•]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (splitItems.length > 0) {
+        packageItems = splitItems;
+      }
     }
 
     if (packageItems.length > 0) {
       packageDetailsHtml = `
-        <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 24px 0;">
-          <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 600; color: #111827;">Package Includes</h3>
+        <div style="margin-top: 16px;">
+          <h3 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 600; color: #111827;">
+            Package includes
+          </h3>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
-            ${packageItems.map(item => `<li style="margin-bottom: 6px;">${item}</li>`).join('')}
+            ${packageItems
+              .map((item) => `<li style="margin-bottom: 6px;">${item}</li>`)
+              .join('')}
           </ul>
         </div>
       `;
