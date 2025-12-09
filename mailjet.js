@@ -318,45 +318,46 @@ export async function sendBookingEmail({ to, name, booking }) {
 
             <!-- Booking Details Card -->
             <!-- Confirmation Code -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Confirmation Code</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 600;">
-                      ${booking.group_reservation_code || booking.confirmation_code || "—"}
-                    </div>
-                  </div>
+<div style="margin-bottom: 18px;">
+  <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Confirmation Code</div>
+  <div style="font-size: 15px; color: #111827; font-weight: 600;">
+    ${booking.group_reservation_code || booking.confirmation_code || "—"}
+  </div>
+</div>
 
-                  <!-- Guest Name -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Guest Name</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${guestName || "—"}
-                    </div>
-                  </div>
+<!-- Guest Name -->
+<div style="margin-bottom: 18px;">
+  <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Guest Name</div>
+  <div style="font-size: 15px; color: #111827; font-weight: 500;">
+    ${guestName || "—"}
+  </div>
+</div>
 
-                  <!-- Dates -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Dates</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${datesText || "—"}
-                    </div>
-                  </div>
+<!-- Dates -->
+<div style="margin-bottom: 18px;">
+  <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Dates</div>
+  <div style="font-size: 15px; color: #111827; font-weight: 500;">
+    ${datesText || "—"}
+  </div>
+</div>
 
-                  <!-- Room -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Room</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${roomsList}
-                    </div>
-                  </div>
+<!-- Room -->
+<div style="margin-bottom: 18px;">
+  <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Room</div>
+  <div style="font-size: 15px; color: #111827; font-weight: 500;">
+    ${roomsList}
+  </div>
+</div>
 
-                  <!-- Package -->
-                  <div style="margin-bottom: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Package</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${booking.package_name || "—"}
-                    </div>
-                  </div>
+<!-- Package -->
+<div style="margin-bottom: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
+  <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Package</div>
+  <div style="font-size: 15px; color: #111827; font-weight: 500;">
+    ${booking.package_name || "—"}
+  </div>
+</div>
 
+            
 
                   ${packageDetailsHtml}
 
