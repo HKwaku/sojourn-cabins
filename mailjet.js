@@ -343,10 +343,33 @@ export async function sendBookingEmail({ to, name, booking }) {
               </td>
             </tr>
 
+            <!-- Cabin Images (same as booking widget email) -->
+            <tr>
+              <td style="padding: 0 32px 32px 32px;">
+                ${cabinImagesHtml}
+              </td>
+            </tr>
+
             <!-- Confirmation Message -->
             <tr>
               <td style="padding: 0 32px 32px 32px; text-align: center;">
-                <p style="margin: 0; font-size: 14px; color: #6b7280;"></p>
+                <p style="margin: 0; font-size: 15px; color: #374151; line-height: 1.6;">
+                  We look forward to hosting you!
+                </p>
+              </td>
+            </tr>
+
+            <!-- Explore Section -->
+            <tr>
+              <td style="padding: 0 32px 32px 32px;">
+                <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; padding: 24px; text-align: center;">
+                  <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff; font-weight: 600;">
+                    Explore Our Cabins & Experiences
+                  </p>
+                  <a href="https://www.sojourngh.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">
+                    VISIT WEBSITE
+                  </a>
+                </div>
               </td>
             </tr>
 
