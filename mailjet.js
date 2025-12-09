@@ -20,6 +20,18 @@ function formatMoney(amount, currency) {
   }).format(Number(amount));
 }
 
+function formatDatePretty(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).replace(/ /g, "-");
+}
+
+
 export async function sendBookingEmail({ to, name, booking }) {
   const currency = booking.currency || "GHS";
 
@@ -28,9 +40,10 @@ export async function sendBookingEmail({ to, name, booking }) {
       .trim() || name || "";
 
   const datesText =
-    booking.check_in && booking.check_out
-      ? `${booking.check_in} → ${booking.check_out}`
-      : "";
+  booking.check_in && booking.check_out
+    ? `${formatDatePretty(booking.check_in)} → ${formatDatePretty(booking.check_out)}`
+    : "";
+
 
   // Use all rooms if provided; otherwise fall back to a single room
   const roomsArray =
@@ -304,31 +317,46 @@ export async function sendBookingEmail({ to, name, booking }) {
             </tr>
 
             <!-- Booking Details Card -->
-            <tr>
-              <td style="padding: 0 32px 32px 32px;">
-                <div style="background: #f9fafb; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
-                  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Confirmation code</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 600; text-align: right;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Guest</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${guestName || "—"}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Dates</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Room</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomsList}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Package</td>
-                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_name || "—"}</td>
-                    </tr>
-                  </table>
+            <!-- Confirmation Code -->
+                  <div style="margin-bottom: 18px;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Confirmation Code</div>
+                    <div style="font-size: 15px; color: #111827; font-weight: 600;">
+                      ${booking.group_reservation_code || booking.confirmation_code || "—"}
+                    </div>
+                  </div>
+
+                  <!-- Guest Name -->
+                  <div style="margin-bottom: 18px;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Guest Name</div>
+                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
+                      ${guestName || "—"}
+                    </div>
+                  </div>
+
+                  <!-- Dates -->
+                  <div style="margin-bottom: 18px;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Dates</div>
+                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
+                      ${datesText || "—"}
+                    </div>
+                  </div>
+
+                  <!-- Room -->
+                  <div style="margin-bottom: 18px;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Room</div>
+                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
+                      ${roomsList}
+                    </div>
+                  </div>
+
+                  <!-- Package -->
+                  <div style="margin-bottom: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Package</div>
+                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
+                      ${booking.package_name || "—"}
+                    </div>
+                  </div>
+
 
                   ${packageDetailsHtml}
 
@@ -444,28 +472,20 @@ export async function sendBookingEmail({ to, name, booking }) {
                 <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
                   <table role="presentation" style="width: 100%; border-collapse: collapse;">
                     <tr>
-                      <td style="padding: 0 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Confirmation code</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Confirmation code:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #111827; font-weight: 600; border-bottom: 1px solid #e5e7eb;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Guest:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${guestName || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Guest</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Dates:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #111827; font-weight: 600; border-bottom: 1px solid #e5e7eb;">${guestName || "—"}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Dates</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #111827; font-weight: 600; border-bottom: 1px solid #e5e7eb;">${datesText || "—"}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Room(s)</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 0 0 0; font-size: 16px; color: #111827; font-weight: 600;">${roomLinesHtml}</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Room(s):</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomLinesHtml}</td>
                     </tr>
                   </table>
                 </div>
@@ -481,28 +501,20 @@ export async function sendBookingEmail({ to, name, booking }) {
                 <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
                   <table role="presentation" style="width: 100%; border-collapse: collapse;">
                     <tr>
-                      <td style="padding: 0 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Room subtotal</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Room subtotal:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; text-align: right;">${formatMoney(roomSubtotal, currency)}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #111827; font-weight: 600; border-bottom: 1px solid #e5e7eb;">${formatMoney(roomSubtotal, currency)}</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Experiences subtotal:</td>
+                      <td style="padding: 6px 0; font-size: 14px; color: #111827; text-align: right;">${formatMoney(extrasSubtotal, currency)}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Experiences subtotal</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #166534; background: #ecfdf3;">Discount:</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #166534; background: #ecfdf3; text-align: right;">${discountText}</td>
                     </tr>
                     <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #111827; font-weight: 600; border-bottom: 1px solid #e5e7eb;">${formatMoney(extrasSubtotal, currency)}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #166534; text-transform: uppercase; letter-spacing: 0.05em; background: #ecfdf3;">Discount</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 0 16px 0; font-size: 16px; color: #166534; font-weight: 600; background: #ecfdf3; border-bottom: 1px solid #d1fae5;">${discountText}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 16px 0 4px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Total paid</td>
-                    </tr>
-                    <tr>
-                      <td style="padding: 0 0 0 0; font-size: 20px; color: #111827; font-weight: 700;">${formatMoney(totalPaid, currency)}</td>
+                      <td style="padding: 12px 0 0 0; font-size: 16px; color: #111827; font-weight: 700; border-top: 2px solid #e5e7eb;">Total paid:</td>
+                      <td style="padding: 12px 0 0 0; font-size: 18px; color: #111827; font-weight: 700; text-align: right; border-top: 2px solid #e5e7eb;">${formatMoney(totalPaid, currency)}</td>
                     </tr>
                   </table>
                 </div>

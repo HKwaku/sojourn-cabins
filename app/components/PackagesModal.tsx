@@ -1915,7 +1915,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                               {extrasForSelectedPackage.map((ex, idx) => (
                                 <div key={idx} className="flex justify-between text-slate-700 mb-1">
                                   <span className="flex items-center gap-2">
-                                    <span className="text-orange-500">✓</span>
+                                    <span className="text-green-500">✓</span>
                                     {ex.name}
                                   </span>
                                   <span>×{ex.quantity}</span>
