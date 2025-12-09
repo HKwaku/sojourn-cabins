@@ -1092,21 +1092,47 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       }
     }
 
-    // Send confirmation email
+        // Build richer booking object so the email matches the confirmation modal
+    const bookingForEmail = {
+      ...inserted[0],
+
+      // Single-room "group", same shape the booking widget uses
+      rooms: [
+        {
+          room_name: room.name ?? 'Cabin',
+          check_in: checkIn,
+          check_out: checkOut,
+          nights,
+          adults,
+
+          room_subtotal,
+          extras_total,
+          discount_amount: 0,
+          coupon_code: null,
+          total: pkg.package_price ?? 0,
+          currency: pkg.currency ?? 'GBP',
+
+          // Package extras so the email can render "Package Includes"
+          extras: (pkgExtras || []).map((ex: any) => ({
+            name: ex.name,
+            price: ex.price ?? 0,
+            qty: ex.quantity ?? 1,
+          })),
+        },
+      ],
+    };
+
+    // Send confirmation email (non-blocking for the user)
     try {
-      const emailResponse = await fetch('api/send-booking-email', {
+      await fetch('/api/send-booking-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking: inserted[0] }),
+        body: JSON.stringify({ booking: bookingForEmail }),
       });
-      
-      if (!emailResponse.ok) {
-        const errorText = await emailResponse.text();
-        console.error('Email API error:', errorText);
-      }
     } catch (emailErr) {
-      console.error('Failed to send booking email:', emailErr);
+      console.error('Failed to send booking email', emailErr);
     }
+
 
     setConfirmation({
       code: inserted[0]?.confirmation_code ?? confirmCode,
