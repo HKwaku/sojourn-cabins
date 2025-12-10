@@ -318,48 +318,30 @@ export async function sendBookingEmail({ to, name, booking }) {
 
             <!-- Booking Details Card -->
             <tr>
-              <td style="padding: 32px;">
-                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
-                  
-                  <!-- Confirmation Code -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Confirmation Code</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 600;">
-                      ${booking.group_reservation_code || booking.confirmation_code || "—"}
-                    </div>
-                  </div>
-
-                  <!-- Guest Name -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Guest Name</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${guestName || "—"}
-                    </div>
-                  </div>
-
-                  <!-- Dates -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Dates</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${datesText || "—"}
-                    </div>
-                  </div>
-
-                  <!-- Room -->
-                  <div style="margin-bottom: 18px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Room</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${roomsList}
-                    </div>
-                  </div>
-
-                  <!-- Package -->
-                  <div style="margin-bottom: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 4px;">Package</div>
-                    <div style="font-size: 15px; color: #111827; font-weight: 500;">
-                      ${booking.package_name || "—"}
-                    </div>
-                  </div>
+              <td style="padding: 0 32px 32px 32px;">
+                <div style="background: #f9fafb; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb;">
+                  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Confirmation code</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 600; text-align: right;">${booking.group_reservation_code || booking.confirmation_code || "—"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Guest</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${guestName || "—"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Dates</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Room</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomsList}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Package</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right; border-bottom: 1px solid #e5e7eb;">${booking.package_name || "—"}</td>
+                    </tr>
+                  </table>
 
                   ${packageDetailsHtml}
 
