@@ -68,6 +68,31 @@ type Props = {
   initialPackageId?: number | null;
 };
 
+function formatDateDDMMMYYYY(isoDate?: string | null): string {
+  if (!isoDate) return '';
+
+  const s = isoDate.slice(0, 10); // YYYY-MM-DD
+  const parts = s.split('-');
+  if (parts.length !== 3) return '';
+
+  const [yyyy, mm, dd] = parts;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mIdx = Number(mm) - 1;
+
+  if (!yyyy || !dd || isNaN(mIdx) || mIdx < 0 || mIdx > 11) return '';
+
+  return `${dd}-${months[mIdx]}-${yyyy}`;
+}
+
+
+function formatNumber(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '';
+  const n = Number(value);
+  if (Number.isNaN(n)) return '';
+  return n.toLocaleString('en-US');
+}
+
+
 function addDaysISO(isoDate: string, days: number): string {
   const d = new Date(isoDate);
   if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 10);
@@ -1156,11 +1181,8 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   }
 }
 
-  function formatDate(isoDate: string | null | undefined): string {
-    if (!isoDate) return '';
-    const d = new Date(isoDate);
-    if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+function formatDate(isoDate?: string | null): string {
+  return formatDateDDMMMYYYY(isoDate);
   }
 
   // ========== EXACT DATE PICKER LOGIC FROM BOOKINGWIDGET ==========
@@ -1590,7 +1612,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                       </label>
                       <input
                         type="text"
-                        value={checkIn}
+                        value={formatDateDDMMMYYYY(checkIn)}
                         readOnly
                         onClick={() => setActivePickerId(activePickerId === 'ci' ? null : 'ci')}
                         className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-white cursor-pointer hover:border-orange-500 focus:border-orange-500 focus:outline-none transition"
@@ -1607,7 +1629,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                       </label>
                       <input
                         type="text"
-                        value={checkOut}
+                        value={formatDateDDMMMYYYY(checkOut)}
                         readOnly
                         className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-slate-50 cursor-not-allowed text-slate-600"
                       />
@@ -1929,7 +1951,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                         <div className="pt-4 border-t-2 border-slate-300 flex justify-between text-lg">
                           <span className="font-semibold text-slate-900">Total</span>
                           <span className="font-bold text-slate-900">
-                            {selectedPkg?.currency} {total.toFixed(2)}
+                            {selectedPkg?.currency} {formatNumber(total.toFixed(2))}
                           </span>
                         </div>
                       </div>
@@ -2025,7 +2047,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
                   <div className="pt-3 border-t border-slate-300 flex justify-between">
                     <span className="text-slate-600">Total paid</span>
                     <span className="font-semibold text-slate-900">
-                      {confirmation.currency} {confirmation.total.toFixed(2)}
+                      {confirmation.currency} {formatNumber(confirmation.total.toFixed(2))}
                     </span>
                   </div>
                 </div>

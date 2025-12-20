@@ -8,6 +8,8 @@ export default function BookingWidget() {
 
     // Full widget, written as *plain JS* (no TS syntax) and avoiding template literals inside
     const code = `
+
+
 (function () {
   // ====== CONFIG ======
   var SUPABASE_URL = '${SUPABASE_URL}';
@@ -1348,17 +1350,26 @@ export default function BookingWidget() {
   function hideMsg(){ var el = $('#msg'); el.style.display = 'none'; el.textContent = ''; }
 
   function setDefaults(){
-    // Keep “start from tomorrow” for guests,
-    // but use addDaysISO for consistency with admin logic
-    var t = new Date();
-    var ci = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 1));
-    var ciIso = iso(ci);
-    var coIso = addDaysISO(ciIso, 2); // default 2 nights
+  // Keep “start from tomorrow” for guests,
+  // but use addDaysISO for consistency with admin logic
+  var t = new Date();
+  var ci = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() + 1));
+  var ciIso = iso(ci);
+  var coIso = addDaysISO(ciIso, 2); // default 2 nights
 
-    $('#ci').value = ciIso;
-    $('#co').value = coIso;
-    updateNightsDisplay();
-  }
+  // ✅ keep state in ISO
+  selectedDates.ci = ciIso;
+  selectedDates.co = coIso;
+
+  // ✅ show UI as dd-MMM-yyyy
+  var ciEl = document.getElementById('ci');
+  var coEl = document.getElementById('co');
+  if (ciEl) ciEl.value = formatDisplayDate(ciIso);
+  if (coEl) coEl.value = formatDisplayDate(coIso);
+
+  updateNightsDisplay();
+}
+
 
     function updateNightsDisplay() {
     var ciVal = selectedDates.ci || '';
@@ -1441,9 +1452,13 @@ export default function BookingWidget() {
   function formatDisplayDate(isoDate) {
     if (!isoDate) return '';
     var d = new Date(isoDate + 'T00:00:00');
-    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mmm = months[d.getMonth()];
+    var yyyy = d.getFullYear();
+    return dd + '-' + mmm + '-' + yyyy;
   }
+
 
   function openDatePicker(pickerId) {
     closeDatePicker();
@@ -2185,7 +2200,7 @@ export default function BookingWidget() {
       );
       r.innerHTML =
         '<div class="notice err" style="display:block;text-align:left;line-height:1.6">' +
-          '<p><strong>No cabins can host your group size for ' + ci + ' → ' + co + '.</strong></p>' +
+          '<p><strong>No cabins can host your group size for ' + formatDisplayDate(ci) + ' → ' + formatDisplayDate(co) + '.</strong></p>' +
           '<p>Please reduce the number of guests or choose different dates.</p>' +
         '</div>';
       return;
@@ -2221,11 +2236,12 @@ export default function BookingWidget() {
       }
 
       var html = '<div class="notice err" style="display:block;text-align:left;line-height:1.6">';
-      html += '<p><strong>No cabins are available for ' + ci + ' → ' + co + '.</strong></p>';
+      html += '<p><strong>No cabins are available for ' + formatDisplayDate(ci) + ' → ' + formatDisplayDate(co) + '.</strong></p>';
 
       if (anyNext) {
         html += '<p>The next available stay for any cabin is <strong>' +
-          anyNext.ci + ' → ' + anyNext.co + '</strong>.</p>';
+          formatDisplayDate(anyNext.ci) + ' → ' + formatDisplayDate(anyNext.co) + '</strong>.</p>';
+
       } else {
         html += '<p>We couldn\u2019t find another available date in the next few months. ' +
           'Please try different dates.</p>';
@@ -2895,7 +2911,7 @@ export default function BookingWidget() {
     if (!selected) return;
     closeModal('extras');
     var ci = selectedDates.ci, co = selectedDates.co;
-    document.getElementById('mDates2').textContent = ci + ' → ' + co;
+    document.getElementById('mDates2').textContent = formatDisplayDate(ci) + ' → ' + formatDisplayDate(co);
     document.getElementById('mRoomName2').textContent = selected.name;
     updateModalSummaries();
     openModal('guest');
@@ -3195,7 +3211,8 @@ export default function BookingWidget() {
       }
 
       if (nameEl)  nameEl.textContent  = first + ' ' + last;
-      if (datesEl) datesEl.textContent = checkInVal + ' → ' + checkOutVal;
+      if (datesEl) datesEl.textContent = formatDisplayDate(checkInVal) + ' → ' + formatDisplayDate(checkOutVal);
+
 
       // Per-room split on confirmation page
       if (roomEl) {
