@@ -193,7 +193,7 @@ export default function BookingWidget() {
     min-width:0;
   }
   @media (min-width:880px){
-    .grid.cols-3{grid-template-columns:1.2fr 1.2fr .9fr;}
+    .grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
   }
   @media (min-width:880px){
     .grid.cols-4{grid-template-columns:1.2fr 1.2fr .9fr auto;}
@@ -2072,30 +2072,91 @@ export default function BookingWidget() {
     if (!requested || requested < 1) requested = 1;
     var perRoomAdults = Math.min(requested, 2);
 
-    var rooms = await supabase.rpc('get_available_rooms', {
+    // First, get available rooms using the original RPC (for availability checking)
+    var availableRooms = await supabase.rpc('get_available_rooms', {
       p_check_in: checkIn,
       p_check_out: checkOut,
       p_adults: perRoomAdults
     });
 
-    return rooms.map(function (room) {
-      return {
-        id: room.id,
-        code: room.code,
-        name: room.name,
-        description: room.description,
-        weekdayPrice: parseFloat(room.weekday_price),
-        weekendPrice: parseFloat(room.weekend_price),
-        totalPrice: parseFloat(room.total_price),
-        weekdayNights: parseInt(room.weekday_nights, 10),
-        weekendNights: parseInt(room.weekend_nights, 10),
-        nights: parseInt(room.nights, 10),
-        // dynamic max adults per room type from Supabase
-        maxAdults: room.max_adults != null ? parseInt(room.max_adults, 10) : null,
-        imageUrl: room.image_url,
-        currency: room.currency || 'GHS'
-      };
-    });
+    // For each available room, get dynamic pricing
+    var roomsWithPricing = [];
+    
+    for (var i = 0; i < availableRooms.length; i++) {
+      var room = availableRooms[i];
+      
+      try {
+        // Call dynamic pricing function
+        var pricingData = await supabase.rpc('calculate_dynamic_price', {
+          p_room_type_id: room.id,
+          p_check_in: checkIn,
+          p_check_out: checkOut,
+          p_pricing_model_id: null // Uses active model automatically
+        });
+        
+        if (pricingData && pricingData.nightly_rates) {
+          // Calculate weekday/weekend breakdown from nightly rates
+          var weekdayNights = 0;
+          var weekendNights = 0;
+          var weekdayTotal = 0;
+          var weekendTotal = 0;
+          
+          for (var j = 0; j < pricingData.nightly_rates.length; j++) {
+            var nightData = pricingData.nightly_rates[j];
+            var nightDate = new Date(nightData.date);
+            var dayOfWeek = nightDate.getDay();
+            
+            if (dayOfWeek === 5 || dayOfWeek === 6) { // Friday or Saturday
+              weekendNights++;
+              weekendTotal += parseFloat(nightData.rate || 0);
+            } else {
+              weekdayNights++;
+              weekdayTotal += parseFloat(nightData.rate || 0);
+            }
+          }
+          
+          var weekdayPrice = weekdayNights > 0 ? weekdayTotal / weekdayNights : 0;
+          var weekendPrice = weekendNights > 0 ? weekendTotal / weekendNights : 0;
+          
+          roomsWithPricing.push({
+            id: room.id,
+            code: room.code,
+            name: room.name,
+            description: room.description,
+            weekdayPrice: weekdayPrice,
+            weekendPrice: weekendPrice,
+            totalPrice: parseFloat(pricingData.total || 0),
+            weekdayNights: weekdayNights,
+            weekendNights: weekendNights,
+            nights: parseInt(pricingData.nights || 0),
+            maxAdults: room.max_adults != null ? parseInt(room.max_adults, 10) : null,
+            imageUrl: room.image_url,
+            currency: pricingData.currency || room.currency || 'GHS'
+          });
+        }
+      } catch (err) {
+        // If dynamic pricing fails, fall back to original prices from get_available_rooms
+        console.warn('Dynamic pricing failed for ' + room.code + ', using base prices:', err);
+        
+        roomsWithPricing.push({
+          id: room.id,
+          code: room.code,
+          name: room.name,
+          description: room.description,
+          weekdayPrice: parseFloat(room.weekday_price),
+          weekendPrice: parseFloat(room.weekend_price),
+          totalPrice: parseFloat(room.total_price),
+          weekdayNights: parseInt(room.weekday_nights, 10),
+          weekendNights: parseInt(room.weekend_nights, 10),
+          nights: parseInt(room.nights, 10),
+          maxAdults: room.max_adults != null ? parseInt(room.max_adults, 10) : null,
+          imageUrl: room.image_url,
+          currency: room.currency || 'GHS'
+        });
+      }
+    }
+
+    return roomsWithPricing;
   }
 
 
@@ -3341,7 +3402,7 @@ h1 { margin-bottom:8px; font-size:32px; font-weight:600; color:var(--text); line
 .sub { color:var(--muted); margin-bottom:24px; font-size:16px; line-height:1.5; }
 
 .grid { display:grid; gap:20px; margin-bottom:24px; }
-@media(min-width:860px){ .grid.cols-3{ grid-template-columns:1fr 1fr 0.8fr; } }
+@media(min-width:860px){ .grid.cols-3{ grid-template-columns:1fr 1fr 1fr; } }
 @media(min-width:860px){ .grid.cols-4{ grid-template-columns:1fr 1fr 0.8fr auto; } }
 
 label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
