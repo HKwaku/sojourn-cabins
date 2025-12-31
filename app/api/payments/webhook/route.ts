@@ -71,28 +71,40 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Reservations confirmed');
 
-      // Send booking confirmation email using your existing system
+      // Send booking confirmation email
       try {
         const primaryReservation = reservations[0];
         const isGroupBooking = reservations.length > 1;
         const isPackage = !!(primaryReservation.package_code || primaryReservation.package_name);
 
-        console.log('📧 Preparing email...');
-        console.log('Is package:', isPackage);
-        console.log('Is group:', isGroupBooking);
+        console.log('📧 === EMAIL SENDING START ===');
+        console.log('Primary reservation:', {
+          id: primaryReservation.id,
+          email: primaryReservation.guest_email,
+          code: primaryReservation.confirmation_code,
+          package: primaryReservation.package_name
+        });
 
-        // Get extras for ALL reservations
+        // Get extras
         const reservationIds = reservations.map(r => r.id);
+        console.log('Looking for extras for reservation IDs:', reservationIds);
+
         const { data: reservationExtras, error: extrasError } = await supabase
           .from('reservation_extras')
           .select('*')
           .in('reservation_id', reservationIds);
 
         if (extrasError) {
-          console.error('Error fetching extras:', extrasError);
+          console.error('❌ Error fetching extras:', extrasError);
         }
 
-        console.log(`Found ${reservationExtras?.length || 0} extras`);
+        console.log('Found extras:', reservationExtras?.length || 0);
+        if (reservationExtras && reservationExtras.length > 0) {
+          console.log('First extra:', {
+            res_id: reservationExtras[0].reservation_id,
+            name: reservationExtras[0].extra_name
+          });
+        }
 
         // Calculate totals
         let aggregateRoomSubtotal = 0;
@@ -106,15 +118,21 @@ export async function POST(request: NextRequest) {
           aggregateDiscountTotal += res.discount_amount || 0;
           aggregateTotal += res.total || 0;
 
-          // Get extras for THIS specific room
+          // Get extras for THIS room
           const roomExtras = (reservationExtras || [])
-            .filter((e: any) => e.reservation_id === res.id)
+            .filter((e: any) => {
+              const match = e.reservation_id === res.id;
+              console.log(`Checking extra ${e.extra_name}: res_id ${e.reservation_id} === ${res.id}? ${match}`);
+              return match;
+            })
             .map((e: any) => ({
               code: e.extra_code,
               name: e.extra_name,
               price: e.price,
               qty: e.quantity,
             }));
+
+          console.log(`Room ${res.room_name} has ${roomExtras.length} extras`);
 
           return {
             room_name: res.room_name,
@@ -127,11 +145,11 @@ export async function POST(request: NextRequest) {
             discount_amount: res.discount_amount,
             total: res.total,
             currency: res.currency,
-            extras: roomExtras,  // ⭐ Include extras in each room
+            extras: roomExtras,
           };
         });
 
-        // For packages: Build packageExtras array from reservation_extras
+        // Package extras
         let packageExtras = null;
         if (isPackage && reservationExtras && reservationExtras.length > 0) {
           packageExtras = reservationExtras.map((e: any) => ({
@@ -141,86 +159,86 @@ export async function POST(request: NextRequest) {
             quantity: e.quantity,
             qty: e.quantity,
           }));
+          console.log('Built packageExtras:', packageExtras.length);
         }
 
-        // Build email data matching your old BookingWidget structure
+        // Build email data
         const emailData = {
           booking: {
-            // Guest + primary reservation info
             confirmation_code: primaryReservation.confirmation_code,
             group_reservation_code: isGroupBooking ? primaryReservation.group_reservation_code : null,
             guest_first_name: primaryReservation.guest_first_name,
             guest_last_name: primaryReservation.guest_last_name,
             guest_email: primaryReservation.guest_email,
             guest_phone: primaryReservation.guest_phone,
-
             check_in: primaryReservation.check_in,
             check_out: primaryReservation.check_out,
             nights: primaryReservation.nights,
             adults: primaryReservation.adults,
             currency: primaryReservation.currency,
-
-            // Keep primary-room fields for backwards compatibility
             room_name: primaryReservation.room_name,
             room_subtotal: primaryReservation.room_subtotal,
             extras_total: primaryReservation.extras_total,
             discount_amount: primaryReservation.discount_amount,
             coupon_code: primaryReservation.coupon_code,
             total: primaryReservation.total,
-
-            // Full group details
             is_group_booking: isGroupBooking,
             group_room_subtotal: aggregateRoomSubtotal,
             group_extras_total: aggregateExtrasSubtotal,
             group_discount_total: aggregateDiscountTotal,
             group_total: aggregateTotal,
-            
-            // ⭐ CRITICAL: Always send rooms as array (even single bookings)
             rooms: isGroupBooking ? roomsForEmail : [roomsForEmail[0]],
-
-            // Package details
             package_code: primaryReservation.package_code || null,
             package_name: primaryReservation.package_name || null,
-            
-            // ⭐ CRITICAL FOR PACKAGES: Include packageExtras
             packageExtras: packageExtras,
           }
         };
 
-        console.log('📧 Email data structure:');
-        console.log('- Has rooms array:', Array.isArray(emailData.booking.rooms));
-        console.log('- Rooms count:', emailData.booking.rooms?.length);
-        console.log('- First room has extras:', emailData.booking.rooms?.[0]?.extras?.length || 0);
-        console.log('- Package extras:', emailData.booking.packageExtras?.length || 0);
-        console.log('📧 Sending to:', primaryReservation.guest_email);
+        console.log('📧 Email data built:');
+        console.log('- rooms array length:', emailData.booking.rooms?.length);
+        console.log('- first room extras:', emailData.booking.rooms?.[0]?.extras?.length);
+        console.log('- packageExtras:', emailData.booking.packageExtras?.length || 0);
+        console.log('- BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL);
 
-        // CRITICAL: Check environment variable
         if (!process.env.NEXT_PUBLIC_BASE_URL) {
-          console.error('❌ NEXT_PUBLIC_BASE_URL is not set!');
-          throw new Error('NEXT_PUBLIC_BASE_URL not configured');
+          console.error('❌ NEXT_PUBLIC_BASE_URL not set!');
+          return; // Don't throw, just skip email
         }
 
-        const emailResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(emailData),
-          }
-        );
+        const emailUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`;
+        console.log('📧 Calling:', emailUrl);
 
-        console.log('📧 Email API response status:', emailResponse.status);
+        const emailResponse = await fetch(emailUrl, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(emailData),
+        });
+
+        console.log('📧 Email API status:', emailResponse.status);
+        console.log('📧 Email API ok?:', emailResponse.ok);
+
+        const responseText = await emailResponse.text();
+        console.log('📧 Email API response:', responseText);
 
         if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error('❌ Email API error:', errorText);
+          console.error('❌ Email failed:', responseText);
         } else {
-          const emailResult = await emailResponse.json();
-          console.log('✅ Booking confirmation email sent:', emailResult);
+          try {
+            const result = JSON.parse(responseText);
+            console.log('✅ Email sent:', result);
+          } catch {
+            console.log('✅ Email sent (non-JSON response)');
+          }
         }
 
+        console.log('📧 === EMAIL SENDING END ===');
+
       } catch (emailError: any) {
-        console.error('❌ Email error (non-critical):', emailError.message);
+        console.error('❌ EMAIL ERROR:', emailError);
+        console.error('Message:', emailError.message);
         console.error('Stack:', emailError.stack);
       }
 
