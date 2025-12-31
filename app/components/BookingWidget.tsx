@@ -3143,209 +3143,117 @@ export default function BookingWidget() {
       var primaryRes = null;
       var primaryPayload = null;
 
-      // Create one reservation row per room payload
-      for (var j = 0; j < roomPayloads.length; j++) {
-        var p = roomPayloads[j];
-        var res = await createReservation(p);
-        if (j === 0) {
-          primaryRes = res;
-          primaryPayload = p;
-        }
+      // Prepare payment data from first room (for now, simple single-room support)
+      var paymentData = {
+        roomTypeCode: roomPayloads[0].roomTypeCode,
+        roomName: roomPayloads[0].roomName,
+        checkIn: checkInVal,
+        checkOut: checkOutVal,
+        nights: roomPayloads[0].nights,
+        adults: adultsVal,
+        roomSubtotal: roomPayloads[0].roomSubtotal,
+        extrasTotal: roomPayloads[0].extrasTotal,
+        discountAmount: roomPayloads[0].discountAmount,
+        isGroupBooking: hasMultipleRooms,
+        groupReservationCode: groupCode,
+        allRooms: roomPayloads,
+        finalTotal: groupFinalTotal,  // Use group total
+        currency: curr,
+        guest: {
+          first: first,
+          last: last,
+          email: email,
+          phone: sharedGuest.phone || '',
+          countryCode: sharedGuest.countryCode || ''
+        },
+        extras: roomPayloads[0].extras || [],
+        couponCode: roomPayloads[0].couponCode || null
+      };
+
+      console.log('Calling payment API with data:', paymentData);
+
+      // Call payment initialization API
+      var paymentResponse = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(paymentData)
+      });
+
+      console.log('Payment API response status:', paymentResponse.status);
+
+      // Check if response is ok
+      if (!paymentResponse.ok) {
+        var errorText = await paymentResponse.text();
+        console.error('Payment API error:', errorText);
+        throw new Error('Payment API returned status ' + paymentResponse.status + ': ' + errorText);
       }
+
+      // Try to parse JSON
+      var responseText = await paymentResponse.text();
+      console.log('Payment API raw response:', responseText);
+      
+      var paymentResult;
+      try {
+        paymentResult = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text was:', responseText);
+        throw new Error('Invalid response from payment API: ' + responseText.substring(0, 100));
+      }
+
+      console.log('Parsed payment result:', paymentResult);
+
+      if (!paymentResult.success) {
+        throw new Error(paymentResult.error || 'Payment initialization failed');
+      }
+
+      // Store booking info for callback page
+      sessionStorage.setItem('pending_booking', JSON.stringify({
+        reference: paymentResult.reference,
+        confirmationCodes: roomPayloads.map(rp => rp.roomTypeCode), // Simplified for demo
+        groupReservationCode: groupCode,
+        amount: groupFinalTotal,
+        currency: curr,
+        guestName: first + ' ' + last,
+        guestEmail: email,
+        checkIn: checkInVal,
+        checkOut: checkOutVal,
+        discountAmount: roomPayloads[0].discountAmount,
+        couponCode: roomPayloads[0].couponCode,
+        roomname: hasMultipleRooms ? 'Multiple Rooms' : roomPayloads[0].roomName,
+        nights: roomPayloads[0].nights,
+        extras: roomPayloads[0].extras || [],
+        extrasTotal: roomPayloads[0].extrasTotal || 0,
+        discountAmount: roomPayloads[0].discountAmount || 0,
+        couponCode: roomPayloads[0].couponCode || null,
+        isPackage: false
+
+      }));
+
+      console.log('Redirecting to Paystack:', paymentResult.authorization_url);
+
+      // Redirect to Paystack
+      window.location.href = paymentResult.authorization_url;
+      
+      // Below code won't execute due to redirect, but keep for structure
+      primaryPayload = roomPayloads[0];
+      primaryRes = { 
+        confirmation_code: paymentResult.reference,
+        total: groupFinalTotal,
+        currency: curr
+      };
 
         // Send booking email once, based on the primary reservation/payload
-    if (primaryRes && primaryPayload) {
-      try {
-        // Build per-room data for the email
-        function sumField(field) {
-          return roomPayloads.reduce(function (sum, p) {
-            var v = p[field];
-            return sum + (v ? Number(v) : 0);
-          }, 0);
-        }
-
-        var roomsForEmail = roomPayloads.map(function (p) {
-          return {
-            room_name: p.roomName,
-            check_in: p.checkIn,
-            check_out: p.checkOut,
-            nights: p.nights,
-            adults: p.adults,
-            room_subtotal: p.roomSubtotal,
-            extras: p.extras,
-            extras_total: p.extrasTotal,
-            discount_amount: p.discountAmount,
-            coupon_code: p.couponCode,
-            total: p.finalTotal,
-            currency: p.currency
-          };
-        });
-
-        var aggregateRoomSubtotal   = sumField('roomSubtotal');
-        var aggregateExtrasSubtotal = sumField('extrasTotal');
-        var aggregateDiscountTotal  = sumField('discountAmount');
-        var aggregateTotal          = sumField('finalTotal');
-
-        // Get human-readable discount description
-        var discountDescription = appliedCoupon ? getDiscountDescriptionForDisplay(curr) : null;
-
-        var emailResponse = await fetch('/api/send-booking-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            booking: {
-              // guest + primary reservation info
-              confirmation_code: primaryRes.confirmation_code,
-              group_reservation_code: hasMultipleRooms ? groupCode : null,
-              guest_first_name: first,
-              guest_last_name: last,
-              guest_email: email,
-              guest_phone: sharedGuest.phone,
-
-              check_in: primaryPayload.checkIn,
-              check_out: primaryPayload.checkOut,
-              nights: primaryPayload.nights,
-              adults: primaryPayload.adults,
-              currency: primaryPayload.currency,
-
-              // keep primary-room fields for backwards compatibility
-              room_name: primaryPayload.roomName,
-              room_subtotal: primaryPayload.roomSubtotal,
-              extras_total: primaryPayload.extrasTotal,
-              discount_amount: primaryPayload.discountAmount,
-              coupon_code: primaryPayload.couponCode,
-              discount_description: discountDescription,
-              total: primaryPayload.finalTotal,
-
-              // NEW: full group details
-              is_group_booking: hasMultipleRooms,
-              group_room_subtotal: aggregateRoomSubtotal,
-              group_extras_total: aggregateExtrasSubtotal,
-              group_discount_total: aggregateDiscountTotal,
-              group_total: aggregateTotal,
-              rooms: roomsForEmail,
-              
-              // Package details
-              package_code: primaryRes.package_code || null,
-              package_name: primaryRes.package_name || null
-            }
-          })
-        });
-        
-        if (!emailResponse.ok) {
-          var errorText = await emailResponse.text();
-          console.error('Email API error:', errorText);
-        }
-      } catch (emailErr) {
-        console.error('Failed to send booking email:', emailErr);
-      }
-    }
+    // Email is now sent by webhook after successful payment
+    // Keeping this comment as reference
+    
 
 
-            closeModal('guest');
-
-      // Use the full group total for the thank-you page (even for single-room bookings)
-      var thanksTotal = groupFinalTotal || finalTotal;
-      var thanksCurrency = curr;
-
-      var codeEl  = document.getElementById('tCode');
-      var nameEl  = document.getElementById('tName');
-      var datesEl = document.getElementById('tDates');
-      var roomEl  = document.getElementById('tRoom');
-      var roomSubEl = document.getElementById('tRoomSub');
-      var extrasEl = document.getElementById('tExtras');
-      var extrasSubEl = document.getElementById('tExtrasSub');
-      var discEl  = document.getElementById('tDisc');
-      var totalEl = document.getElementById('tTotal');
-
-
-      if (codeEl) {
-        var codeToShow = '—';
-        if (hasMultipleRooms && groupCode) {
-          // For group bookings, show the group booking code
-          codeToShow = groupCode;
-        } else if (primaryRes && primaryRes.confirmation_code) {
-          // For single-room bookings, show the standard confirmation code
-          codeToShow = primaryRes.confirmation_code;
-        }
-        codeEl.textContent = codeToShow;
-      }
-
-      if (nameEl)  nameEl.textContent  = first + ' ' + last;
-      if (datesEl) datesEl.textContent = formatDisplayDate(checkInVal) + ' → ' + formatDisplayDate(checkOutVal);
-
-
-      // Per-room split on confirmation page
-      if (roomEl) {
-        if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
-          var lines = selectedRooms.map(function (r) {
-            var nm = r.name || r.code || 'Room';
-            var amt = r.total || 0;
-            var cur = r.currency || thanksCurrency;
-            return nm + ': ' + formatCurrency(amt, cur);
-          });
-          roomEl.innerHTML = lines.join('<br>');
-        } else {
-          roomEl.textContent = selected.name || '—';
-        }
-      }
-
-      // Room subtotal
-      if (roomSubEl) {
-        var roomSubtotal = selected && selected.total ? selected.total : 0;
-        roomSubEl.textContent = formatCurrency(roomSubtotal, thanksCurrency);
-      }
-
-      // Extras lines with per-extra amount
-      if (extrasEl) {
-        if (Array.isArray(extrasLines) && extrasLines.length) {
-          var extraLineStrings = extrasLines.map(function (x) {
-            var label = (x.name || x.code || 'Extra').trim();
-            var qty = x.qty || 0;
-            var lineTotal = (x.price || 0) * (x.qty || 0);
-            var qtyLabel = qty > 1 ? qty + '× ' : '';
-            return qtyLabel + label + ': ' + formatCurrency(lineTotal, thanksCurrency);
-          });
-          extrasEl.innerHTML = extraLineStrings.join('<br>');
-        } else {
-          extrasEl.textContent = '—';
-        }
-      }
-
-      // Experiences subtotal
-      if (extrasSubEl) {
-        extrasSubEl.textContent = extrasTotal
-          ? formatCurrency(extrasTotal, thanksCurrency)
-          : '—';
-      }
-
-      // Discount amount + human description (from getCouponScopeLabel)
-      if (discEl) {
-        if (discount && discount > 0) {
-          var fullDesc = typeof getDiscountDescriptionForDisplay === 'function'
-            ? getDiscountDescriptionForDisplay(thanksCurrency)
-            : '';
-
-          discEl.textContent =
-          '-' + formatCurrency(discount, thanksCurrency) +
-          (fullDesc
-            ? ' (' + (appliedCoupon && appliedCoupon.code ? appliedCoupon.code + ' – ' : '') + fullDesc + ')'
-            : '');
-
-        } else {
-          discEl.textContent = '—';
-        }
-      }
-
-      if (totalEl) {
-        totalEl.textContent = new Intl.NumberFormat('en-GB', {
-          style: 'currency',
-          currency: thanksCurrency
-        }).format(thanksTotal);
-      }
-
-
-      openModal('thanks');
+    // Thank you page is now shown by callback page after payment
+    // Redirect happens in payment initialization code above
 
     } catch (e) {
       alert('Error creating reservation: ' + e.message);

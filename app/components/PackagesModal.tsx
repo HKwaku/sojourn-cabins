@@ -1023,7 +1023,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
 
 
-    async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
   e.preventDefault();
   if (!selectedPackageId || !selectedRoomId) {
     setError('Missing selection.');
@@ -1046,13 +1046,6 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   setSuccess(null);
 
   try {
-    // Generate a confirmation code
-    const confirmCode =
-      'BK' +
-      Math.floor(Math.random() * 1000000)
-        .toString()
-        .padStart(6, '0');
-
     // --- compute extras + room subtotal ---
     const pkgExtras = extrasByPackage[selectedPackageId] ?? [];
     const extras_total = pkgExtras.reduce(
@@ -1060,123 +1053,111 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       0
     );
     const room_subtotal = (pkg.package_price ?? 0) - extras_total;
+    const packageTotal = pkg.package_price ?? 0;
 
-    const resPayload = {
-      confirmation_code: confirmCode,
-      room_type_id: selectedRoomId,
-      room_type_code: room.code ?? '',
-      room_name: room.name ?? 'Cabin',
-
-      check_in: checkIn,
-      check_out: checkOut,
+    // Prepare payment data
+    const paymentData = {
+      roomTypeCode: room.code ?? '',
+      roomName: room.name ?? 'Cabin',
+      checkIn: checkIn,
+      checkOut: checkOut,
       nights,
       adults,
-      children: 0,
-
-      // --- TOTAL BREAKDOWN ---
-      room_subtotal,
-      extras_total,
-      discount_amount: 0,
-      total: pkg.package_price ?? 0,
-      currency: pkg.currency ?? 'GBP',
-
-      guest_first_name: firstName,
-      guest_last_name: lastName,
-      guest_email: email,
-      guest_phone: `${countryCode}${phone}`,
-      country_code: countryCode,
-
-      status: 'pending',
-      notes,
-
-      package_id: selectedPackageId,
-      package_code: pkg.code ?? null,
-      package_name: pkg.name ?? null,
-    };
-
-    const inserted = await postJSON<any[]>('reservations', resPayload);
-    const reservationId = inserted[0]?.id;
-    if (!reservationId) throw new Error('No reservation ID returned.');
-
-    // ---- INSERT INCLUDED PACKAGE EXTRAS (ONCE) ----
-    if (pkgExtras.length > 0) {
-      const extrasRows = pkgExtras.map((ex) => ({
-        reservation_id: reservationId,
-        extra_id: ex.extra_id,
-        extra_code: ex.code,
-        extra_name: ex.name,
-        price: ex.price,
-        quantity: ex.quantity,
-        subtotal: ex.price * ex.quantity,
-      }));
-
-      try {
-        await postJSON<any[]>('reservation_extras', extrasRows);
-      } catch (err) {
-        console.error('Failed to insert reservation_extras:', err);
-      }
-    }
-
-        // Build richer booking object so the email matches the confirmation modal
-    const bookingForEmail = {
-      ...inserted[0],
-
-      // Single-room "group", same shape the booking widget uses
-      rooms: [
-        {
-          room_name: room.name ?? 'Cabin',
-          check_in: checkIn,
-          check_out: checkOut,
-          nights,
-          adults,
-
-          room_subtotal,
-          extras_total,
-          discount_amount: 0,
-          coupon_code: null,
-          total: pkg.package_price ?? 0,
-          currency: pkg.currency ?? 'GBP',
-
-          // Package extras so the email can render "Package Includes"
-          extras: (pkgExtras || []).map((ex: any) => ({
-            name: ex.name,
-            price: ex.price ?? 0,
-            qty: ex.quantity ?? 1,
-          })),
-        },
-      ],
-    };
-
-    // Send confirmation email (non-blocking for the user)
-    try {
-      await fetch('/api/send-booking-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ booking: bookingForEmail }),
-      });
-    } catch (emailErr) {
-      console.error('Failed to send booking email', emailErr);
-    }
-
-
-    setConfirmation({
-      code: inserted[0]?.confirmation_code ?? confirmCode,
-      guestName: `${firstName} ${lastName}`,
-      roomName: room.name ?? 'Room',
-      total,
+      roomSubtotal: room_subtotal,
+      extrasTotal: extras_total,
+      discountAmount: 0,
+      finalTotal: packageTotal,
       currency: pkg.currency ?? 'GHS',
-      checkIn,
-      checkOut,
-      packageName: pkg.name ?? 'Package',
-      packageIncludes: pkg.description,
-      packageExtras: extrasByPackage[pkg.id] ?? [],
-      packageNights: pkg.nights ?? 1,
+      guest: {
+        first: firstName,
+        last: lastName,
+        email: email,
+        phone: phone,
+        countryCode: countryCode
+      },
+      extras: pkgExtras.map((ex: any) => ({
+        code: ex.code,
+        name: ex.name,
+        price: ex.price ?? 0,
+        qty: ex.quantity ?? 1
+      })),
+      couponCode: null,
+      isGroupBooking: false,
+      groupReservationCode: null,
+      allRooms: null,
+      // Package-specific data
+      isPackage: true,
+      packageId: selectedPackageId,
+      packageCode: pkg.code,
+      packageName: pkg.name
+    };
+
+    console.log('Calling payment API for package:', paymentData);
+
+    // Call payment initialization API
+    const paymentResponse = await fetch('/api/payments/initialize', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(paymentData)
     });
 
-    setSuccess('Reservation created successfully!');
+    if (!paymentResponse.ok) {
+      const errorText = await paymentResponse.text();
+      console.error('Payment API error:', errorText);
+      throw new Error('Payment initialization failed');
+    }
+
+    const responseText = await paymentResponse.text();
+    const paymentResult = JSON.parse(responseText);
+
+    if (!paymentResult.success) {
+      throw new Error(paymentResult.error || 'Payment initialization failed');
+    }
+        // DEBUG
+    console.log('=== PACKAGE EXTRAS DEBUG ===');
+    console.log('pkgExtras:', pkgExtras);
+    console.log('pkgExtras length:', pkgExtras?.length);
+    if (pkgExtras && pkgExtras.length > 0) {
+      console.log('First extra:', pkgExtras[0]);
+      console.log('Mapped extras:', pkgExtras.map((ex: any) => ({
+        name: ex.name,
+        price: ex.price,
+        qty: ex.quantity
+      })));
+    }
+    console.log('=========================');
+    // Store booking info for callback page
+    sessionStorage.setItem('pending_booking', JSON.stringify({
+      reference: paymentResult.reference,
+      amount: packageTotal,
+      currency: pkg.currency ?? 'GHS',
+      guestName: `${firstName} ${lastName}`,
+      guestEmail: email,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      roomName: room.name ?? 'Cabin',
+      nights: nights,
+      // Package-specific info
+      packageName: pkg.name ?? 'Package',
+      isPackage: true,
+      // NEW: Add package extras for display
+      packageExtras: pkgExtras.map((ex: any) => ({
+        name: ex.name,
+        price: ex.price ?? 0,
+        qty: ex.quantity ?? 1
+      }))
+    }));
+
+    console.log('Redirecting to Paystack:', paymentResult.authorization_url);
+
+    // Redirect to Paystack
+    window.location.href = paymentResult.authorization_url;
+
   } catch (err: any) {
-    setError(err.message || 'Failed to create reservation.');
-  } finally {
+    setError(err.message || 'Payment initialization failed.');
     setSubmitting(false);
   }
 }
