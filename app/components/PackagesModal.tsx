@@ -1025,7 +1025,13 @@ async function computeUnavailableDates() {
       `&check_in=lt.${endISO}&check_out=gt.${startISO}` +
       `&status=not.in.("cancelled","no_show")`;
 
-    const reservations = await fetchJSON(resUrl);
+    const reservations = await fetchJSON<{
+      room_type_id: string | null;
+      room_type_code: string | null;
+      check_in: string;
+      check_out: string;
+      status: string | null;
+    }[]>(resUrl);
 
     // Load blocked dates
     const roomIds = rooms.map((r) => String(r.id));
