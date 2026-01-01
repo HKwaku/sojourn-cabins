@@ -1042,7 +1042,10 @@ async function computeUnavailableDates() {
       `&blocked_date=gte.${startISO}&blocked_date=lt.${endISO}` +
       (idList ? `&room_type_id=in.(${idList})` : '');
 
-    const blocked = await fetchJSON(blockedUrl);
+    const blocked = await fetchJSON<{
+      room_type_id: number;
+      blocked_date: string;
+    }[]>(blockedUrl);
 
     // For each date, check if ANY room is available for a stay starting that date
     const nights = selectedPkg.nights;
