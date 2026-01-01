@@ -34,9 +34,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique reference
+    // Generate unique payment reference
     const reference = `BK${Date.now()}`;
-    const confirmationCode = reference.substring(2, 10);
     const amountInKobo = Math.round(body.finalTotal * 100);
 
     console.log('Generated reference:', reference);
@@ -102,12 +101,31 @@ export async function POST(request: NextRequest) {
 
     console.log(`Creating ${roomsToCreate.length} reservation(s)`);
 
+    // Generate group reservation code if multiple rooms
+    const groupReservationCode = roomsToCreate.length > 1 
+      ? `GRP-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`
+      : null;
+
+    if (groupReservationCode) {
+      console.log('Group reservation code:', groupReservationCode);
+    }
+    
+    // Create reservation for each room
+    const confirmationCodes = []; // ⭐ NEW: Track all codes
+    
     // Create reservation for each room
     for (let i = 0; i < roomsToCreate.length; i++) {
       const room = roomsToCreate[i];
       const isPrimary = (i === 0);
       
+      // Generate UNIQUE confirmation code for THIS room
+      const roomConfirmationCode = `BK${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+      confirmationCodes.push(roomConfirmationCode); // ⭐ NEW: Store code
+  
+
       console.log(`Creating reservation ${i + 1}/${roomsToCreate.length}:`, room.roomTypeCode);
+      console.log(`- Confirmation code: ${roomConfirmationCode}`);
+      console.log(`- Group code: ${groupReservationCode || 'none'}`);
 
       // Lookup room type
       const { data: roomTypes, error: roomError } = await supabase
@@ -125,7 +143,7 @@ export async function POST(request: NextRequest) {
       const { error: insertError } = await supabase
         .from('reservations')
         .insert({
-          confirmation_code: confirmationCode,
+          confirmation_code: roomConfirmationCode,  // UNIQUE per room
           room_type_id: roomTypes.id,
           room_type_code: room.roomTypeCode,
           room_name: room.roomName,
@@ -134,8 +152,10 @@ export async function POST(request: NextRequest) {
           nights: room.nights || body.nights,
           adults: room.adults || body.adults,
           room_subtotal: room.roomSubtotal,
-          extras_total: isPrimary ? room.extrasTotal : 0, // Only first room gets extras
-          discount_amount: isPrimary ? room.discountAmount : 0, // Only first room gets discount
+          extras_total: isPrimary ? room.extrasTotal : 0,
+          discount_amount: room.discountAmount || 0,                 // ⭐ Remove isPrimary check
+          room_discount: room.roomDiscount || 0,                     // ⭐ Remove isPrimary check
+          extras_discount: isPrimary ? (room.extrasDiscount || 0) : 0,  // ✅ Keep isPrimary
           coupon_code: isPrimary ? room.couponCode : null,
           total: room.finalTotal,
           currency: body.currency,
@@ -146,14 +166,16 @@ export async function POST(request: NextRequest) {
           country_code: body.guest.countryCode || '',
           status: 'pending_payment',
           payment_status: 'pending',
-          payment_reference: reference, // SAME reference for all rooms!
-          group_reservation_code: body.groupReservationCode || null,
+          payment_reference: reference,  // SAME for all rooms
+          group_reservation_code: groupReservationCode,  // SAME for all rooms
         });
 
       if (insertError) {
         console.error('Insert error:', insertError);
         throw new Error(`Failed to create reservation: ${insertError.message}`);
       }
+
+      console.log(`✅ Created reservation: ${roomConfirmationCode}`);
 
       // Insert extras only for first room
       if (isPrimary && room.extras && room.extras.length > 0) {
@@ -163,8 +185,7 @@ export async function POST(request: NextRequest) {
         const { data: createdRes } = await supabase
           .from('reservations')
           .select('id')
-          .eq('payment_reference', reference)
-          .eq('room_type_code', room.roomTypeCode)
+          .eq('confirmation_code', roomConfirmationCode)
           .single();
 
         if (createdRes) {
@@ -175,6 +196,7 @@ export async function POST(request: NextRequest) {
             price: extra.price,
             quantity: extra.qty,
             subtotal: extra.price * extra.qty,
+            discount_amount: extra.discount || 0,  // ⭐ NEW
           }));
           
           const { error: extrasError } = await supabase
@@ -183,11 +205,11 @@ export async function POST(request: NextRequest) {
 
           if (extrasError) {
             console.error('Extras insert error:', extrasError);
-            // Non-critical, continue
           } else {
             console.log('✅ Extras added');
           }
         }
+        
         // If this is a package booking, store package info
         if (body.isPackage && body.packageId) {
           await supabase
@@ -197,8 +219,7 @@ export async function POST(request: NextRequest) {
               package_code: body.packageCode || null,
               package_name: body.packageName || null
             })
-            .eq('payment_reference', reference)
-            .eq('room_type_code', room.roomTypeCode);
+            .eq('confirmation_code', roomConfirmationCode);
         }
       }
     }
@@ -209,12 +230,15 @@ export async function POST(request: NextRequest) {
     // Return Paystack checkout URL
     return NextResponse.json({
       success: true,
-      authorization_url: paystackData.data.authorization_url,
-      reference: reference,
+      authorization_url: paystackData.data.authorization_url, // Paystack checkout URL
+      reference: reference,               // Payment reference
+      groupCode: groupReservationCode, // Group code if applicable
+      confirmationCode: confirmationCodes[0],  // ⭐ NEW: Primary confirmation code
+      confirmationCodes: confirmationCodes    // ⭐ NEW: All codes
     });
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+    const errorMessage = error instanceof Error ? error.message : 'Payment failed'; 
     console.error('=== Payment Initialization Error ===');
     console.error('Error:', errorMessage);
     return NextResponse.json(

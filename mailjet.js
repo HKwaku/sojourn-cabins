@@ -139,23 +139,11 @@ export async function sendBookingEmail({ to, name, booking }) {
             const extraTotal = extraQty * extraPrice;
             extrasRows.push(`
               <tr>
-                <td style="
-                  padding:4px 12px 4px 0;
-                  color:#6b7280;
-                  width:160px;
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                ">
-                  ${extraName}
+                <td style="padding: 6px 0; font-size: 14px; color: #0f172a;">
+                  ${extraQty > 1 ? `<strong>${extraQty}×</strong> ` : ''}${extraName}
                 </td>
-                <td style="
-                  padding:4px 0;
-                  text-align: right;
-                  white-space: nowrap;
-                ">
+                <td style="padding: 6px 0; text-align: right; font-size: 14px; color: #0f172a; font-weight: 500;">
                   ${formatMoney(extraTotal, currency)}
-                  ${extraQty > 1 ? `<span style="color:#6b7280;"> ${extraQty}×</span>` : ''}
                 </td>
               </tr>
             `);
@@ -164,18 +152,32 @@ export async function sendBookingEmail({ to, name, booking }) {
       });
 
       if (extrasRows.length > 0) {
-        extrasDetailsHtml = `
-          <h3 style="margin:24px 0 8px 0; font-size:13px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7280;">
-            Experiences Included
-          </h3>
-          <table style="border-collapse:collapse; width:100%; margin-bottom:24px;">
-            <tbody>
-              ${extrasRows.join("")}
-            </tbody>
-          </table>
-        `;
+          extrasDetailsHtml = `
+            <div style="padding-top: 12px; margin-top: 12px; border-top: 1px solid #e5e7eb;">
+              <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.08em; margin-bottom: 8px;">
+                Experiences
+              </div>
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tbody>
+                  ${extrasRows.join("")}
+                </tbody>
+              </table>
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e5e7eb;">
+                <table role="presentation" style="width: 100%;">
+                  <tr>
+                    <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: 500;">
+                      Experiences subtotal:
+                    </td>
+                    <td style="padding: 6px 0; text-align: right; font-size: 13px; color: #0f172a; font-weight: 500;">
+                      ${formatMoney(extrasSubtotal, currency)}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          `;
+        }
       }
-    }
   }
 
   // Map room names to image URLs
@@ -271,14 +273,38 @@ export async function sendBookingEmail({ to, name, booking }) {
     if (packageItems.length > 0) {
       packageDetailsHtml = `
         <div style="margin-top: 16px;">
-          <h3 style="margin: 0 0 6px 0; font-size: 14px; font-weight: 600; color: #111827;">
-            Package includes
+          <h3 style="margin: 0 0 12px 0; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em;">
+            Package Includes
           </h3>
-          <ul style="margin: 0; padding-left: 20px; color: #374151;">
-            ${packageItems
-              .map((item) => `<li style="margin-bottom: 6px;">${item}</li>`)
-              .join('')}
-          </ul>
+          <table role="presentation" style="width: 100%; border-collapse: collapse;">
+            ${booking.packageExtras && booking.packageExtras.length > 0
+              ? booking.packageExtras.map((ex) => {
+                  const qty = ex.quantity || ex.qty || 1;
+                  const name = ex.name || ex.extra_name || '';
+                  return `
+                    <tr class="package-item-row">
+                      <td style="padding: 6px 0; font-size: 14px; color: #0f172a;">
+                        ${qty > 1 ? `<strong>${qty}×</strong> ` : ''}${name}
+                      </td>
+                      <td style="padding: 6px 0; text-align: right; font-size: 13px; color: #10b981; font-weight: 500;">
+                        ✓ Included
+                      </td>
+                    </tr>
+                  `;
+                }).join('')
+              : packageItems.map((item) => `
+                  <tr class="package-item-row">
+                    <td style="padding: 6px 0; font-size: 14px; color: #0f172a;">
+                      ${item}
+                    </td>
+                    <td style="padding: 6px 0; text-align: right; font-size: 13px; color: #10b981; font-weight: 500;">
+                      ✓ Included
+                      
+                    </td>
+                  </tr>
+                `).join('')
+            }
+          </table>
         </div>
       `;
     }
@@ -294,12 +320,28 @@ export async function sendBookingEmail({ to, name, booking }) {
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      @media only screen and (max-width: 600px) {
+        .package-item-row td {
+          display: block !important;
+          width: 100% !important;
+          text-align: left !important;
+          padding: 4px 0 !important;
+        }
+        .package-item-row td:last-child {
+          padding-bottom: 12px !important;
+        }
+        h1 {
+          font-size: 24px !important;
+        }
+      }
+    </style>
   </head>
   <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
     <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
       <tr>
         <td align="center" style="padding: 40px 20px;">
-          <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
             
             <!-- Header with Logo -->
             <tr>
@@ -398,9 +440,9 @@ export async function sendBookingEmail({ to, name, booking }) {
                   </tr>
                   <tr>
                     <td style="text-align: center; padding-bottom: 16px;">
-                      <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 reservations@sojourncabins.com</p>
+                      <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 theteam@sojourngh.com</p>
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📱 +233 54 748 4568</p>
-                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourngh.com</a></p>
                     </td>
                   </tr>
                   <tr>
@@ -432,7 +474,7 @@ export async function sendBookingEmail({ to, name, booking }) {
     <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
       <tr>
         <td align="center" style="padding: 40px 20px;">
-          <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+          <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
             
             <!-- Header with Logo -->
             <tr>
@@ -476,7 +518,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                 </div>
 
                 ${extrasDetailsHtml ? `
-                <h3 style="margin: 0 0 12px 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Expereinces Included</h3>
+                <h3 style="margin: 0 0 12px 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Experiences</h3>
                 <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 24px;">
                   ${extrasDetailsHtml}
                 </div>
@@ -544,7 +586,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                     <td style="text-align: center; padding-bottom: 16px;">
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 theteam@sojourngh.com</p>
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📱 +233 54 748 4568</p>
-                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourngh.com</a></p>
                     </td>
                   </tr>
                   <tr>

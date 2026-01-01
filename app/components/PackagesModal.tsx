@@ -254,6 +254,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   const [invalidCheckoutDates, setInvalidCheckoutDates] = useState<string[]>([]);
   const invalidCheckoutDatesRef = useRef<string[]>([]);
 
+  // ⭐ ADD THIS:
+  const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
+  
   const experiencesData = [
     {
       image: 'https://res.cloudinary.com/dzldvlbwb/image/upload/v1733055931/anomabu_beach_3_vxgtw3.jpg',
@@ -967,10 +970,139 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       setAvailableRoomsForSelected([]);
     }
   }
+    // Compute which dates have NO available rooms for the selected package
+async function computeUnavailableDates() {
+  console.log('🔍 Computing unavailable dates for package:', selectedPackageId);
+  
+  if (!selectedPackageId || !selectedPkg?.nights) {
+    console.log('❌ No package or nights, clearing unavailable dates');
+    setUnavailableDates([]);
+    return;
+  }
 
+  const rooms = roomsByPackage[selectedPackageId] ?? [];
+  if (!rooms.length) {
+    // No rooms configured - all dates unavailable
+    // Set a wide range of unavailable dates
+    const dates = [];
+    const start = new Date();
+    for (let i = 0; i < 365; i++) {  // Next year
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    setUnavailableDates(dates);
+    return;
+  }
+
+  if (!rooms.length) {
+    console.log('⚠️ No rooms configured - blocking all dates');
+    const dates = [];
+    const start = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    setUnavailableDates(dates);
+    console.log('🚫 Blocked dates count:', dates.length);
+    return;
+  }
+
+  try {
+    // Get date range to check (next 12 months)
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setMonth(today.getMonth() + 12);
+    
+    const startISO = today.toISOString().split('T')[0];
+    const endISO = endDate.toISOString().split('T')[0];
+
+    // Load ALL reservations in the range
+    const resUrl =
+      `${SUPABASE_URL}/rest/v1/reservations` +
+      `?select=room_type_id,room_type_code,check_in,check_out,status` +
+      `&check_in=lt.${endISO}&check_out=gt.${startISO}` +
+      `&status=not.in.("cancelled","no_show")`;
+
+    const reservations = await fetchJSON(resUrl);
+
+    // Load blocked dates
+    const roomIds = rooms.map((r) => String(r.id));
+    const idList = roomIds.join(',');
+    const blockedUrl =
+      `${SUPABASE_URL}/rest/v1/blocked_dates` +
+      `?select=room_type_id,blocked_date` +
+      `&blocked_date=gte.${startISO}&blocked_date=lt.${endISO}` +
+      (idList ? `&room_type_id=in.(${idList})` : '');
+
+    const blocked = await fetchJSON(blockedUrl);
+
+    // For each date, check if ANY room is available for a stay starting that date
+    const nights = selectedPkg.nights;
+    const unavailable = [];
+    
+    let current = new Date(today);
+    while (current <= endDate) {
+      const checkInDate = current.toISOString().split('T')[0];
+      const checkOutDate = new Date(current);
+      checkOutDate.setDate(current.getDate() + nights);
+      const checkOutISO = checkOutDate.toISOString().split('T')[0];
+
+      // Check if ANY room can accommodate this stay
+      const hasAvailableRoom = rooms.some((room) => {
+        const roomId = String(room.id);
+        const roomCode = room.code ?? null;
+
+        // Check reservations
+        const hasReservation = reservations.some((r) => {
+          const sameRoom =
+            (r.room_type_id && String(r.room_type_id) === roomId) ||
+            (roomCode && r.room_type_code && r.room_type_code === roomCode);
+          if (!sameRoom) return false;
+
+          const existingStart = new Date(r.check_in).getTime();
+          const existingEnd = new Date(r.check_out).getTime();
+          const start = new Date(checkInDate).getTime();
+          const end = new Date(checkOutISO).getTime();
+
+          return existingStart < end && existingEnd > start;
+        });
+
+        if (hasReservation) return false;
+
+        // Check blocked dates for ANY night in the stay
+        for (let i = 0; i < nights; i++) {
+          const nightDate = new Date(current);
+          nightDate.setDate(current.getDate() + i);
+          const nightISO = nightDate.toISOString().split('T')[0];
+          
+          const hasBlock = blocked.some(
+            (b) => b.room_type_id && String(b.room_type_id) === roomId && b.blocked_date === nightISO
+          );
+          if (hasBlock) return false;
+        }
+
+        return true;  // This room is available
+      });
+
+      if (!hasAvailableRoom) {
+        unavailable.push(checkInDate);
+      }
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    setUnavailableDates(unavailable);
+    console.log('🚫 Unavailable dates:', unavailable.length, unavailable.slice(0, 5));  // ⭐ ADD THIS
+  } catch (err) {
+    console.error('Error computing unavailable dates:', err);
+    setUnavailableDates([]);
+  }
+} 
 
   // Move from package+dates → room selection
-    async function handleNextToRooms() {
+  async function handleNextToRooms() {
     if (!selectedPackageId) {
       setError('Please select a package.');
       return;
@@ -1011,6 +1143,12 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     setStage('rooms');
   }
 
+  // Compute unavailable dates when package changes
+  useEffect(() => {
+    if (selectedPackageId && selectedPkg) {  // ⭐ Check selectedPkg exists
+      computeUnavailableDates();
+    }
+  }, [selectedPackageId, selectedPkg, packages, roomsByPackage]);  // ⭐ Add dependencies
 
   function handleNextToDetails() {
     if (!selectedRoomId) {
@@ -1132,6 +1270,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     // Store booking info for callback page
     sessionStorage.setItem('pending_booking', JSON.stringify({
       reference: paymentResult.reference,
+      confirmationCode: paymentResult.confirmationCode,    // ⭐ ADD THIS
       amount: packageTotal,
       currency: pkg.currency ?? 'GHS',
       guestName: `${firstName} ${lastName}`,
@@ -1196,6 +1335,13 @@ function formatDate(isoDate?: string | null): string {
     const invalidCo = invalidCheckoutDatesRef.current;
     const dateObj = new Date(dateStr);
 
+  // 0) Block dates with no available rooms
+    // 0) Block dates with no available rooms
+    if (pickerId !== 'co' && unavailableDates.indexOf(dateStr) !== -1) {
+      console.log('🚫 Blocking date (unavailable):', dateStr);  // ⭐ ADD THIS
+      return true;
+    }
+
     // 1) Block all dates in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -1212,12 +1358,33 @@ function formatDate(isoDate?: string | null): string {
       }
     }
 
-    // 3) Capacity / blocked-dates for CHECK-IN only
-    if (pickerId !== 'co' && disabled.indexOf(dateStr) !== -1) {
+    // 3) Capacity / blocked-dates - block for BOTH check-in AND check-out
+    // Check-in: block if the date itself is disabled
+    // Check-out: block if ANY date in the stay range is disabled
+    if (disabled.indexOf(dateStr) !== -1) {
       return true;
     }
 
-    // 4) For CHECK-OUT, block dates where no room can host the full stay
+    // 4) For CHECK-OUT, also block if any date in the range is blocked
+    if (pickerId === 'co' && checkIn && selectedPkg?.nights) {
+      // Check if any date from check-in to this checkout is blocked
+      const nights = selectedPkg.nights;
+      const checkInObj = new Date(checkIn);
+      const checkOutObj = new Date(dateStr);
+      
+      // Iterate through each night of the stay
+      for (let i = 0; i < nights; i++) {
+        const stayDate = new Date(checkInObj);
+        stayDate.setDate(stayDate.getDate() + i);
+        const stayDateStr = stayDate.toISOString().split('T')[0];
+        
+        if (disabled.indexOf(stayDateStr) !== -1) {
+          return true;  // Block checkout if any night is unavailable
+        }
+      }
+    }
+
+    // 5) For CHECK-OUT, block dates where no room can host the full stay
     if (pickerId === 'co' && invalidCo.indexOf(dateStr) !== -1) {
       return true;
     }
@@ -1250,7 +1417,7 @@ function formatDate(isoDate?: string | null): string {
     const dd = String(day).padStart(2, '0');
     return yyyy + '-' + mm + '-' + dd;
   }
-
+  
   // Handle date selection
   function handleDateClick(dateStr: string, pickerId: 'ci' | 'co') {
     if (isDateDisabled(dateStr, pickerId)) return;

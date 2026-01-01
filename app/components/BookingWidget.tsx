@@ -1599,7 +1599,7 @@ export default function BookingWidget() {
       // Find the nearest available checkout date
       if (!selectedDates.co || selectedDates.co <= dateStr) {
         var checkoutDate = addDaysISO(dateStr, 1);
-        var maxLookahead = 90; // Look ahead up to 90 days
+        var maxLookahead = 365; // Look ahead up to 365 days
         var found = false;
         
         // Check each potential checkout date
@@ -1652,41 +1652,57 @@ export default function BookingWidget() {
       newDisabled.push(addDaysISO(todayIso, i));
     }
 
-    // 2) For the next 90 days, disable any date where the
+    // 2) For the next 365 days, disable any date where the
     //    *combined capacity* of all available cabins is
     //    less than the selected number of adults.
-    var MAX_LOOKAHEAD_DAYS = 90;
+    var MAX_LOOKAHEAD_DAYS = 365;
+    var BATCH_SIZE = 30; // process in batches to keep UI responsive
 
-    for (var offset = 0; offset <= MAX_LOOKAHEAD_DAYS; offset++) {
+    for (var batchStart = 0; batchStart <= MAX_LOOKAHEAD_DAYS; batchStart += BATCH_SIZE) {
       // If a newer run started, abort this one
       if (gen !== disabledDatesGeneration) return;
 
-      var ciIso = addDaysISO(todayIso, offset);
-      var coIso = addDaysISO(ciIso, 1); // 1-night stay probe
+      // Create batch of promises
+      var promises = [];
+      var dates = [];
+      
+      for (var i = 0; i < BATCH_SIZE && (batchStart + i) <= MAX_LOOKAHEAD_DAYS; i++) {
+        var offset = batchStart + i;
+        var ciIso = addDaysISO(todayIso, offset);
+        var coIso = addDaysISO(ciIso, 1);
+        
+        dates.push(ciIso);
+        promises.push(
+          getAvailableRooms(ciIso, coIso, adultsVal).catch(function() { return null; })
+        );
+      }
 
+      // Wait for all promises in this batch
       try {
-        var rooms = await getAvailableRooms(ciIso, coIso, adultsVal);
-
-        if (!rooms || !rooms.length) {
-          // No rooms at all for that night → disable date
-          newDisabled.push(ciIso);
-        } else {
-          // Sum capacity across all available cabins
-          var totalCap = 0;
-          rooms.forEach(function (room) {
-            var cap =
-              room.maxAdults != null ? parseInt(room.maxAdults, 10) : 0;
-            if (!Number.isFinite(cap) || cap < 0) cap = 0;
-            totalCap += cap;
-          });
-
-          // If combined capacity can't host the selected adults → disable date
-          if (totalCap < adultsVal) {
+        var results = await Promise.all(promises);
+        
+        // Check each result
+        for (var i = 0; i < results.length; i++) {
+          var rooms = results[i];
+          var ciIso = dates[i];
+          
+          if (!rooms || !rooms.length) {
             newDisabled.push(ciIso);
+          } else {
+            var totalCap = 0;
+            rooms.forEach(function (room) {
+              var cap = room.maxAdults != null ? parseInt(room.maxAdults, 10) : 0;
+              if (!Number.isFinite(cap) || cap < 0) cap = 0;
+              totalCap += cap;
+            });
+
+            if (totalCap < adultsVal) {
+              newDisabled.push(ciIso);
+            }
           }
         }
       } catch (e) {
-        // On error, skip this date (don't disable it)
+        // On error, continue to next batch
       }
     }
 
@@ -1723,6 +1739,9 @@ export default function BookingWidget() {
   var extrasTotal = 0;
   var appliedCoupon = null;
   var discountAmount = 0;
+  var roomDiscount = 0;           // ⭐ NEW
+  var extrasDiscount = 0;         // ⭐ NEW
+  var extrasWithDiscounts = [];   // ⭐ NEW - extras with individual discounts
 
 
   function getCouponScopeLabel() {
@@ -1782,46 +1801,105 @@ export default function BookingWidget() {
   }
 
   function calculateDiscount() {
-    if (!appliedCoupon || !selected) { discountAmount = 0; return 0; }
-    var subtotal = selected.total + extrasTotal;
-    if (appliedCoupon.min_booking_amount && subtotal < appliedCoupon.min_booking_amount) return 0;
-    
-    // Calculate total only for extras that this coupon targets (if defined)
-    var extrasTargetTotal = extrasTotal;
-    if (
-      appliedCoupon &&
-      Array.isArray(appliedCoupon.extra_ids) &&
-      appliedCoupon.extra_ids.length
-    ) {
-      var idSet = new Set(appliedCoupon.extra_ids.map(String));
-      extrasTargetTotal = extras
-        .filter(function(e) { return e.qty > 0 && idSet.has(String(e.id)); })
-        .reduce(function(sum, e) { return sum + (e.price * e.qty); }, 0);
-    }
-    
-    var discount = 0;
-    if (appliedCoupon.applies_to === 'both') {
-      // Room + only the targeted extras (if any are configured)
-      var base;
-      if (
-        Array.isArray(appliedCoupon.extra_ids) &&
-        appliedCoupon.extra_ids.length
-      ) {
-        base = selected.total + extrasTargetTotal;
-      } else {
-        base = selected.total + extrasTotal;
-      }
-      discount = appliedCoupon.discount_type === 'percentage' ? (base * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
-    } else if (appliedCoupon.applies_to === 'rooms') {
-      discount = appliedCoupon.discount_type === 'percentage' ? (selected.total * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
-    } else if (appliedCoupon.applies_to === 'extras') {
-      // Only targeted extras
-      discount = appliedCoupon.discount_type === 'percentage' ? (extrasTargetTotal * appliedCoupon.discount_value / 100) : appliedCoupon.discount_value;
-    }
-    discount = Math.min(discount, subtotal);
-    discountAmount = discount;
-    return discount;
+  if (!appliedCoupon || !selected) { 
+    discountAmount = 0;
+    roomDiscount = 0;
+    extrasDiscount = 0;
+    return 0;
   }
+  
+  var subtotal = selected.total + extrasTotal;
+  if (appliedCoupon.min_booking_amount && subtotal < appliedCoupon.min_booking_amount) {
+    discountAmount = 0;
+    roomDiscount = 0;
+    extrasDiscount = 0;
+    return 0;
+  }
+  
+  // Calculate total only for extras that this coupon targets (if defined)
+  var extrasTargetTotal = extrasTotal;
+  var targetedExtras = extras; // All extras by default
+  
+  if (
+    appliedCoupon &&
+    Array.isArray(appliedCoupon.extra_ids) &&
+    appliedCoupon.extra_ids.length
+  ) {
+    var idSet = new Set(appliedCoupon.extra_ids.map(String));
+    targetedExtras = extras.filter(function(e) { 
+      return e.qty > 0 && idSet.has(String(e.id)); 
+    });
+    extrasTargetTotal = targetedExtras.reduce(function(sum, e) { 
+      return sum + (e.price * e.qty); 
+    }, 0);
+  }
+  
+  // ⭐ Calculate room and extras discounts separately
+  roomDiscount = 0;
+  extrasDiscount = 0;
+  
+  if (appliedCoupon.applies_to === 'both') {
+    // Apply discount to both room and targeted extras
+    var base = selected.total + extrasTargetTotal;
+    var totalDiscount = appliedCoupon.discount_type === 'percentage' 
+      ? (base * appliedCoupon.discount_value / 100) 
+      : appliedCoupon.discount_value;
+    
+    // Proportionally split discount between room and extras
+    if (base > 0) {
+      var roomPortion = selected.total / base;
+      var extrasPortion = extrasTargetTotal / base;
+      
+      roomDiscount = totalDiscount * roomPortion;
+      extrasDiscount = totalDiscount * extrasPortion;
+    }
+    
+  } else if (appliedCoupon.applies_to === 'rooms') {
+    // Apply discount only to rooms
+    roomDiscount = appliedCoupon.discount_type === 'percentage' 
+      ? (selected.total * appliedCoupon.discount_value / 100) 
+      : appliedCoupon.discount_value;
+    extrasDiscount = 0;
+    
+  } else if (appliedCoupon.applies_to === 'extras') {
+    // Apply discount only to targeted extras
+    roomDiscount = 0;
+    extrasDiscount = appliedCoupon.discount_type === 'percentage' 
+      ? (extrasTargetTotal * appliedCoupon.discount_value / 100) 
+      : appliedCoupon.discount_value;
+  }
+  
+  // Calculate per-extra discounts for extras that are targeted
+  extrasWithDiscounts = extras.map(function(extra) {
+    var extraDiscount = 0;
+    
+    if (extrasDiscount > 0 && extrasTargetTotal > 0) {
+      // Check if this extra is targeted
+      var isTargeted = true;
+      if (appliedCoupon.extra_ids && appliedCoupon.extra_ids.length) {
+        var idSet = new Set(appliedCoupon.extra_ids.map(String));
+        isTargeted = idSet.has(String(extra.id));
+      }
+      
+      if (isTargeted && extra.qty > 0) {
+        var extraSubtotal = extra.price * extra.qty;
+        extraDiscount = (extraSubtotal / extrasTargetTotal) * extrasDiscount;
+      }
+    }
+    
+    return {
+      ...extra,
+      discount: extraDiscount
+    };
+  });
+  
+  // Total discount
+  var totalDiscount = roomDiscount + extrasDiscount;
+  totalDiscount = Math.min(totalDiscount, subtotal);
+  
+  discountAmount = totalDiscount;
+  return totalDiscount;
+}
 
     function getDiscountDescriptionForDisplay(curr) {
     if (!appliedCoupon) return '';
@@ -1843,7 +1921,7 @@ export default function BookingWidget() {
     return base;
   }
 
-    function updateSummary() {
+  function updateSummary() {
     var curr = selected && selected.currency ? selected.currency : (CURRENCY || 'GHS');
     var roomTotal = selected && selected.total ? selected.total : 0;
     var discount = typeof calculateDiscount === 'function' ? calculateDiscount() : 0;
@@ -2278,7 +2356,7 @@ export default function BookingWidget() {
 
       // Look ahead for the next date that *any* cabin is available
       var anyNext = null;
-      var maxLookAhead = 90; // days to scan forward
+      var maxLookAhead = 365; // days to scan forward
 
       for (var offset = 1; offset <= maxLookAhead; offset++) {
         var nextCi = addDaysISO(ci, offset);
@@ -2917,6 +2995,10 @@ export default function BookingWidget() {
   initDatePickers(); 
   updateDisabledDates();
 
+  // ⭐ ADD THIS:
+  window.addEventListener('DOMContentLoaded', function() {
+    updateDisabledDates();
+  });
   // Update disabled dates when adults selection changes
   $('#ad').addEventListener('change', function() {
     updateDisabledDates();
@@ -2933,7 +3015,7 @@ export default function BookingWidget() {
     if (!ci || !co) { showMsg('Please choose both dates.', 'err'); return; }
     if (new Date(co) <= new Date(ci)) { showMsg('Check-out must be after check-in.', 'err'); return; }
 
-    selected = null; extras = []; extrasTotal = 0; appliedCoupon = null; discountAmount = 0; updateSummary();
+    selected = null; extras = []; extrasTotal = 0; appliedCoupon = null; discountAmount = 0; roomDiscount = 0; extrasDiscount = 0; extrasWithDiscounts = []; updateSummary();
     openModal('results'); renderSkeletons();
 
     try {
@@ -3103,16 +3185,40 @@ export default function BookingWidget() {
 
     // Build one payload per room; first one carries extras + discount
     var roomPayloads = [];
+    var groupFinalTotal = 0;
+
+    // Calculate total room price for proportional discount distribution
+    var totalRoomPrice = roomsForPayload.reduce(function(sum, r) {
+      return sum + (r.total || 0);
+    }, 0);
 
     for (var i = 0; i < roomsForPayload.length; i++) {
       var room = roomsForPayload[i];
       var isPrimary = (i === 0);
 
-      var roomExtrasTotal = isPrimary ? extrasTotal : 0;
-      var roomDiscount    = isPrimary ? discount    : 0;
-      var roomFinal       = Math.max(0, (room.total || 0) + roomExtrasTotal - roomDiscount);
+      // ⭐ Calculate proportional room discount for THIS room
+      var roomPrice = room.total || 0;
+      var roomOnlyDiscount = 0;
+      var extrasOnlyDiscount = 0;
+      var totalRoomDiscount = 0;
       
-      groupFinalTotal += roomFinal;   // 👈 accumulate full amount
+      if (isPrimary) {
+        // Primary room carries extras
+        extrasOnlyDiscount = extrasDiscount;
+      }
+      
+      // Distribute room discount proportionally across all rooms
+      if (roomDiscount > 0 && totalRoomPrice > 0) {
+        var roomProportion = roomPrice / totalRoomPrice;
+        roomOnlyDiscount = roomDiscount * roomProportion;
+      }
+      
+      totalRoomDiscount = roomOnlyDiscount + extrasOnlyDiscount;
+      
+      var roomExtrasTotal = isPrimary ? extrasTotal : 0;
+      var roomFinal = Math.max(0, roomPrice + roomExtrasTotal - totalRoomDiscount);
+      
+      groupFinalTotal += roomFinal;
       
       roomPayloads.push({
         checkIn: checkInVal,
@@ -3121,12 +3227,14 @@ export default function BookingWidget() {
         nights: selected.nights || 0,
         roomTypeCode: room.code,
         roomName: room.name,
-        roomSubtotal: room.total || 0,
-        extras: isPrimary ? extrasLines : [],
+        roomSubtotal: roomPrice,
         extrasTotal: roomExtrasTotal,
-        discountAmount: roomDiscount,
-        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        discountAmount: totalRoomDiscount,              // Total discount for this room
+        roomDiscount: roomOnlyDiscount,                 // Room portion only
+        extrasDiscount: extrasOnlyDiscount,             // Extras portion only
         finalTotal: roomFinal,
+        couponCode: isPrimary ? (appliedCoupon ? appliedCoupon.code : null) : null,
+        extras: isPrimary ? extrasWithDiscounts : [],
         guest: sharedGuest,
         currency: curr,
         groupReservationId: groupId,
@@ -3154,6 +3262,8 @@ export default function BookingWidget() {
         roomSubtotal: roomPayloads[0].roomSubtotal,
         extrasTotal: roomPayloads[0].extrasTotal,
         discountAmount: roomPayloads[0].discountAmount,
+        roomDiscount: roomPayloads[0].roomDiscount,       // ⭐ NEW
+        extrasDiscount: roomPayloads[0].extrasDiscount,   // ⭐ NEW
         isGroupBooking: hasMultipleRooms,
         groupReservationCode: groupCode,
         allRooms: roomPayloads,
@@ -3210,10 +3320,13 @@ export default function BookingWidget() {
         throw new Error(paymentResult.error || 'Payment initialization failed');
       }
 
+      hasMultipleRooms = roomPayloads.length > 1;
+
       // Store booking info for callback page
       sessionStorage.setItem('pending_booking', JSON.stringify({
         reference: paymentResult.reference,
-        confirmationCodes: roomPayloads.map(rp => rp.roomTypeCode), // Simplified for demo
+        confirmationCode: paymentResult.confirmationCode,    // ⭐ NEW
+        confirmationCodes: paymentResult.confirmationCodes,  // ⭐ NEW
         groupReservationCode: groupCode,
         amount: groupFinalTotal,
         currency: curr,
@@ -3221,16 +3334,24 @@ export default function BookingWidget() {
         guestEmail: email,
         checkIn: checkInVal,
         checkOut: checkOutVal,
-        discountAmount: roomPayloads[0].discountAmount,
-        couponCode: roomPayloads[0].couponCode,
-        roomname: hasMultipleRooms ? 'Multiple Rooms' : roomPayloads[0].roomName,
+        roomName: hasMultipleRooms 
+          ? roomPayloads.map(r => r.roomName).join(', ')  // ⭐ CHANGED: Show all rooms
+          : roomPayloads[0].roomName,
+        roomNames: hasMultipleRooms                       // ⭐ NEW: Array of room names
+          ? roomPayloads.map(r => r.roomName)
+          : [roomPayloads[0].roomName],
+        roomSubtotal: hasMultipleRooms                    // ⭐ NEW
+          ? roomPayloads.reduce((sum, r) => sum + (r.roomSubtotal || 0), 0)
+          : roomPayloads[0].roomSubtotal,
         nights: roomPayloads[0].nights,
         extras: roomPayloads[0].extras || [],
         extrasTotal: roomPayloads[0].extrasTotal || 0,
         discountAmount: roomPayloads[0].discountAmount || 0,
         couponCode: roomPayloads[0].couponCode || null,
-        isPackage: false
-
+        isPackage: false,
+        // ⭐ NEW: Add group booking info
+        isGroupBooking: hasMultipleRooms,
+        groupCode: hasMultipleRooms ? paymentResult.groupCode : null
       }));
 
       console.log('Redirecting to Paystack:', paymentResult.authorization_url);

@@ -94,221 +94,213 @@ function PaymentCallbackContent() {
   }
 
   if (status === 'success') {
-    const isPackage = bookingDetails?.isPackage;
-    
-    return (
+  const isPackage = bookingDetails?.isPackage;
+  const isGroupBooking = bookingDetails?.isGroupBooking;
+  
+  // ⭐ Use confirmation code from API response
+  const displayCode = isGroupBooking && bookingDetails?.groupCode
+    ? bookingDetails.groupCode
+    : bookingDetails?.confirmationCode || '—';  // ⭐ CHANGED: Use confirmationCode
+  
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#ffffff',
+      padding: '24px'
+    }}>
       <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         background: '#ffffff',
-        padding: '24px'
+        padding: '32px',
+        borderRadius: '12px',
+        maxWidth: '650px',
+        width: '100%',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 4px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.05)'
       }}>
+        {/* Header */}
         <div style={{
-          background: '#ffffff',
-          padding: '32px',
-          borderRadius: '12px',
-          maxWidth: '650px',
-          width: '100%',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 4px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.05)'
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid #e5e7eb'
         }}>
-          {/* Header */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            paddingBottom: '16px',
-            borderBottom: '1px solid #e5e7eb'
-          }}>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>
-              Booking confirmed! 🎉
-            </div>
-            <button
-              onClick={() => router.push('/')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                fontSize: '24px',
-                color: '#9ca3af',
-                cursor: 'pointer',
-                padding: '0',
-                lineHeight: '1'
-              }}
-            >
-              ×
-            </button>
+          <div style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a' }}>
+            Booking confirmed! 🎉
           </div>
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '24px',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              padding: '0',
+              lineHeight: '1'
+            }}
+          >
+            ×
+          </button>
+        </div>
 
-          {/* Main Content */}
-          <div>
-            <p style={{ margin: '0 0 16px', color: '#0f172a', fontSize: '14px' }}>
-              Thank you! Your reservation is confirmed.
-            </p>
+        {/* Main Content */}
+        <div>
+          <p style={{ margin: '0 0 16px', color: '#0f172a', fontSize: '14px' }}>
+            Thank you! Your reservation is confirmed.
+          </p>
 
-            {/* Summary Box */}
-            {bookingDetails && (
-              <div style={{
-                background: '#f9fafb',
-                padding: '20px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                marginTop: '16px'
-              }}>
-                {/* Booking Details Section */}
-                <div style={{ marginBottom: '16px' }}>
+          {/* Summary Box */}
+          {bookingDetails && (
+            <div style={{
+              background: '#f9fafb',
+              padding: '20px',
+              borderRadius: '8px',
+              border: '1px solid #e5e7eb',
+              marginTop: '16px'
+            }}>
+              {/* Booking Details Section */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  color: '#9ca3af',
+                  letterSpacing: '0.08em',
+                  marginBottom: '12px'
+                }}>
+                  Booking details
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Confirmation Code */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b' }}>
+                      {isGroupBooking ? 'Group confirmation:' : 'Confirmation code:'}
+                    </span>
+                    <span style={{ color: '#0f172a', fontWeight: '600', fontFamily: 'monospace', fontSize: '14px' }}>
+                      {displayCode}
+                    </span>
+                  </div>
+
+                  {/* Guest Name */}
+                  {bookingDetails.guestName && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#64748b' }}>Guest:</span>
+                      <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                        {bookingDetails.guestName}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Dates */}
+                  {bookingDetails.checkIn && bookingDetails.checkOut && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#64748b' }}>Dates:</span>
+                      <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                        {formatDate(bookingDetails.checkIn)} → {formatDate(bookingDetails.checkOut)}
+                      </span>
+                    </div>
+                  )}
+
+                  
+                  {/* Room/Cabin - Show list for multi-room */}
+                  {isGroupBooking && bookingDetails.roomNames ? (
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      fontSize: '13px',
+                      alignItems: 'start' 
+                    }}>
+                      <span style={{ color: '#64748b' }}>Rooms:</span>
+                      <div style={{ 
+                        textAlign: 'right', 
+                        color: '#0f172a', 
+                        fontWeight: '500' 
+                      }}>
+                        {bookingDetails.roomNames.map((roomName: string, idx: number) => (
+                          <div key={idx}>{roomName}</div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : bookingDetails.roomName ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#64748b' }}>Room:</span>
+                      <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                        {bookingDetails.roomName}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  {/* Nights */}
+                  {bookingDetails.nights && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#64748b' }}>Nights:</span>
+                      <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                        {bookingDetails.nights}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* ⭐ NEW: Room Subtotal */}
+                  {bookingDetails.roomSubtotal && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#64748b' }}>Room subtotal:</span>
+                      <span style={{ color: '#0f172a', fontWeight: '500' }}>
+                        {formatCurrency(bookingDetails.roomSubtotal, bookingDetails.currency)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Experiences (if extras) */}
+              {/* Package Includes or Experiences */}
+              {((isPackage && bookingDetails.packageExtras && bookingDetails.packageExtras.length > 0) ||
+                (!isPackage && bookingDetails.extras && bookingDetails.extras.length > 0)) && (
+                <div style={{ 
+                  paddingTop: '12px', 
+                  marginTop: '12px',
+                  borderTop: '1px solid #e5e7eb' 
+                }}>
                   <div style={{
                     fontSize: '11px',
                     fontWeight: '600',
                     textTransform: 'uppercase',
                     color: '#9ca3af',
                     letterSpacing: '0.08em',
-                    marginBottom: '12px'
+                    marginBottom: '8px'
                   }}>
-                    Booking details
+                    {isPackage ? 'Package Includes' : 'Experiences'}
                   </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {/* Confirmation Code */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', alignItems: 'center' }}>
-                      <span style={{ color: '#64748b' }}>Confirmation code:</span>
-                      <span style={{ color: '#0f172a', fontWeight: '600', fontFamily: 'monospace', fontSize: '14px' }}>
-                        {bookingDetails.reference?.substring(2, 10) || '—'}
-                      </span>
-                    </div>
-
-                    {/* Guest Name */}
-                    {bookingDetails.guestName && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ color: '#64748b' }}>Guest:</span>
-                        <span style={{ color: '#0f172a', fontWeight: '500' }}>
-                          {bookingDetails.guestName}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Package Name (if package) */}
-                    {isPackage && bookingDetails.packageName && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ color: '#64748b' }}>Package:</span>
-                        <span style={{ color: '#0f172a', fontWeight: '500' }}>
-                          {bookingDetails.packageName}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Dates */}
-                    {bookingDetails.checkIn && bookingDetails.checkOut && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ color: '#64748b' }}>Dates:</span>
-                        <span style={{ color: '#0f172a', fontWeight: '500' }}>
-                          {formatDate(bookingDetails.checkIn)} → {formatDate(bookingDetails.checkOut)}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Room/Cabin */}
-                    {bookingDetails.roomName && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ color: '#64748b' }}>{isPackage ? 'Cabin:' : 'Room:'}</span>
-                        <span style={{ color: '#0f172a', fontWeight: '500' }}>
-                          {bookingDetails.roomName}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Nights */}
-                    {bookingDetails.nights && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ color: '#64748b' }}>Nights:</span>
-                        <span style={{ color: '#0f172a', fontWeight: '500' }}>
-                          {bookingDetails.nights}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Package Includes (if package booking with extras) */}
-                {isPackage && bookingDetails.packageExtras && bookingDetails.packageExtras.length > 0 && (
-                  <div style={{ 
-                    paddingTop: '12px', 
-                    marginTop: '12px',
-                    borderTop: '1px solid #e5e7eb' 
-                  }}>
-                    <div style={{
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      color: '#9ca3af',
-                      letterSpacing: '0.08em',
-                      marginBottom: '8px'
-                    }}>
-                      Package includes
-                    </div>
-                    <div style={{ paddingLeft: '12px' }}>
-                      {bookingDetails.packageExtras.map((extra: any, idx: number) => (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {(isPackage ? bookingDetails.packageExtras : bookingDetails.extras).map((extra: any, idx: number) => {
+                      const qty = extra.quantity || extra.qty || 1;  // ⭐ Support both fields
+                      const lineTotal = isPackage 
+                        ? 0
+                        : (extra.price || 0) * qty;
+                      return (
                         <div key={idx} style={{ 
                           display: 'flex', 
-                          alignItems: 'start', 
-                          gap: '8px', 
+                          justifyContent: 'space-between',
                           fontSize: '13px',
-                          marginBottom: '6px'
+                          color: '#0f172a'
                         }}>
-                          <svg style={{ 
-                            width: '16px', 
-                            height: '16px', 
-                            color: '#10b981',
-                            marginTop: '2px',
-                            flexShrink: 0
-                          }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span style={{ color: '#0f172a' }}>{extra.name}</span>
+                          <span>
+                            {qty > 1 && `${qty}× `}  {/* ⭐ Show quantity for both */}
+                            {extra.name || extra.extra_name}  {/* ⭐ Support both fields */}
+                          </span>
+                          {!isPackage && <span>{formatCurrency(lineTotal, bookingDetails.currency)}</span>}
+                          {isPackage && <span style={{ color: '#10b981', fontSize: '12px' }}>✓ Included</span>}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                )}
-
-                {/* Experiences (if regular booking with extras) */}
-                {!isPackage && bookingDetails.extras && bookingDetails.extras.length > 0 && (
-                  <div style={{ 
-                    paddingTop: '12px', 
-                    marginTop: '12px',
-                    borderTop: '1px solid #e5e7eb' 
-                  }}>
-                    <div style={{
-                      fontSize: '11px',
-                      fontWeight: '600',
-                      textTransform: 'uppercase',
-                      color: '#9ca3af',
-                      letterSpacing: '0.08em',
-                      marginBottom: '8px'
-                    }}>
-                      Experiences
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {bookingDetails.extras.map((extra: any, idx: number) => {
-                        const lineTotal = (extra.price || 0) * (extra.qty || 0);
-                        return (
-                          <div key={idx} style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between',
-                            fontSize: '13px',
-                            color: '#0f172a'
-                          }}>
-                            <span>
-                              {extra.qty > 1 && `${extra.qty}× `}
-                              {extra.name}
-                            </span>
-                            <span>{formatCurrency(lineTotal, bookingDetails.currency)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  {!isPackage && (
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -323,99 +315,100 @@ function PaymentCallbackContent() {
                         {formatCurrency(bookingDetails.extrasTotal || 0, bookingDetails.currency)}
                       </span>
                     </div>
-                  </div>
-                )}
-
-                {/* Discount (if applicable) */}
-                {bookingDetails.discountAmount > 0 && bookingDetails.couponCode && (
-                  <div style={{ 
-                    paddingTop: '12px', 
-                    marginTop: '12px',
-                    borderTop: '1px solid #e5e7eb',
-                    background: '#d1fae5',
-                    margin: '12px -20px 0',
-                    padding: '12px 20px',
-                    borderRadius: '0 0 8px 8px'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '13px',
-                      fontWeight: '500',
-                      color: '#065f46'
-                    }}>
-                      <span>Discount ({bookingDetails.couponCode}):</span>
-                      <span>-{formatCurrency(bookingDetails.discountAmount, bookingDetails.currency)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Total Paid */}
-                <div style={{ 
-                  marginTop: '16px', 
-                  paddingTop: '16px', 
-                  borderTop: '2px solid #e5e7eb' 
-                }}>
-                  <div style={{
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    textTransform: 'uppercase',
-                    color: '#9ca3af',
-                    letterSpacing: '0.08em',
-                    marginBottom: '8px'
-                  }}>
-                    Payment summary
-                  </div>
-                  {bookingDetails.amount && (
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '16px',
-                      fontWeight: '600'
-                    }}>
-                      <span style={{ color: '#0f172a' }}>Total paid:</span>
-                      <span style={{ color: '#0f172a' }}>
-                        {formatCurrency(bookingDetails.amount, bookingDetails.currency)}
-                      </span>
-                    </div>
                   )}
                 </div>
+              )}
+
+              {/* Discount (if applicable) */}
+              {bookingDetails.discountAmount > 0 && bookingDetails.couponCode && (
+                <div style={{ 
+                  paddingTop: '12px', 
+                  marginTop: '12px',
+                  borderTop: '1px solid #e5e7eb',
+                  background: '#d1fae5',
+                  margin: '12px -20px 0',
+                  padding: '12px 20px',
+                  borderRadius: '0 0 8px 8px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#065f46'
+                  }}>
+                    <span>Discount ({bookingDetails.couponCode}):</span>
+                    <span>-{formatCurrency(bookingDetails.discountAmount, bookingDetails.currency)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Total Paid */}
+              <div style={{ 
+                marginTop: '16px', 
+                paddingTop: '16px', 
+                borderTop: '2px solid #e5e7eb' 
+              }}>
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  color: '#9ca3af',
+                  letterSpacing: '0.08em',
+                  marginBottom: '8px'
+                }}>
+                  Payment summary
+                </div>
+                {bookingDetails.amount && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '16px',
+                    fontWeight: '600'
+                  }}>
+                    <span style={{ color: '#0f172a' }}>Total paid:</span>
+                    <span style={{ color: '#0f172a' }}>
+                      {formatCurrency(bookingDetails.amount, bookingDetails.currency)}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )}
 
-            <p style={{ margin: '16px 0 0', fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-              A confirmation email will be sent to you shortly.
-            </p>
-          </div>
+          <p style={{ margin: '16px 0 0', fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
+            A confirmation email will be sent to you shortly.
+          </p>
+        </div>
 
-          {/* Footer Button */}
-          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>
-            <button
-              onClick={() => router.push('/')}
-              style={{
-                width: '100%',
-                background: '#000',
-                color: 'white',
-                padding: '14px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#1f2937')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#000')}
-            >
-              Close
-            </button>
-          </div>
+        {/* Footer Button */}
+        <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #e5e7eb' }}>
+          <button
+            onClick={() => router.push('/')}
+            style={{
+              width: '100%',
+              background: '#000',
+              color: 'white',
+              padding: '14px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#1f2937')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = '#000')}
+          >
+            Close
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   // Failed state
   return (
