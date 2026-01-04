@@ -585,8 +585,8 @@ export default function Page() {
                     {pkg.image_url ? (
                       <>
                         <img
-                          src={pkg.image_url}
-                          alt={pkg.name}
+                          src={pkg.image_url ?? undefined}
+                          alt={pkg.name ?? undefined}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           loading="lazy"
                         />
