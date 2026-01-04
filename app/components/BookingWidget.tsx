@@ -1117,6 +1117,7 @@ export default function BookingWidget() {
   padding: 0 2px;
 }
 
+
   }
   .date-picker-day.disabled .date-price,
   .date-picker-day.empty .date-price {
