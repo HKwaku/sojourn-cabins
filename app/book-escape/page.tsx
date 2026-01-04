@@ -27,7 +27,7 @@ async function fetchJSON<T>(url: string): Promise<T> {
 type FeaturedPackage = {
   id: number
   code: string | null
-  name: string
+  name: string | null
   package_price: number | null
   currency: string | null
   nights: number | null
