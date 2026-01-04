@@ -94,11 +94,20 @@ function formatNumber(value: number | string | null | undefined): string {
 
 
 function addDaysISO(isoDate: string, days: number): string {
-  const d = new Date(isoDate);
-  if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 10);
+  const d = new Date(isoDate + 'T00:00:00'); // force LOCAL midnight
+  if (isNaN(d.getTime())) return toLocalISO(new Date());
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return toLocalISO(d);
 }
+
+
+function toLocalISO(d: Date): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 
 function rangesOverlap(
   aStart: string | null,
@@ -218,10 +227,8 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
-  const todayISO = useMemo(
-    () => new Date().toISOString().slice(0, 10),
-    []
-  );
+  const todayISO = useMemo(() => toLocalISO(new Date()), []);
+
 
   const [checkIn, setCheckIn] = useState<string>(todayISO);
   const [checkOut, setCheckOut] = useState<string>(addDaysISO(todayISO, 1));
@@ -253,9 +260,6 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
   const [invalidCheckoutDates, setInvalidCheckoutDates] = useState<string[]>([]);
   const invalidCheckoutDatesRef = useRef<string[]>([]);
-
-  // ⭐ ADD THIS:
-  const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
   
   const experiencesData = [
     {
@@ -345,6 +349,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
         const roomIdSet = new Set<number>();
         const roomIdsByPkg: Record<number, number[]> = {};
+          
+        const normalizeCode = (s: string) => (s || '').trim().toUpperCase();
+        const roomIdByCode: Record<string, number> = {};
 
         pkgRooms.forEach((pr) => {
           if (pr.room_type_id == null) return;
@@ -365,6 +372,12 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             roomMap[rm.id] = rm;
           });
 
+          // code -> id map (for reservations that store room_type_code instead of room_type_id)
+          allRooms.forEach((rm) => {
+            if (rm.code) roomIdByCode[normalizeCode(rm.code)] = rm.id;
+          });
+
+
           const rByPkg: Record<number, RoomRow[]> = {};
           Object.entries(roomIdsByPkg).forEach(([pkgIdStr, roomIdArr]) => {
             const arr = Array.isArray(roomIdArr) ? roomIdArr : [];
@@ -382,79 +395,243 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           setRoomsByPackage({});
         }
 
-        // ---- Compute "Available from" date per package (same logic as featured cards) ----
-        const todayISO = new Date().toISOString().slice(0, 10);
-        const reservationsByRoom: Record<
-          number,
-          { room_type_id: number | null; check_in: string | null; check_out: string | null; status: string | null }[]
-        > = {};
-
-        if (roomIdSet.size) {
-          const roomIds = Array.from(roomIdSet);
-          const resUrl =
-            `${SUPABASE_URL}/rest/v1/reservations` +
-            `?select=room_type_id,check_in,check_out,status` +
-            `&room_type_id=in.(${roomIds.join(',')})` +
-            `&check_out=gte.${todayISO}`;
-
-          const resvs = await fetchJSON<
-            { room_type_id: number | null; check_in: string | null; check_out: string | null; status: string | null }[]
-          >(resUrl);
-
-          (resvs || []).forEach((r) => {
-            if (!r.room_type_id) return;
-            if (r.status === 'cancelled' || r.status === 'no_show') return;
-            if (!reservationsByRoom[r.room_type_id]) {
-              reservationsByRoom[r.room_type_id] = [];
-            }
-            reservationsByRoom[r.room_type_id].push(r);
+        // Store roomMap for availability calculation
+        const roomDataMap: Record<number, RoomRow> = {};
+        if (roomIdSet.size > 0) {
+          const roomTypesURL =
+            `${SUPABASE_URL}/rest/v1/room_types` +
+            `?select=id,code,name,image_url,max_adults` +
+            `&id=in.(${Array.from(roomIdSet).join(',')})`;
+          const roomsData = await fetchJSON<RoomRow[]>(roomTypesURL);
+          roomsData.forEach((rm) => {
+            roomDataMap[rm.id] = rm;
           });
         }
 
+        // ---- Compute "Available from" date per package (MATCH calendar availability logic) ----
+        const todayISO = toLocalISO(new Date());
+
+        // Build occupancy sets for ALL rooms referenced by packages
+        const occupancyByRoom: Record<number, Set<string>> = {};
+        Array.from(roomIdSet).forEach((rid) => {
+          occupancyByRoom[rid] = new Set<string>();
+        });
+
         const horizonDays = 365;
+        const horizonEndISO = addDaysISO(todayISO, horizonDays);
+                let resvs: {
+          room_type_id: number | string | null;
+          room_type_code: string | null;
+          check_in: string | null;
+          check_out: string | null;
+          status: string | null;
+        }[] = [];
+
+        let blocked: { room_type_id: number | string | null; blocked_date: string | null }[] = [];
+
+        // 1) Reservations overlapping horizon for these rooms
+        if (roomIdSet.size) {
+          const roomIds = Array.from(roomIdSet);
+
+          const resUrl =
+            `${SUPABASE_URL}/rest/v1/reservations` +
+            `?select=room_type_id,room_type_code,check_in,check_out,status` +
+            `&check_in=lt.${horizonEndISO}&check_out=gt.${todayISO}` +
+            `&status=not.in.("cancelled","no_show")`;
+
+
+          resvs = await fetchJSON<
+
+            {
+              room_type_id: number | string | null;
+              room_type_code: string | null;
+              check_in: string | null;
+              check_out: string | null;
+              status: string | null;
+            }[]
+          >(resUrl);
+
+
+                    (resvs || []).forEach((r) => {
+            if (!r.check_in || !r.check_out) return;
+
+            let rid: number | null = null;
+
+            // 1) try room_type_id (number or numeric string)
+            if (r.room_type_id != null) {
+              const n = Number(r.room_type_id);
+              if (!Number.isNaN(n)) rid = n;
+            }
+
+            // 2) fallback to room_type_code
+            if (rid == null && r.room_type_code) {
+              rid = roomIdByCode[normalizeCode(r.room_type_code)] ?? null;
+            }
+
+            // only stamp occupancy for rooms used by these packages
+            if (rid == null || !roomIdSet.has(rid)) return;
+
+            const set = occupancyByRoom[rid];
+            if (!set) return;
+
+            let cur = new Date(r.check_in.slice(0, 10) + 'T00:00:00');
+            const end = new Date(r.check_out.slice(0, 10) + 'T00:00:00');
+            if (isNaN(cur.getTime()) || isNaN(end.getTime())) return;
+
+            while (cur < end) {
+              set.add(toLocalISO(cur));
+              cur.setDate(cur.getDate() + 1);
+            }
+          });
+
+        }
+
+        // 2) Blocked dates for these rooms (this is what your calendar uses too)
+        if (roomIdSet.size) {
+          const roomIds = Array.from(roomIdSet);
+          const blockedUrl =
+            `${SUPABASE_URL}/rest/v1/blocked_dates` +
+            `?select=room_type_id,blocked_date` +
+            `&room_type_id=in.(${roomIds.join(',')})` +
+            `&blocked_date=gte.${todayISO}&blocked_date=lt.${horizonEndISO}`;
+
+          blocked = await fetchJSON<
+            { room_type_id: number | string | null; blocked_date: string | null }[]
+          >(blockedUrl);
+
+          (blocked || []).forEach((b) => {
+            if (!b.room_type_id || !b.blocked_date) return;
+            const rid = Number(b.room_type_id);
+            if (Number.isNaN(rid)) return;
+            const set = occupancyByRoom[rid];
+            if (!set) return;
+            set.add(b.blocked_date.slice(0, 10));
+          });
+        }
+
+
+        // ---- Compute "Available from" using CORRECT calendar logic ----
         const nextAvailMap: Record<number, string | null> = {};
 
         pkgs.forEach((pkg) => {
-          const nights = pkg.nights && pkg.nights > 0 ? pkg.nights : 1;
+          const nights = pkg.nights ?? 1;
           const roomIdsForPkg = roomIdsByPkg[pkg.id] || [];
           let nextAvailable: string | null = null;
 
-          if (roomIdsForPkg.length) {
-            // Start from the later of today or the package's valid_from
-            const startFrom =
-              pkg.valid_from && pkg.valid_from > todayISO ? pkg.valid_from : todayISO;
+          if (!roomIdsForPkg.length) {
+            nextAvailMap[pkg.id] = null;
+            return;
+          }
 
-            for (let offset = 0; offset < horizonDays; offset++) {
-              const ci = addDaysISO(startFrom, offset);
-              const co = addDaysISO(ci, nights);
+          // Build lookup maps for rooms in this package (CORRECT logic lines 687-696)
+          const roomKeyById: Record<string, string> = {};
+          const roomKeyByCode: Record<string, string> = {};
+          const occupancy: Record<string, Set<string>> = {};
 
-              // Respect package validity end
-              if (pkg.valid_until && co > pkg.valid_until) break;
+          // Get room details for this package
+          const rooms = roomIdsForPkg
+            .map((id) => roomDataMap[id])
+            .filter(Boolean);
 
-              let hasFreeRoom = false;
+          rooms.forEach((room: any) => {
+            const key = String(room.id);
+            occupancy[key] = new Set<string>();
+            roomKeyById[String(room.id)] = key;
+            if (room.code) roomKeyByCode[room.code] = key;
+          });
 
-              for (const roomId of roomIdsForPkg) {
-                const resvsForRoom = reservationsByRoom[roomId] || [];
-                const hasOverlap = resvsForRoom.some((r) =>
-                  rangesOverlap(r.check_in, r.check_out, ci, co)
-                );
-                if (!hasOverlap) {
-                  hasFreeRoom = true;
+          // Fetch reservations and blocked dates (CORRECT logic lines 708-771)
+          const horizonStartISO = todayISO;
+          const horizonEndISO = addDaysISO(todayISO, horizonDays);
+
+          // Add reservations to occupancy
+          (resvs || []).forEach((r) => {
+            if (!r.check_in || !r.check_out) return;
+
+            const idKey = r.room_type_id ? roomKeyById[String(r.room_type_id)] : undefined;
+            const codeKey = r.room_type_code ? roomKeyByCode[r.room_type_code] : undefined;
+
+            const key = idKey ?? codeKey;
+            if (!key) return;
+
+            let cur = new Date(r.check_in + 'T00:00:00');
+            const end = new Date(r.check_out + 'T00:00:00');
+            if (isNaN(cur.getTime()) || isNaN(end.getTime())) return;
+
+            const set = occupancy[key];
+            if (!set) return;
+
+            while (cur < end) {
+              set.add(toLocalISO(cur));
+              cur.setDate(cur.getDate() + 1);
+            }
+          });
+
+          // Add blocked dates to occupancy
+          (blocked || []).forEach((b) => {
+            const key = roomKeyById[String(b.room_type_id)];
+            if (!key || !b.blocked_date) return;
+            occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
+          });
+
+          // Find first available date (CORRECT logic lines 775-834)
+          const startFrom = pkg.valid_from && pkg.valid_from > todayISO ? pkg.valid_from : todayISO;
+          const ciCursor = new Date(startFrom + 'T00:00:00');
+          const horizonEnd = new Date(todayISO + 'T00:00:00');
+          horizonEnd.setFullYear(horizonEnd.getFullYear() + 1);
+
+          while (ciCursor <= horizonEnd) {
+            const ciStr = toLocalISO(ciCursor);
+
+            // Enforce package validity on check-in
+            if (pkg.valid_from && ciStr < pkg.valid_from) {
+              ciCursor.setDate(ciCursor.getDate() + 1);
+              continue;
+            }
+
+            const coStr = addDaysISO(ciStr, nights);
+
+            // Ensure checkout doesn't exceed valid_until
+            if (pkg.valid_until && coStr > pkg.valid_until) {
+              break;
+            }
+
+            let hasAvailableRoom = false;
+
+            for (const room of rooms) {
+              const key = String(room.id);
+              const occ = occupancy[key] ?? new Set<string>();
+              let roomFree = true;
+
+              for (let i = 0; i < nights; i++) {
+                const d = new Date(ciCursor);
+                d.setDate(d.getDate() + i);
+                const dStr = toLocalISO(d);
+                if (occ.has(dStr)) {
+                  roomFree = false;
                   break;
                 }
               }
 
-              if (hasFreeRoom) {
-                nextAvailable = ci;
+              if (roomFree) {
+                hasAvailableRoom = true;
                 break;
               }
             }
+
+            if (hasAvailableRoom) {
+              nextAvailable = ciStr;
+              break;
+            }
+
+            ciCursor.setDate(ciCursor.getDate() + 1);
           }
 
           nextAvailMap[pkg.id] = nextAvailable;
         });
 
         setNextAvailableByPackage(nextAvailMap);
+
 
 
         // 3) Load package extras (NOTE: table name is package_extras)
@@ -564,8 +741,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
         const horizonEnd = new Date(today);
         horizonEnd.setFullYear(horizonEnd.getFullYear() + 1);
 
-        const horizonStartISO = today.toISOString().slice(0, 10);
-        const horizonEndISO = horizonEnd.toISOString().slice(0, 10);
+        const horizonStartISO = toLocalISO(today);
+        const horizonEndISO = toLocalISO(horizonEnd);
+
 
         // 1) Fetch all reservations overlapping the horizon,
         //    then match them to package rooms by id *or* code
@@ -605,9 +783,10 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
           // mark [check_in, check_out) as occupied
           while (cur < end) {
-            set.add(cur.toISOString().slice(0, 10));
+            set.add(toLocalISO(cur));
             cur.setDate(cur.getDate() + 1);
           }
+
         });
 
         // 2) Fetch blocked dates for these rooms (blocked_dates only has room_type_id)
@@ -626,7 +805,8 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           blocked.forEach((b) => {
             const key = roomKeyById[String(b.room_type_id)];
             if (!key || !b.blocked_date) return;
-            occupancy[key]?.add(b.blocked_date);
+            occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
+
           });
         }
 
@@ -636,7 +816,8 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
         //    disable if *no* room is free for the whole package stay.
         const ciCursor = new Date(today);
         while (ciCursor <= horizonEnd) {
-          const ciStr = ciCursor.toISOString().slice(0, 10);
+          const ciStr = toLocalISO(ciCursor);
+
 
           // Always enforce package validity on check-in
           if (pkg.valid_from && ciStr < pkg.valid_from) {
@@ -644,11 +825,23 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             ciCursor.setDate(ciCursor.getDate() + 1);
             continue;
           }
-          if (pkg.valid_until && ciStr > pkg.valid_until) {
+          // Always enforce package validity on check-in (and entire stay)
+          if (pkg.valid_from && ciStr < pkg.valid_from) {
             disabled.push(ciStr);
             ciCursor.setDate(ciCursor.getDate() + 1);
             continue;
           }
+
+          const coStr = addDaysISO(ciStr, nights);
+
+          // If valid_until is the last allowed date for the package period,
+          // ensure the *checkout* does not exceed it.
+          if (pkg.valid_until && coStr > pkg.valid_until) {
+            disabled.push(ciStr);
+            ciCursor.setDate(ciCursor.getDate() + 1);
+            continue;
+          }
+
 
           let hasAvailableRoom = false;
 
@@ -660,7 +853,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             for (let i = 0; i < nights; i++) {
               const d = new Date(ciCursor);
               d.setDate(d.getDate() + i);
-              const dStr = d.toISOString().slice(0, 10);
+              const dStr = toLocalISO(d);
               if (occ.has(dStr)) {
                 roomFree = false;
                 break;
@@ -743,8 +936,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           if (vEnd < horizonEnd) horizonEnd.setTime(vEnd.getTime());
         }
 
-        const horizonStartISO = ciDate.toISOString().slice(0, 10);
-        const horizonEndISO = horizonEnd.toISOString().slice(0, 10);
+        const horizonStartISO = toLocalISO(ciDate);
+        const horizonEndISO = toLocalISO(horizonEnd);
+
 
         // 1) Reservations overlapping [checkIn, horizonEnd]
         const resUrl =
@@ -782,9 +976,10 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           if (!set) return;
 
           while (cur < end) {
-            set.add(cur.toISOString().slice(0, 10));
+            set.add(toLocalISO(cur));
             cur.setDate(cur.getDate() + 1);
           }
+
         });
 
         // 2) Blocked dates for these rooms
@@ -803,7 +998,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           blocked.forEach((b) => {
             const key = roomKeyById[String(b.room_type_id)];
             if (!key || !b.blocked_date) return;
-            occupancy[key]?.add(b.blocked_date);
+            occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
           });
         }
 
@@ -816,7 +1011,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
 
         const coCursor = new Date(minCoDate);
         while (coCursor <= horizonEnd) {
-          const coStr = coCursor.toISOString().slice(0, 10);
+          const coStr = toLocalISO(coCursor);
 
           let hasAvailableRoomForStay = false;
 
@@ -839,7 +1034,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             for (let i = 0; i < stayNights; i++) {
               const d = new Date(ciDate);
               d.setDate(d.getDate() + i);
-              const dStr = d.toISOString().slice(0, 10);
+              const dStr = toLocalISO(d);
               if (occ.has(dStr)) {
                 roomFree = false;
                 break;
@@ -970,145 +1165,6 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       setAvailableRoomsForSelected([]);
     }
   }
-    // Compute which dates have NO available rooms for the selected package
-async function computeUnavailableDates() {
-  console.log('🔍 Computing unavailable dates for package:', selectedPackageId);
-  
-  if (!selectedPackageId || !selectedPkg?.nights) {
-    console.log('❌ No package or nights, clearing unavailable dates');
-    setUnavailableDates([]);
-    return;
-  }
-
-  const rooms = roomsByPackage[selectedPackageId] ?? [];
-  if (!rooms.length) {
-    // No rooms configured - all dates unavailable
-    // Set a wide range of unavailable dates
-    const dates = [];
-    const start = new Date();
-    for (let i = 0; i < 365; i++) {  // Next year
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      dates.push(d.toISOString().split('T')[0]);
-    }
-    setUnavailableDates(dates);
-    return;
-  }
-
-  if (!rooms.length) {
-    console.log('⚠️ No rooms configured - blocking all dates');
-    const dates = [];
-    const start = new Date();
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      dates.push(d.toISOString().split('T')[0]);
-    }
-    setUnavailableDates(dates);
-    console.log('🚫 Blocked dates count:', dates.length);
-    return;
-  }
-
-  try {
-    // Get date range to check (next 12 months)
-    const today = new Date();
-    const endDate = new Date(today);
-    endDate.setMonth(today.getMonth() + 12);
-    
-    const startISO = today.toISOString().split('T')[0];
-    const endISO = endDate.toISOString().split('T')[0];
-
-    // Load ALL reservations in the range
-    const resUrl =
-      `${SUPABASE_URL}/rest/v1/reservations` +
-      `?select=room_type_id,room_type_code,check_in,check_out,status` +
-      `&check_in=lt.${endISO}&check_out=gt.${startISO}` +
-      `&status=not.in.("cancelled","no_show")`;
-
-    const reservations = await fetchJSON<{
-      room_type_id: string | null;
-      room_type_code: string | null;
-      check_in: string;
-      check_out: string;
-      status: string | null;
-    }[]>(resUrl);
-
-    // Load blocked dates
-    const roomIds = rooms.map((r) => String(r.id));
-    const idList = roomIds.join(',');
-    const blockedUrl =
-      `${SUPABASE_URL}/rest/v1/blocked_dates` +
-      `?select=room_type_id,blocked_date` +
-      `&blocked_date=gte.${startISO}&blocked_date=lt.${endISO}` +
-      (idList ? `&room_type_id=in.(${idList})` : '');
-
-    const blocked = await fetchJSON<{
-      room_type_id: number;
-      blocked_date: string;
-    }[]>(blockedUrl);
-
-    // For each date, check if ANY room is available for a stay starting that date
-    const nights = selectedPkg.nights;
-    const unavailable = [];
-    
-    let current = new Date(today);
-    while (current <= endDate) {
-      const checkInDate = current.toISOString().split('T')[0];
-      const checkOutDate = new Date(current);
-      checkOutDate.setDate(current.getDate() + nights);
-      const checkOutISO = checkOutDate.toISOString().split('T')[0];
-
-      // Check if ANY room can accommodate this stay
-      const hasAvailableRoom = rooms.some((room) => {
-        const roomId = String(room.id);
-        const roomCode = room.code ?? null;
-
-        // Check reservations
-        const hasReservation = reservations.some((r) => {
-          const sameRoom =
-            (r.room_type_id && String(r.room_type_id) === roomId) ||
-            (roomCode && r.room_type_code && r.room_type_code === roomCode);
-          if (!sameRoom) return false;
-
-          const existingStart = new Date(r.check_in).getTime();
-          const existingEnd = new Date(r.check_out).getTime();
-          const start = new Date(checkInDate).getTime();
-          const end = new Date(checkOutISO).getTime();
-
-          return existingStart < end && existingEnd > start;
-        });
-
-        if (hasReservation) return false;
-
-        // Check blocked dates for ANY night in the stay
-        for (let i = 0; i < nights; i++) {
-          const nightDate = new Date(current);
-          nightDate.setDate(current.getDate() + i);
-          const nightISO = nightDate.toISOString().split('T')[0];
-          
-          const hasBlock = blocked.some(
-            (b) => b.room_type_id && String(b.room_type_id) === roomId && b.blocked_date === nightISO
-          );
-          if (hasBlock) return false;
-        }
-
-        return true;  // This room is available
-      });
-
-      if (!hasAvailableRoom) {
-        unavailable.push(checkInDate);
-      }
-
-      current.setDate(current.getDate() + 1);
-    }
-
-    setUnavailableDates(unavailable);
-    console.log('🚫 Unavailable dates:', unavailable.length, unavailable.slice(0, 5));  // ⭐ ADD THIS
-  } catch (err) {
-    console.error('Error computing unavailable dates:', err);
-    setUnavailableDates([]);
-  }
-} 
 
   // Move from package+dates → room selection
   async function handleNextToRooms() {
@@ -1151,13 +1207,6 @@ async function computeUnavailableDates() {
 
     setStage('rooms');
   }
-
-  // Compute unavailable dates when package changes
-  useEffect(() => {
-    if (selectedPackageId && selectedPkg) {  // ⭐ Check selectedPkg exists
-      computeUnavailableDates();
-    }
-  }, [selectedPackageId, selectedPkg, packages, roomsByPackage]);  // ⭐ Add dependencies
 
   function handleNextToDetails() {
     if (!selectedRoomId) {
@@ -1344,12 +1393,6 @@ function formatDate(isoDate?: string | null): string {
     const invalidCo = invalidCheckoutDatesRef.current;
     const dateObj = new Date(dateStr);
 
-  // 0) Block dates with no available rooms
-    // 0) Block dates with no available rooms
-    if (pickerId !== 'co' && unavailableDates.indexOf(dateStr) !== -1) {
-      console.log('🚫 Blocking date (unavailable):', dateStr);  // ⭐ ADD THIS
-      return true;
-    }
 
     // 1) Block all dates in the past
     const today = new Date();
@@ -1385,7 +1428,7 @@ function formatDate(isoDate?: string | null): string {
       for (let i = 0; i < nights; i++) {
         const stayDate = new Date(checkInObj);
         stayDate.setDate(stayDate.getDate() + i);
-        const stayDateStr = stayDate.toISOString().split('T')[0];
+        const stayDateStr = toLocalISO(stayDate);
         
         if (disabled.indexOf(stayDateStr) !== -1) {
           return true;  // Block checkout if any night is unavailable

@@ -105,10 +105,20 @@ export default function Page() {
           roomIdsByPackage[pr.package_id].push(pr.room_type_id)
         })
 
+        // ✅ IMPORTANT: build this AFTER roomIdSet is populated
+        const roomTypeIds = Array.from(roomIdSet)
+
+
         let roomsDisplayByPackage: Record<
           number,
           { code: string | null; name: string | null }[]
         > = {}
+
+        let roomCodes: string[] = []
+        const roomIdByCode: Record<string, number> = {}
+        const normalizeCode = (s: string) => (s || '').trim().toUpperCase()
+
+
 
         if (roomIdSet.size) {
           const roomIds = Array.from(roomIdSet)
@@ -127,6 +137,22 @@ export default function Page() {
           ;(roomsMeta || []).forEach((r) => {
             roomById[r.id] = r
           })
+
+        roomCodes = (roomsMeta || [])
+          .map((r) => (r.code || '').trim())
+          .filter(Boolean)
+
+
+        for (const k in roomIdByCode) delete roomIdByCode[k]
+        ;(roomsMeta || []).forEach((r) => {
+          const c = (r.code || '').trim()
+          if (!c) return
+          roomIdByCode[normalizeCode(c)] = r.id
+        })
+
+
+
+
 
           const map: typeof roomsDisplayByPackage = {}
           ;(pkgRooms || []).forEach((pr) => {
@@ -192,122 +218,167 @@ export default function Page() {
           extrasByPackage = map
         }
 
-        const roomTypeIds = Array.from(roomIdSet)
-        const todayISO = new Date().toISOString().slice(0, 10)
 
-        // 4) Fetch reservations for those room types (future only)
-        const reservationsByRoom: Record<
-          number,
-          {
-            room_type_id: number | null
-            check_in: string | null
-            check_out: string | null
-            status: string | null
-          }[]
-        > = {}
-
-        if (roomTypeIds.length > 0) {
-          const idList = roomTypeIds.join(',')
-          const resUrl =
-            `${SUPABASE_URL}/rest/v1/reservations` +
-            `?select=room_type_id,check_in,check_out,status` +
-            `&room_type_id=in.(${idList})` +
-            `&check_out=gte.${todayISO}`
-
-          const resvs = await fetchJSON<
-            {
-              room_type_id: number | null
-              check_in: string | null
-              check_out: string | null
-              status: string | null
-            }[]
-          >(resUrl)
-
-          ;(resvs || []).forEach((r) => {
-            if (r.room_type_id == null) return
-            if (r.status === 'cancelled' || r.status === 'no_show') return
-            if (!reservationsByRoom[r.room_type_id]) {
-              reservationsByRoom[r.room_type_id] = []
-            }
-            reservationsByRoom[r.room_type_id].push(r)
-          })
+        // Helper functions
+        function toLocalISO(d: Date): string {
+          const yyyy = d.getFullYear()
+          const mm = String(d.getMonth() + 1).padStart(2, '0')
+          const dd = String(d.getDate()).padStart(2, '0')
+          return `${yyyy}-${mm}-${dd}`
         }
 
-        // Helpers copied from PackagesModal patterns
-        function addDaysISO(iso: string, days: number): string {
-          const d = new Date(iso)
-          if (Number.isNaN(d.getTime())) return iso
+        function addDaysISO(isoDate: string, days: number): string {
+          const d = new Date(isoDate + 'T00:00:00')
+          if (isNaN(d.getTime())) return toLocalISO(new Date())
           d.setDate(d.getDate() + days)
-          return d.toISOString().slice(0, 10)
+          return toLocalISO(d)
         }
 
-        function rangesOverlap(
-          aStart: string | null,
-          aEnd: string | null,
-          bStart: string,
-          bEnd: string
-        ): boolean {
-          if (!aStart || !aEnd) return false
-          const A = new Date(aStart)
-          const B = new Date(aEnd)
-          const C = new Date(bStart)
-          const D = new Date(bEnd)
-          if (
-            Number.isNaN(A.getTime()) ||
-            Number.isNaN(B.getTime()) ||
-            Number.isNaN(C.getTime()) ||
-            Number.isNaN(D.getTime())
-          ) {
-            return false
-          }
-          // overlap if existingStart < newEnd AND existingEnd > newStart
-          return A < D && B > C
-        }
-
-        // 5) Compute *next date with availability* + cabin & extras summaries per package
+        // ---- Compute "Available from" using CORRECT calendar logic ----
+        const todayISO = toLocalISO(new Date())
         const horizonDays = 365
+        const horizonEndISO = addDaysISO(todayISO, horizonDays)
 
+        // Fetch reservations
+        const resUrl =
+          `${SUPABASE_URL}/rest/v1/reservations` +
+          `?select=room_type_id,room_type_code,check_in,check_out,status` +
+          `&check_in=lt.${horizonEndISO}&check_out=gt.${todayISO}` +
+          `&status=not.in.("cancelled","no_show")`
+
+        const resvs = await fetchJSON<{
+          room_type_id: string | number | null
+          room_type_code: string | null
+          check_in: string | null
+          check_out: string | null
+          status: string | null
+        }[]>(resUrl)
+
+        // Fetch blocked dates
+        let blocked: { room_type_id: number | string | null; blocked_date: string | null }[] = []
+        if (roomTypeIds.length > 0) {
+          const blockedUrl =
+            `${SUPABASE_URL}/rest/v1/blocked_dates` +
+            `?select=room_type_id,blocked_date` +
+            `&room_type_id=in.(${roomTypeIds.join(',')})` +
+            `&blocked_date=gte.${todayISO}&blocked_date=lt.${horizonEndISO}`
+
+          blocked = await fetchJSON<
+            { room_type_id: number | string | null; blocked_date: string | null }[]
+          >(blockedUrl) || []
+        }
+
+        // Compute nextAvailable for each package using CORRECT logic
         const withAvailability: FeaturedPackage[] = pkgs.map((pkg) => {
-          const nights = pkg.nights && pkg.nights > 0 ? pkg.nights : 1
+          const nights = pkg.nights ?? 1
           const roomIdsForPkg = roomIdsByPackage[pkg.id] || []
           let nextAvailable: string | null = null
 
-                    if (roomIdsForPkg.length) {
-            // Start from the later of today or the package's valid_from
-            const startFrom =
-              pkg.valid_from && pkg.valid_from > todayISO
-                ? pkg.valid_from
-                : todayISO
+          if (!roomIdsForPkg.length) {
+            return {
+              ...pkg,
+              nextAvailable: null,
+              appliesTo: null,
+              extrasSummary: null,
+            }
+          }
 
-            for (let offset = 0; offset < horizonDays; offset++) {
-              const ci = addDaysISO(startFrom, offset)
-              const co = addDaysISO(ci, nights)
+          // Build lookup maps (CORRECT logic)
+          const roomKeyById: Record<string, string> = {}
+          const roomKeyByCode: Record<string, string> = {}
+          const occupancy: Record<string, Set<string>> = {}
 
-              // If we've gone past valid_until, no need to keep checking
-              if (pkg.valid_until && co > pkg.valid_until) break
+          roomIdsForPkg.forEach((id) => {
+            const key = String(id)
+            occupancy[key] = new Set<string>()
+            roomKeyById[String(id)] = key
+            const code = Object.keys(roomIdByCode).find((c) => roomIdByCode[c] === id)
+            if (code) roomKeyByCode[code] = key
+          })
 
-              let hasFreeRoom = false
+          // Add reservations to occupancy
+          ;(resvs || []).forEach((r) => {
+            if (!r.check_in || !r.check_out) return
 
-              for (const roomId of roomIdsForPkg) {
-                const resvs = reservationsByRoom[roomId] || []
-                const hasOverlap = resvs.some((r) =>
-                  rangesOverlap(r.check_in, r.check_out, ci, co)
-                )
-                if (!hasOverlap) {
-                  hasFreeRoom = true
+            const idKey = r.room_type_id ? roomKeyById[String(r.room_type_id)] : undefined
+            const codeKey = r.room_type_code ? roomKeyByCode[r.room_type_code] : undefined
+
+            const key = idKey ?? codeKey
+            if (!key) return
+
+            let cur = new Date(r.check_in + 'T00:00:00')
+            const end = new Date(r.check_out + 'T00:00:00')
+            if (isNaN(cur.getTime()) || isNaN(end.getTime())) return
+
+            const set = occupancy[key]
+            if (!set) return
+
+            while (cur < end) {
+              set.add(toLocalISO(cur))
+              cur.setDate(cur.getDate() + 1)
+            }
+          })
+
+          // Add blocked dates to occupancy
+          ;(blocked || []).forEach((b) => {
+            const key = roomKeyById[String(b.room_type_id)]
+            if (!key || !b.blocked_date) return
+            occupancy[key]?.add(String(b.blocked_date).slice(0, 10))
+          })
+
+          // Find first available date (CORRECT logic)
+          const startFrom = pkg.valid_from && pkg.valid_from > todayISO ? pkg.valid_from : todayISO
+          const ciCursor = new Date(startFrom + 'T00:00:00')
+          const horizonEnd = new Date(todayISO + 'T00:00:00')
+          horizonEnd.setFullYear(horizonEnd.getFullYear() + 1)
+
+          while (ciCursor <= horizonEnd) {
+            const ciStr = toLocalISO(ciCursor)
+
+            // Enforce package validity
+            if (pkg.valid_from && ciStr < pkg.valid_from) {
+              ciCursor.setDate(ciCursor.getDate() + 1)
+              continue
+            }
+
+            const coStr = addDaysISO(ciStr, nights)
+
+            if (pkg.valid_until && coStr > pkg.valid_until) {
+              break
+            }
+
+            let hasAvailableRoom = false
+
+            for (const roomId of roomIdsForPkg) {
+              const key = String(roomId)
+              const occ = occupancy[key] ?? new Set<string>()
+              let roomFree = true
+
+              for (let i = 0; i < nights; i++) {
+                const d = new Date(ciCursor)
+                d.setDate(d.getDate() + i)
+                const dStr = toLocalISO(d)
+                if (occ.has(dStr)) {
+                  roomFree = false
                   break
                 }
               }
 
-              if (hasFreeRoom) {
-                nextAvailable = ci
+              if (roomFree) {
+                hasAvailableRoom = true
                 break
               }
             }
+
+            if (hasAvailableRoom) {
+              nextAvailable = ciStr
+              break
+            }
+
+            ciCursor.setDate(ciCursor.getDate() + 1)
           }
 
-
-          // Cabin summary: "Applies to SAND and SEA Cabins"
+          // Build appliesTo and extrasSummary
           const roomsForPkg = roomsDisplayByPackage[pkg.id] || []
           let appliesTo: string | null = null
           if (roomsForPkg.length) {
@@ -325,7 +396,6 @@ export default function Page() {
             }
           }
 
-          // Extras summary: "1× Breakfast Basket, Late Checkout"
           const extrasForPkg = extrasByPackage[pkg.id] || []
           let extrasSummary: string | null = null
           if (extrasForPkg.length) {
@@ -354,8 +424,8 @@ export default function Page() {
             valid_until: pkg.valid_until,
           }
         })
-
         setFeaturedPackages(withAvailability)
+
       } catch (err) {
         console.error(err)
         setPackagesError('Unable to load featured packages.')

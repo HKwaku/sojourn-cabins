@@ -979,8 +979,6 @@ export default function BookingWidget() {
     .date-picker-wrapper {
     position: relative;
     width: 100%;
-    /* ensure the picker and its dropdown sit above the summary pane */
-    z-index: 20;
   }
   .date-picker-input {
     width: 100%;
@@ -1006,10 +1004,30 @@ export default function BookingWidget() {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    /* sit above everything else in the card */
-    z-index: 99999;
+    z-index: 999999 !important;
     display: none;
     padding: 16px;
+    min-width: 380px;
+  }
+
+  .date-picker-dropdown.active {
+    display: block;
+    z-index: 9999999 !important;
+  }
+  
+  /* Mobile: Make calendar more prominent */
+  @media (max-width: 640px) {
+    .date-picker-dropdown {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90vw;
+      max-width: 400px;
+      margin-top: 0;
+      z-index: 99999999 !important;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
   }
 
   .date-picker-dropdown.active {
@@ -1053,26 +1071,68 @@ export default function BookingWidget() {
   .date-picker-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 6px;
   }
   .date-picker-day {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    background: white;
-    color: #111827;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  height: 62px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  background: white;
+  color: #111827;
+  position: relative;
+
+  /* ✅ prevent price text spilling outside the tile */
+  overflow: hidden;
+  min-width: 0;
+}
+
+  .date-number {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .date-price {
+  font-size: 9px;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.05;
+  margin-top: 4px;
+
+  /* ✅ allow 2-line wrap instead of squishing/clipping */
+  white-space: normal;
+  max-width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+
+  /* keep it visually centered and compact */
+  display: block;
+  padding: 0 2px;
+}
+
+  }
+  .date-picker-day.disabled .date-price,
+  .date-picker-day.empty .date-price {
+    display: none;
   }
   .date-picker-day:hover:not(.disabled):not(.empty) {
     background: #f3f4f6;
   }
+  .date-picker-day:hover:not(.disabled):not(.empty) .date-price {
+    color: #111827;
+  }
   .date-picker-day.selected {
     background: var(--brand);
+    color: white;
+  }
+  .date-picker-day.selected .date-price {
     color: white;
   }
   .date-picker-day.in-range {
@@ -1294,7 +1354,14 @@ export default function BookingWidget() {
     if (!curr) curr = CURRENCY;
     return new Intl.NumberFormat('en-GB', { style: 'currency', currency: curr }).format(Number(amount || 0));
   }
-  function iso(d) { return new Date(d).toISOString().slice(0, 10); }
+  function iso(d) { 
+    // Use local timezone instead of UTC to avoid date shifting
+    var date = new Date(d);
+    var yyyy = date.getFullYear();
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var dd = String(date.getDate()).padStart(2, '0');
+    return yyyy + '-' + mm + '-' + dd;
+  }
 
   // Match admin: add N days to an ISO date
   function addDaysISO(isoDate, days) {
@@ -1404,6 +1471,8 @@ export default function BookingWidget() {
 
   var selectedDates = { ci: null, co: null };
   var activePickerId = null;
+  var calendarPrices = {}; // Store nightly prices: { 'YYYY-MM-DD': { price: 123.45, currency: 'GHS' } }
+  var currentRoomTypeId = null; // Track currently selected room type for pricing
 
   function initDatePickers() {
     var ciInput = $('#ci');
@@ -1460,7 +1529,7 @@ export default function BookingWidget() {
   }
 
 
-  function openDatePicker(pickerId) {
+  async function openDatePicker(pickerId) {
     closeDatePicker();
     activePickerId = pickerId;
     var picker = $('#' + pickerId + '-picker');
@@ -1468,6 +1537,13 @@ export default function BookingWidget() {
     
     var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
     currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+    
+    // Fetch pricing for current and next month if we have a room type
+    if (currentRoomTypeId) {
+      var month = currentPickerMonth[pickerId];
+      await fetchCalendarPricing(month.getFullYear(), month.getMonth(), currentRoomTypeId);
+      await fetchCalendarPricing(month.getFullYear(), month.getMonth() + 1, currentRoomTypeId);
+    }
     
     renderCalendar(pickerId);
   }
@@ -1477,6 +1553,38 @@ export default function BookingWidget() {
       var picker = $('#' + activePickerId + '-picker');
       picker.classList.remove('active');
       activePickerId = null;
+    }
+  }
+
+  async function fetchCalendarPricing(year, month, roomTypeId) {
+    if (!roomTypeId) return;
+    
+    try {
+      // Calculate first and last day of the month
+      var firstDay = new Date(year, month, 1);
+      var lastDay = new Date(year, month + 1, 0);
+      var checkIn = iso(firstDay);
+      var checkOut = iso(new Date(lastDay.getTime() + 86400000)); // +1 day for checkout
+      
+      var pricingData = await supabase.rpc('calculate_dynamic_price', {
+        p_room_type_id: roomTypeId,
+        p_check_in: checkIn,
+        p_check_out: checkOut,
+        p_pricing_model_id: null
+      });
+      
+      if (pricingData && pricingData.nightly_rates) {
+        // Store each night's price in calendarPrices
+        for (var i = 0; i < pricingData.nightly_rates.length; i++) {
+          var night = pricingData.nightly_rates[i];
+          calendarPrices[night.date] = {
+            price: parseFloat(night.rate || 0),
+            currency: night.currency || 'GHS'
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch calendar pricing:', err);
     }
   }
 
@@ -1557,28 +1665,69 @@ export default function BookingWidget() {
       if (isToday) classes += ' today';
       if (isInRange) classes += ' in-range';
       
+      // Get price for this date if available
+      var priceHtml = '';
+      if (!isDisabled && calendarPrices[dateStr]) {
+        var priceInfo = calendarPrices[dateStr];
+        // Format: "GHS 447" (currency code + rounded price)
+        var roundedPrice = Math.round(priceInfo.price);
+        priceHtml = '<div class="date-price">' + priceInfo.currency + ' ' + roundedPrice + '</div>';
+      }
+      
       html += '<button class="' + classes + '" data-date="' + dateStr + '"' +
-              (isDisabled ? ' disabled' : '') + '>' + day + '</button>';
+              (isDisabled ? ' disabled' : '') + '>' +
+              '<div class="date-number">' + day + '</div>' +
+              priceHtml +
+              '</button>';
     }
     
     html += '</div>';
     picker.innerHTML = html;
     
-    // Add event listeners
     picker.querySelectorAll('[data-action="prev"]').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
+      btn.addEventListener('click', async function(e) {
         e.preventDefault();
         e.stopPropagation();
         currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+        
+        // Fetch pricing for new month
+        if (currentRoomTypeId) {
+          var newMonth = currentPickerMonth[pickerId];
+          await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
+        }
+        
+        renderCalendar(pickerId);
+      });
+    });
+    
+    picker.querySelectorAll('[data-action="prev"]').forEach(function(btn) {
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+        
+        // Fetch pricing for new month
+        if (currentRoomTypeId) {
+          var newMonth = currentPickerMonth[pickerId];
+          await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
+        }
+        
         renderCalendar(pickerId);
       });
     });
     
     picker.querySelectorAll('[data-action="next"]').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
+      btn.addEventListener('click', async function(e) {
         e.preventDefault();
         e.stopPropagation();
         currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+        
+        // Fetch pricing for new month
+        if (currentRoomTypeId) {
+          var newMonth = currentPickerMonth[pickerId];
+          await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
+        }
+        
         renderCalendar(pickerId);
       });
     });
@@ -1805,6 +1954,15 @@ export default function BookingWidget() {
     discountAmount = 0;
     roomDiscount = 0;
     extrasDiscount = 0;
+    
+    // ⭐ NEW: Still populate extrasWithDiscounts with zero discounts
+    extrasWithDiscounts = extras.map(function(extra) {
+      return {
+        ...extra,
+        discount: 0
+      };
+    });
+    
     return 0;
   }
   
@@ -2232,6 +2390,11 @@ export default function BookingWidget() {
           currency: room.currency || 'GHS'
         });
       }
+    }
+    // Set the first available room as current for calendar pricing
+    if (roomsWithPricing.length > 0 && !currentRoomTypeId) {
+      currentRoomTypeId = roomsWithPricing[0].id;
+      calendarPrices = {}; // Clear existing prices when room changes
     }
 
     return roomsWithPricing;

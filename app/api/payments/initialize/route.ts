@@ -177,9 +177,22 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Created reservation: ${roomConfirmationCode}`);
 
+      // Before the if statement
+      console.log('=== EXTRAS DEBUG ===');
+      console.log('isPrimary:', isPrimary);
+      console.log('room.extras:', room.extras);
+      console.log('room.extras type:', typeof room.extras);
+      console.log('room.extras length:', room.extras ? room.extras.length : 'undefined');
+      if (room.extras && room.extras.length > 0) {
+        console.log('First extra:', JSON.stringify(room.extras[0], null, 2));
+      }
+      console.log('discountAmount:', room.discountAmount);
+      console.log('===================');
+
       // Insert extras only for first room
       if (isPrimary && room.extras && room.extras.length > 0) {
         console.log(`Adding ${room.extras.length} extras to primary reservation`);
+        
         
         // Get the reservation we just created
         const { data: createdRes } = await supabase
