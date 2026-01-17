@@ -1558,36 +1558,54 @@ export default function BookingWidget() {
   }
 
   async function fetchCalendarPricing(year, month, roomTypeId) {
-    if (!roomTypeId) return;
-    
-    try {
-      // Calculate first and last day of the month
-      var firstDay = new Date(year, month, 1);
-      var lastDay = new Date(year, month + 1, 0);
-      var checkIn = iso(firstDay);
-      var checkOut = iso(new Date(lastDay.getTime() + 86400000)); // +1 day for checkout
-      
-      var pricingData = await supabase.rpc('calculate_dynamic_price', {
-        p_room_type_id: roomTypeId,
-        p_check_in: checkIn,
-        p_check_out: checkOut,
-        p_pricing_model_id: null
-      });
-      
-      if (pricingData && pricingData.nightly_rates) {
-        // Store each night's price in calendarPrices
-        for (var i = 0; i < pricingData.nightly_rates.length; i++) {
-          var night = pricingData.nightly_rates[i];
-          calendarPrices[night.date] = {
-            price: parseFloat(night.rate || 0),
-            currency: night.currency || 'GHS'
-          };
+  // roomTypeId not used anymore; kept to avoid changing call sites
+  try {
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    var checkIn = iso(firstDay);
+    var checkOut = iso(new Date(lastDay.getTime() + 86400000)); // +1 day
+
+    // 1) Get all active room types (so prices always exist per day)
+    var roomTypes = await supabase.query('room_types', {
+      select: 'id,currency',
+      eq: { is_active: true }
+    });
+
+    if (!roomTypes || !roomTypes.length) return;
+
+    // 2) For each room type, fetch nightly rates and keep the MIN per date
+    for (var r = 0; r < roomTypes.length; r++) {
+      var rt = roomTypes[r];
+
+      try {
+        var pricingData = await supabase.rpc('calculate_dynamic_price', {
+          p_room_type_id: rt.id,
+          p_check_in: checkIn,
+          p_check_out: checkOut,
+          p_pricing_model_id: null
+        });
+
+        if (pricingData && pricingData.nightly_rates) {
+          for (var i = 0; i < pricingData.nightly_rates.length; i++) {
+            var night = pricingData.nightly_rates[i];
+            var nightDate = night.date;
+            var nightRate = parseFloat(night.rate || 0);
+            var nightCurrency = night.currency || pricingData.currency || rt.currency || 'GHS';
+
+            if (!calendarPrices[nightDate] || nightRate < calendarPrices[nightDate].price) {
+              calendarPrices[nightDate] = { price: nightRate, currency: nightCurrency };
+            }
+          }
         }
+      } catch (e) {
+        // ignore per-room failures, keep going
       }
-    } catch (err) {
-      console.warn('Failed to fetch calendar pricing:', err);
     }
+  } catch (err) {
+    console.warn('Failed to fetch calendar pricing:', err);
   }
+}
+
 
   function renderCalendar(pickerId) {
     var picker = $('#' + pickerId + '-picker');

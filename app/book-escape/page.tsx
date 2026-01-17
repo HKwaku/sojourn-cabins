@@ -478,49 +478,72 @@ export default function Page() {
             <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
           </div>
 
-          {/* Main heading with link */}
-          <h2 className="text-center text-3xl md:text-4xl lg:text-5xl font-serif font-light leading-tight tracking-wide mb-3">
-            <a 
-              href="#featured-packages"
-              className="group inline-flex items-center gap-2 text-stone-900 hover:text-amber-700 transition-colors duration-300"
-            >
-              <span>Choose from one of our packages</span>
-              <svg 
-                className="w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-300 group-hover:translate-x-1 text-amber-600" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
+          {/* Main heading */}
+          <h2 className="text-center text-2xl md:text-3xl font-serif font-light text-stone-700 mb-8">
+            How would you like to book?
           </h2>
           
-          {/* Divider text */}
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
-            <span className="text-xs tracking-[0.3em] uppercase text-amber-600 font-medium">or</span>
-            <div className="h-px w-16 bg-gradient-to-r from-transparent via-amber-200 to-transparent" />
-          </div>
+          {/* Button Container */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-3xl mx-auto">
+            {/* Packages Button */}
+            <a 
+              href="#featured-packages"
+              className="group w-full sm:w-auto min-w-[280px] px-8 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] transition-all duration-300"
+            >
+              <div className="flex items-center justify-center gap-3">
+                <svg 
+                  className="w-6 h-6" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span className="text-lg font-medium tracking-wide">Choose a Package</span>
+                <svg 
+                  className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
+            </a>
 
-          {/* Customise link */}
-          <div className="text-center">
+            {/* Divider */}
+            <div className="flex sm:flex-col items-center gap-3 sm:gap-2">
+              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
+              <span className="text-xs tracking-[0.3em] uppercase text-stone-500 font-medium">or</span>
+              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
+            </div>
+
+            {/* Customise Button */}
             <a 
               href="#booking-widget" 
-              className="group inline-flex items-center gap-2 text-2xl md:text-3xl font-serif font-light text-stone-900 hover:text-amber-700 transition-colors duration-300"
+              className="group w-full sm:w-auto min-w-[280px] px-8 py-5 rounded-2xl bg-white border-2 border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-300"
             >
-              <span>customise your stay</span>
-              <svg 
-                className="w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-300 group-hover:translate-x-1 text-amber-600" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
+              <div className="flex items-center justify-center gap-3">
+                <svg 
+                  className="w-6 h-6" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                <span className="text-lg font-medium tracking-wide">Customise Your Stay</span>
+                <svg 
+                  className="w-5 h-5 transform transition-transform duration-300 group-hover:translate-x-1" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </div>
             </a>
           </div>
-
           {/* Decorative bottom element */}
           <div className="flex items-center justify-center mt-10">
             <div className="h-px w-12 bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
@@ -766,7 +789,7 @@ export default function Page() {
           {/* Section Header */}
           <div className="text-center mb-12">
             <p className="text-xs tracking-[0.4em] uppercase text-stone-400 mb-4">
-              Custom Booking
+              Customise Your Stay
             </p>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-stone-900 mb-4">
               Create Your Stay
