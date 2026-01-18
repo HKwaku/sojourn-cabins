@@ -21,14 +21,14 @@ export async function POST(request: Request) {
       throw new Error('EXCHANGERATES_API_KEY not configured');
     }
 
-    // Create Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     
-    const url = `http://api.exchangeratesapi.io/v1/latest?access_key=${apiKey}&symbols=USD,GHS,GBP,EUR`;
-    console.log('Fetching exchange rates...');
+    // Request EUR-based rates for GHS, USD, GBP
+    const url = `http://api.exchangeratesapi.io/v1/latest?access_key=${apiKey}&symbols=GHS,USD,GBP`;
+    console.log('Fetching EUR-based rates from API...');
     
     const response = await fetch(url);
     
@@ -43,106 +43,95 @@ export async function POST(request: Request) {
     }
     
     const today = new Date().toISOString().split('T')[0];
-    const apiBase = data.base; // EUR (from API)
     
-    // Get GHS rate relative to EUR
-    const ghsToEurRate = data.rates.GHS as number;
+    console.log(`API returned 3 EUR-based rates`);
     
-    if (!ghsToEurRate) {
-      throw new Error('GHS rate not found in API response');
+    const eurToGhs = data.rates.GHS as number;
+    const eurToUsd = data.rates.USD as number;
+    const eurToGbp = data.rates.GBP as number;
+    
+    if (!eurToGhs || !eurToUsd || !eurToGbp) {
+      throw new Error('Missing required rates from API');
     }
     
-    console.log(`EUR to GHS rate: ${ghsToEurRate}`);
-    console.log('Converting all rates to GHS base...');
+    console.log(`Calculating 6 rates with GHS as base...`);
     
-    // Use a Map to prevent duplicates
-    const ratesMap = new Map<string, any>();
-    
-    // Helper function to add rate to map (prevents duplicates)
-    const addRate = (base: string, target: string, rate: number) => {
-      const key = `${base}-${target}-${today}`;
-      if (!ratesMap.has(key)) {
-        ratesMap.set(key, {
-          base_currency: base,
-          target_currency: target,
-          rate: rate,
-          date: today
-        });
+    // Calculate the 6 rates with GHS as base
+    const rates = [
+      {
+        base_currency: 'GHS',
+        target_currency: 'GBP',
+        rate: eurToGbp / eurToGhs,
+        date: today,
+        description: 'GHS to GBP - calculated from API'
+      },
+      {
+        base_currency: 'GHS',
+        target_currency: 'USD',
+        rate: eurToUsd / eurToGhs,
+        date: today,
+        description: 'GHS to USD - calculated from API'
+      },
+      {
+        base_currency: 'GHS',
+        target_currency: 'EUR',
+        rate: 1 / eurToGhs,
+        date: today,
+        description: 'GHS to EUR - calculated from API'
+      },
+      {
+        base_currency: 'GBP',
+        target_currency: 'EUR',
+        rate: 1 / eurToGbp,
+        date: today,
+        description: 'GBP to EUR - calculated from API'
+      },
+      {
+        base_currency: 'GBP',
+        target_currency: 'USD',
+        rate: eurToUsd / eurToGbp,
+        date: today,
+        description: 'GBP to USD - calculated from API'
+      },
+      {
+        base_currency: 'EUR',
+        target_currency: 'USD',
+        rate: eurToUsd,
+        date: today,
+        description: 'EUR to USD - from API'
       }
-    };
+    ];
     
-    // Convert all rates to GHS base
-    // Formula: If EUR -> Currency is X, and EUR -> GHS is Y
-    // Then GHS -> Currency = X / Y
-    Object.entries(data.rates).forEach(([currency, eurRate]) => {
-      if (currency !== 'GHS') {
-        const ghsRate = (eurRate as number) / ghsToEurRate;
-        
-        // GHS to other currency
-        addRate('GHS', currency, ghsRate);
-        // Other currency to GHS (inverse)
-        addRate(currency, 'GHS', 1 / ghsRate);
-      }
-    });
+    console.log(`Upserting ${rates.length} exchange rates for ${today}`);
     
-    // GHS to GHS = 1
-    addRate('GHS', 'GHS', 1);
-    
-    // Also add cross rates between other currencies for convenience
-    const currencies = Object.keys(data.rates);
-    currencies.forEach(fromCurrency => {
-      currencies.forEach(toCurrency => {
-        if (fromCurrency !== toCurrency) {
-          const fromToEurRate = data.rates[fromCurrency] as number;
-          const toToEurRate = data.rates[toCurrency] as number;
-          const crossRate = toToEurRate / fromToEurRate;
-          addRate(fromCurrency, toCurrency, crossRate);
-        }
+    // Insert all rates
+    const { error } = await supabase
+      .from('exchange_rates')
+      .upsert(rates, {
+        onConflict: 'base_currency,target_currency,date',
+        ignoreDuplicates: false
       });
-    });
     
-    // Convert Map to array
-    const allRates = Array.from(ratesMap.values());
-    
-    console.log(`Upserting ${allRates.length} unique exchange rates for ${today} (GHS base)`);
-    
-    // Show sample GHS rates
-    const ghsRates = allRates.filter(r => r.base_currency === 'GHS');
-    console.log('Sample GHS rates:', ghsRates.slice(0, 5));
-    
-    // Insert rates in batches
-    const batchSize = 50;
-    let totalInserted = 0;
-    
-    for (let i = 0; i < allRates.length; i += batchSize) {
-      const batch = allRates.slice(i, i + batchSize);
-      
-      const { error } = await supabase
-        .from('exchange_rates')
-        .upsert(batch, {
-          onConflict: 'base_currency,target_currency,date',
-          ignoreDuplicates: false
-        });
-      
-      if (error) {
-        console.error('Batch error:', error);
-        throw new Error(`Database error: ${error.message}`);
-      }
-      
-      totalInserted += batch.length;
+    if (error) {
+      console.error('Database error:', error);
+      throw new Error(`Database error: ${error.message}`);
     }
     
-    console.log(`Success! Total rates inserted/updated: ${totalInserted}`);
+    console.log(`Success! Inserted/updated ${rates.length} rates`);
     
     return NextResponse.json({
       success: true,
       message: 'Exchange rates updated successfully (GHS base)',
       date: today,
-      ratesCount: totalInserted,
-      ghsRates: {
-        'GHS to USD': allRates.find(r => r.base_currency === 'GHS' && r.target_currency === 'USD')?.rate,
-        'GHS to EUR': allRates.find(r => r.base_currency === 'GHS' && r.target_currency === 'EUR')?.rate,
-        'GHS to GBP': allRates.find(r => r.base_currency === 'GHS' && r.target_currency === 'GBP')?.rate,
+      ratesCount: rates.length,
+      apiCallsUsed: 1,
+      rates: {
+        'GHS to GBP': rates[0].rate,
+        'GHS to USD': rates[1].rate,
+        'GHS to EUR': rates[2].rate,
+        'GBP to EUR': rates[3].rate,
+        'GBP to USD': rates[4].rate,
+        'EUR to USD': rates[5].rate
       }
     });
     
