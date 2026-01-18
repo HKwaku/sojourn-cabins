@@ -6,6 +6,10 @@
 .pnp.js
 .yarn/install-state.gz
 
+# One-off scripts that shouldn't be deployed
+app/api/exchange-rates/import-historical/
+scripts/import-historical-rates.ts
+
 # testing
 /coverage
 
