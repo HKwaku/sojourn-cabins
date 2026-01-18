@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         .from('reservations')
         .update({
           status: 'confirmed',
-          payment_status: 'completed',
+          payment_status: 'paid',
         })
         .eq('payment_reference', reference);
 

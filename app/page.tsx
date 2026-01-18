@@ -438,4 +438,6 @@ export default function HomePage() {
       </section>
     </>
   )
-}"// End of file: sojourn-cabins/app/page.tsx"
+}
+
+// End of file: sojourn-cabins/app/page.tsx
