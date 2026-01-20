@@ -92,6 +92,16 @@ export async function POST(request: NextRequest) {
 
         console.log('Found extras:', reservationExtras?.length || 0);
 
+        // Check if any extras need selection
+        const hasExtrasNeedingSelection = reservationExtras && reservationExtras.some((extra: any) => {
+          const extraCode = (extra.extra_code || '').toLowerCase();
+          const extraName = (extra.extra_name || '').toLowerCase();
+          return extraCode.includes('chef') || extraName.includes('chef') || 
+                 extraCode.includes('spa') || extraName.includes('spa');
+        });
+
+        console.log('Extras needing selection:', hasExtrasNeedingSelection);
+
         // Calculate totals
         let aggregateRoomSubtotal = 0;
         let aggregateExtrasSubtotal = 0;
@@ -106,12 +116,20 @@ export async function POST(request: NextRequest) {
 
           const roomExtras = (reservationExtras || [])
             .filter((e: any) => e.reservation_id === res.id)
-            .map((e: any) => ({
-              code: e.extra_code,
-              name: e.extra_name,
-              price: e.price,
-              qty: e.quantity,
-            }));
+            .map((e: any) => {
+              const extraCode = (e.extra_code || '').toLowerCase();
+              const extraName = (e.extra_name || '').toLowerCase();
+              const needsSelection = extraCode.includes('chef') || extraName.includes('chef') || 
+                                    extraCode.includes('spa') || extraName.includes('spa');
+              
+              return {
+                code: e.extra_code,
+                name: e.extra_name,
+                price: e.price,
+                qty: e.quantity,
+                needs_selection: needsSelection,
+              };
+            });
 
           return {
             room_name: res.room_name,
@@ -140,7 +158,7 @@ export async function POST(request: NextRequest) {
           }));
         }
 
-        // ⭐ Use group_reservation_code for group bookings, otherwise confirmation_code
+        // Use group_reservation_code for group bookings, otherwise confirmation_code
         const displayConfirmationCode = isGroupBooking && primaryReservation.group_reservation_code
           ? primaryReservation.group_reservation_code
           : primaryReservation.confirmation_code;
@@ -150,7 +168,7 @@ export async function POST(request: NextRequest) {
         // Build email data
         const emailData = {
           booking: {
-            confirmation_code: displayConfirmationCode,  // ⭐ Group code for groups, individual for single
+            confirmation_code: displayConfirmationCode,
             group_reservation_code: isGroupBooking ? primaryReservation.group_reservation_code : null,
             guest_first_name: primaryReservation.guest_first_name,
             guest_last_name: primaryReservation.guest_last_name,
@@ -187,6 +205,7 @@ export async function POST(request: NextRequest) {
           return;
         }
 
+        // Send booking confirmation email
         const emailResponse = await fetch(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`,
           {
@@ -206,6 +225,44 @@ export async function POST(request: NextRequest) {
           console.error('❌ Email failed:', errorText);
         } else {
           console.log('✅ Email sent successfully');
+        }
+
+        // Send extra selections email if needed
+        if (hasExtrasNeedingSelection) {
+          console.log('📧 === EXTRA SELECTIONS EMAIL START ===');
+          
+          const extrasLink = `${process.env.NEXT_PUBLIC_BASE_URL}/extra-selections?code=${displayConfirmationCode}`;
+          
+          const extrasEmailData = {
+            booking: emailData.booking,
+            extrasLink: extrasLink,
+          };
+
+          const extrasEmailResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-extra-selections-email`,
+            {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(extrasEmailData),
+            }
+          );
+
+          console.log('📧 Extra selections email API status:', extrasEmailResponse.status);
+
+          if (!extrasEmailResponse.ok) {
+            const errorText = await extrasEmailResponse.text();
+            console.error('❌ Extra selections email failed:', errorText);
+          } else {
+            console.log('✅ Extra selections email sent successfully');
+            console.log('📧 Link:', extrasLink);
+          }
+
+          console.log('📧 === EXTRA SELECTIONS EMAIL END ===');
+        } else {
+          console.log('ℹ️ No extras requiring selection, skipping extra selections email');
         }
 
         console.log('📧 === EMAIL SENDING END ===');

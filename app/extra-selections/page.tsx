@@ -259,7 +259,7 @@ function ExtraSelectionsContent() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white pb-20">
       {/* Header */}
-      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white py-8 px-6 shadow-md mb-8">
+      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white pt-28 pb-8 px-6 shadow-md mb-8">
         <div className="max-w-4xl mx-auto">
           <p className="text-xs tracking-[0.4em] uppercase text-orange-400 mb-2">
             {confirmationCode}

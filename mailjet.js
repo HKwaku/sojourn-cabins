@@ -646,3 +646,196 @@ export async function sendBookingEmail({ to, name, booking }) {
 
   return res.json();
 }
+
+// Add this new function to mailjet.js (place it after sendBookingEmail)
+
+export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }) {
+  const guestName =
+    `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`
+      .trim() || name || "";
+
+  const datesText =
+    booking.check_in && booking.check_out
+      ? `${formatDatePretty(booking.check_in)} → ${formatDatePretty(booking.check_out)}`
+      : "";
+
+  // Get extras that need configuration
+  const configurableExtras = [];
+  if (Array.isArray(booking.rooms)) {
+    booking.rooms.forEach(room => {
+      if (Array.isArray(room.extras)) {
+        room.extras.forEach(extra => {
+          if (extra.needs_selection) {
+            configurableExtras.push(extra.name || extra.extra_name);
+          }
+        });
+      }
+    });
+  }
+
+  const extrasListHtml = configurableExtras.length > 0
+    ? configurableExtras.map(name => `
+        <div style="padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; margin-bottom: 8px; border-radius: 4px;">
+          <span style="font-weight: 600; color: #92400e;">${name}</span>
+        </div>
+      `).join('')
+    : '<p style="color: #6b7280;">No extras requiring configuration</p>';
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configure Your Extras - Sojourn Cabins</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); overflow: hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1c1917 0%, #44403c 100%); padding: 40px 32px; text-align: center;">
+              <div style="margin-bottom: 12px;">
+                <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159934/Sojourn_Cabins_Logo_White_vvfk1w.png" alt="Sojourn Cabins" style="height: 48px; width: auto;" />
+              </div>
+              <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: white; letter-spacing: -0.5px;">
+                Configure Your Extras
+              </h1>
+              <p style="margin: 8px 0 0 0; font-size: 13px; color: #d6d3d1; letter-spacing: 0.3em; text-transform: uppercase;">
+                ${booking.confirmation_code || booking.group_reservation_code || ''}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px;">
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #0f172a;">
+                Hello <strong>${guestName}</strong>,
+              </p>
+
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #0f172a;">
+                Thank you for booking with Sojourn Cabins! Your reservation is confirmed for <strong>${datesText}</strong>.
+              </p>
+
+              <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #0f172a;">
+                To complete your booking, please configure your extra selections by clicking the button below:
+              </p>
+
+              <!-- Extras List -->
+              <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <h3 style="margin: 0 0 12px 0; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em;">
+                  Extras Requiring Configuration
+                </h3>
+                ${extrasListHtml}
+              </div>
+
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${extrasLink}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
+                  Configure Your Extras
+                </a>
+              </div>
+
+              <p style="margin: 24px 0 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                Please complete your selections as soon as possible to ensure we can prepare everything for your arrival.
+              </p>
+
+              <p style="margin: 16px 0 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                If you have any questions, please don't hesitate to reach out to us.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: #f8fafc; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #0f172a; font-weight: 600;">
+                Sojourn Cabins
+              </p>
+              <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                Anomabo, Central Region, Ghana<br>
+                <a href="mailto:reservations@sojourncabins.com" style="color: #f97316; text-decoration: none;">reservations@sojourncabins.com</a><br>
+                <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const textContent = `
+Configure Your Extras - Sojourn Cabins
+
+Hello ${guestName},
+
+Thank you for booking with Sojourn Cabins! Your reservation is confirmed for ${datesText}.
+
+To complete your booking, please configure your extra selections using this link:
+${extrasLink}
+
+Extras requiring configuration:
+${configurableExtras.map(name => `• ${name}`).join('\n')}
+
+Please complete your selections as soon as possible to ensure we can prepare everything for your arrival.
+
+If you have any questions, please don't hesitate to reach out to us.
+
+Best regards,
+Sojourn Cabins
+Anomabo, Central Region, Ghana
+reservations@sojourncabins.com
+www.sojourncabins.com
+  `;
+
+  const authHeader = `Basic ${Buffer.from(
+    `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
+  ).toString("base64")}`;
+
+  const payload = {
+    Messages: [
+      {
+        From: {
+          Email: MAILJET_FROM_EMAIL,
+          Name: MAILJET_FROM_NAME,
+        },
+        To: [
+          {
+            Email: to,
+            Name: guestName,
+          },
+        ],
+        Subject: `Configure Your Extras - ${booking.confirmation_code || booking.group_reservation_code || 'Booking'}`,
+        TextPart: textContent,
+        HTMLPart: htmlContent,
+      },
+    ],
+  };
+
+  const response = await fetch("https://api.mailjet.com/v3.1/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Mailjet error:", errText);
+    throw new Error(`Mailjet send failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
+}
