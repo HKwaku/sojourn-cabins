@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
@@ -35,7 +36,7 @@ interface Reservation {
   reservation_extras: ReservationExtra[]
 }
 
-export default function ExtraSelectionsPage() {
+function ExtraSelectionsContent() {
   const searchParams = useSearchParams()
   const confirmationCode = searchParams.get('code')
 
@@ -256,9 +257,9 @@ export default function ExtraSelectionsPage() {
   const totalGuests = getTotalGuests()
 
   return (
-  <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white pb-20">
       {/* Header */}
-      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white pt-28 pb-8 px-6 shadow-md mb-8">
+      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white py-8 px-6 shadow-md mb-8">
         <div className="max-w-4xl mx-auto">
           <p className="text-xs tracking-[0.4em] uppercase text-orange-400 mb-2">
             {confirmationCode}
@@ -551,5 +552,20 @@ export default function ExtraSelectionsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ExtraSelectionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-stone-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ExtraSelectionsContent />
+    </Suspense>
   )
 }
