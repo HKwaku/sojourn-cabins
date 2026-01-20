@@ -63,7 +63,7 @@ export default function Navbar() {
     { name: 'Experiences', href: '/#experiences' },
     { name: 'Cabins', href: '/#cabins' },
     { name: 'Amenities', href: '/#amenities' },
-    { name: 'Chef Menu', href: '/chef-menu' },
+    { name: 'Menu', href: '/chef-menu' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Rates', href: '/rates' },
     { name: 'Directions', href: '/getting-here' },
