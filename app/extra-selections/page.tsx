@@ -62,7 +62,8 @@ function ExtraSelectionsContent() {
     try {
       setLoading(true)
 
-      const { data: resData, error: resError } = await supabase
+      // Try to find by confirmation_code first
+      let { data: resData, error: resError } = await supabase
         .from('reservations')
         .select(`
           *,
@@ -79,7 +80,32 @@ function ExtraSelectionsContent() {
         .eq('confirmation_code', confirmationCode)
         .single()
 
-      if (resError) throw resError
+      // If not found, try group_reservation_code
+      if (resError && resError.code === 'PGRST116') {
+        const { data: groupData, error: groupError } = await supabase
+          .from('reservations')
+          .select(`
+            *,
+            reservation_extras (
+              id,
+              extra_id,
+              extra_code,
+              extra_name,
+              quantity,
+              selection_status,
+              selection_data
+            )
+          `)
+          .eq('group_reservation_code', confirmationCode)
+          .limit(1)
+          .single()
+
+        if (groupError) throw groupError
+        resData = groupData
+      } else if (resError) {
+        throw resError
+      }
+
       setReservation(resData)
 
       const { data: menuData, error: menuError} = await supabase
@@ -243,12 +269,12 @@ function ExtraSelectionsContent() {
     )
   }
 
-  if (!reservation || reservation.reservation_extras.length === 0) {
+  if (!reservation || !reservation.reservation_extras || reservation.reservation_extras.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white flex items-center justify-center px-6">
         <div className="max-w-md text-center">
-          <h1 className="text-2xl font-serif text-stone-900 mb-4">No Extras to Configure</h1>
-          <p className="text-stone-600">There are no extras requiring selection for this reservation.</p>
+          <h1 className="text-2xl font-serif text-stone-900 mb-4">No Experiences to Configure</h1>
+          <p className="text-stone-600">There are no experiences requiring details for this reservation.</p>
         </div>
       </div>
     )
@@ -265,10 +291,10 @@ function ExtraSelectionsContent() {
             {confirmationCode}
           </p>
           <h1 className="text-2xl md:text-3xl font-serif font-light mb-2">
-            Configure Your Extras
+            Complete Your Experience Details
           </h1>
           <p className="text-stone-300 text-sm">
-            Hello {reservation.guest_first_name}, please select your preferences
+            Hello {reservation.guest_first_name}, please share your preferences
             {totalGuests > 1 && ` for ${totalGuests} guests`}
           </p>
         </div>
@@ -304,7 +330,7 @@ function ExtraSelectionsContent() {
                     <p className="text-stone-600 text-sm">
                       {isChef 
                         ? `Select menu for ${dates.length} ${dates.length === 1 ? 'day' : 'days'}`
-                        : `Configure ${dates.length} ${dates.length === 1 ? 'service' : 'services'}`
+                        : `Select ${dates.length} ${dates.length === 1 ? 'experience' : 'experiences'}`
                       }
                     </p>
                   </div>
@@ -491,7 +517,7 @@ function ExtraSelectionsContent() {
                       
                       return (
                         <div key={date} className="border border-stone-200 rounded-xl p-4 md:p-6">
-                          <h3 className="text-base md:text-lg font-serif mb-4">Service {idx + 1}</h3>
+                          <h3 className="text-base md:text-lg font-serif mb-4">Experience {idx + 1}</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-stone-700 mb-2">
