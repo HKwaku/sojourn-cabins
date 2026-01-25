@@ -462,7 +462,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                   <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff; font-weight: 600;">
                     Explore Our Cabins & Experiences
                   </p>
-                  <a href="https://www.sojourngh.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">
+                  <a href="https://www.sojourncabins.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">
                     VISIT WEBSITE
                   </a>
                 </div>
@@ -483,7 +483,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                     <td style="text-align: center; padding-bottom: 16px;">
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 theteam@sojourngh.com</p>
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📱 +233 54 748 4568</p>
-                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourngh.com</a></p>
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
                     </td>
                   </tr>
                   <tr>
@@ -622,7 +622,7 @@ export async function sendBookingEmail({ to, name, booking }) {
               <td style="padding: 0 32px 32px 32px;">
                 <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 12px; padding: 24px; text-align: center;">
                   <p style="margin: 0 0 16px 0; font-size: 16px; color: #ffffff; font-weight: 600;">Explore Our Cabins & Experiences</p>
-                  <a href="https://www.sojourngh.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">VISIT WEBSITE</a>
+                  <a href="https://www.sojourncabins.com" style="display: inline-block; background: #ffffff; color: #f97316; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 14px; letter-spacing: 0.5px;">VISIT WEBSITE</a>
                 </div>
               </td>
             </tr>
@@ -641,7 +641,7 @@ export async function sendBookingEmail({ to, name, booking }) {
                     <td style="text-align: center; padding-bottom: 16px;">
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📧 theteam@sojourngh.com</p>
                       <p style="margin: 0 0 4px 0; font-size: 14px; color: #6b7280;">📱 +233 54 748 4568</p>
-                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourngh.com" style="color: #f97316; text-decoration: none;">www.sojourngh.com</a></p>
+                      <p style="margin: 0; font-size: 14px; color: #6b7280;">🌐 <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a></p>
                     </td>
                   </tr>
                   <tr>
@@ -825,7 +825,7 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
               </p>
               <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
                 Anomabo, Central Region, Ghana<br>
-                <a href="mailto:reservations@sojourncabins.com" style="color: #f97316; text-decoration: none;">reservations@sojourncabins.com</a><br>
+                <a href="mailto:theteam@sojourngh.com" style="color: #f97316; text-decoration: none;">theteam@sojourngh.com</a><br>
                 <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a>
               </p>
             </td>
