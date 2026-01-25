@@ -79,18 +79,11 @@ export async function POST(request: NextRequest) {
 
         console.log('📧 === EMAIL SENDING START ===');
 
-<<<<<<< HEAD
-        // Get extras with the needs_guest_input flag from the extras table
-=======
         // Get extras - we'll fetch needs_guest_input separately since the join might not work
->>>>>>> main
         const reservationIds = reservations.map(r => r.id);
         const { data: reservationExtras, error: extrasError } = await supabase
           .from('reservation_extras')
-          .select(`
-            *,
-            extras!inner(needs_guest_input)
-          `)
+          .select('*')
           .in('reservation_id', reservationIds);
 
         if (extrasError) {
@@ -121,11 +114,7 @@ export async function POST(request: NextRequest) {
         // Check if any extras need selection (from database flag or if it's a package)
         const hasExtrasNeedingSelection = reservationExtras && reservationExtras.length > 0 && (
           isPackage || 
-<<<<<<< HEAD
-          reservationExtras.some((extra: any) => extra.extras?.needs_guest_input === true)
-=======
           reservationExtras.some((extra: any) => extrasConfigMap[extra.extra_code] === true)
->>>>>>> main
         );
 
         console.log('Extras needing selection:', hasExtrasNeedingSelection);
@@ -148,9 +137,6 @@ export async function POST(request: NextRequest) {
             .map((e: any) => {
               // For packages, all extras need selection
               // For regular bookings, use the needs_guest_input flag from the database
-<<<<<<< HEAD
-              const needsSelection = isPackage || (e.extras?.needs_guest_input === true);
-=======
               const needsSelection = isPackage || (extrasConfigMap[e.extra_code] === true);
               
               // Debug logging
@@ -159,7 +145,6 @@ export async function POST(request: NextRequest) {
               console.log(`   - isPackage: ${isPackage}`);
               console.log(`   - needs_guest_input from DB: ${extrasConfigMap[e.extra_code]}`);
               console.log(`   - needsSelection: ${needsSelection}`);
->>>>>>> main
               
               return {
                 code: e.extra_code,
@@ -326,3 +311,4 @@ export async function POST(request: NextRequest) {
     console.error('Webhook error:', error);
     return NextResponse.json({ error: 'Webhook failed' }, { status: 500 });
   }
+}
