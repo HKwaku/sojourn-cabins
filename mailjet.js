@@ -748,33 +748,40 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
     : '<p style="color: #6b7280;">No experiences requiring details</p>';
 
   const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Complete Your Experience Details - Sojourn Cabins</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" style="width: 100%; max-width: 600px; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); overflow: hidden;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #1c1917 0%, #44403c 100%); padding: 40px 32px; text-align: center;">
-              <div style="margin-bottom: 12px;">
-                <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159934/Sojourn_Cabins_Logo_White_vvfk1w.png" alt="Sojourn Cabins" style="height: 48px; width: auto;" />
-              </div>
-              <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: white; letter-spacing: -0.5px;">
-                Complete Your Experience Details
+  <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+              
+              <!-- Header with Logo -->
+              <tr>
+                <td style="padding: 32px 32px 24px 32px; text-align: center; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+                  <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
+                </td>
+              </tr>
+
+              <!-- Celebration Icon & Title -->
+              <tr>
+                <td style="padding: 32px 32px 0 32px; text-align: center;">
+                  <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                  <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Complete Your Experience Details</h1>
+                
+                </td>
+              </tr>
+            
               </h1>
-              <p style="margin: 8px 0 0 0; font-size: 13px; color: #d6d3d1; letter-spacing: 0.3em; text-transform: uppercase;">
-                ${booking.confirmation_code || booking.group_reservation_code || ''}
-              </p>
-            </td>
-          </tr>
+                <p style="margin: 8px 0 0 0; font-size: 13px; color: #d6d3d1; letter-spacing: 0.3em; text-transform: uppercase;">
+                  ${booking.confirmation_code || booking.group_reservation_code || ''}
+                </p>
+              </td>
+            </tr>
 
           <!-- Content -->
           <tr>

@@ -236,8 +236,6 @@ function ExtraSelectionsContent() {
         throw resError
       }
 
-      setReservation(resData)
-
       // Filter reservation_extras to only show those with needs_guest_input = TRUE
       if (resData.reservation_extras) {
         // First, get all extra codes
@@ -264,6 +262,9 @@ function ExtraSelectionsContent() {
         
         console.log('Filtered extras to only show those needing guest input:', resData.reservation_extras.length)
       }
+
+      setReservation(resData)
+      
       
       // Check if this is a group booking and calculate total guests
       if (resData.group_reservation_code) {
