@@ -79,11 +79,14 @@ export async function POST(request: NextRequest) {
 
         console.log('📧 === EMAIL SENDING START ===');
 
-        // Get extras
+        // Get extras with the needs_guest_input flag from the extras table
         const reservationIds = reservations.map(r => r.id);
         const { data: reservationExtras, error: extrasError } = await supabase
           .from('reservation_extras')
-          .select('*')
+          .select(`
+            *,
+            extras!inner(needs_guest_input)
+          `)
           .in('reservation_id', reservationIds);
 
         if (extrasError) {
@@ -92,16 +95,10 @@ export async function POST(request: NextRequest) {
 
         console.log('Found extras:', reservationExtras?.length || 0);
 
-        // Check if any extras need selection
-        // For packages, ALL extras need selection; for regular bookings, only chef/spa
+        // Check if any extras need selection (from database flag or if it's a package)
         const hasExtrasNeedingSelection = reservationExtras && reservationExtras.length > 0 && (
           isPackage || 
-          reservationExtras.some((extra: any) => {
-            const extraCode = (extra.extra_code || '').toLowerCase();
-            const extraName = (extra.extra_name || '').toLowerCase();
-            return extraCode.includes('chef') || extraName.includes('chef') || 
-                   extraCode.includes('spa') || extraName.includes('spa');
-          })
+          reservationExtras.some((extra: any) => extra.extras?.needs_guest_input === true)
         );
 
         console.log('Extras needing selection:', hasExtrasNeedingSelection);
@@ -122,12 +119,9 @@ export async function POST(request: NextRequest) {
           const roomExtras = (reservationExtras || [])
             .filter((e: any) => e.reservation_id === res.id)
             .map((e: any) => {
-              const extraCode = (e.extra_code || '').toLowerCase();
-              const extraName = (e.extra_name || '').toLowerCase();
-              // For packages, all extras need selection; for regular bookings, only chef/spa
-              const needsSelection = isPackage || 
-                                    extraCode.includes('chef') || extraName.includes('chef') || 
-                                    extraCode.includes('spa') || extraName.includes('spa');
+              // For packages, all extras need selection
+              // For regular bookings, use the needs_guest_input flag from the database
+              const needsSelection = isPackage || (e.extras?.needs_guest_input === true);
               
               return {
                 code: e.extra_code,
@@ -162,6 +156,7 @@ export async function POST(request: NextRequest) {
             price: e.price,
             quantity: e.quantity,
             qty: e.quantity,
+            needs_selection: true, // All package extras need selection
           }));
         }
 

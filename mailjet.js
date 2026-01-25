@@ -663,6 +663,9 @@ export async function sendBookingEmail({ to, name, booking }) {
   }
 
 
+  // ✅ Fetch the guest book PDF before sending
+  const pdfBase64 = await getGuestBookPdfBase64();
+
   const authHeader =
     "Basic " +
     Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
@@ -722,14 +725,31 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
       ? `${formatDatePretty(booking.check_in)} → ${formatDatePretty(booking.check_out)}`
       : "";
 
-  // Get extras that need configuration
+  // Get extras that need configuration - check both packageExtras and rooms
   const configurableExtras = [];
+  
+  // First check packageExtras (for package bookings)
+  if (Array.isArray(booking.packageExtras)) {
+    booking.packageExtras.forEach(extra => {
+      if (extra.needs_selection) {
+        const extraName = extra.name || extra.extra_name;
+        if (extraName && !configurableExtras.includes(extraName)) {
+          configurableExtras.push(extraName);
+        }
+      }
+    });
+  }
+  
+  // Then check rooms array
   if (Array.isArray(booking.rooms)) {
     booking.rooms.forEach(room => {
       if (Array.isArray(room.extras)) {
         room.extras.forEach(extra => {
           if (extra.needs_selection) {
-            configurableExtras.push(extra.name || extra.extra_name);
+            const extraName = extra.name || extra.extra_name;
+            if (extraName && !configurableExtras.includes(extraName)) {
+              configurableExtras.push(extraName);
+            }
           }
         });
       }
@@ -761,9 +781,13 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #1c1917 0%, #44403c 100%); padding: 40px 32px; text-align: center;">
-              <div style="margin-bottom: 12px;">
-                <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159934/Sojourn_Cabins_Logo_White_vvfk1w.png" alt="Sojourn Cabins" style="height: 48px; width: auto;" />
-              </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding-bottom: 12px;">
+                    <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159934/Sojourn_Cabins_Logo_White_vvfk1w.png" alt="Sojourn Cabins" width="200" height="auto" style="width: 200px; height: auto; max-width: 100%; display: block; border: 0;" />
+                  </td>
+                </tr>
+              </table>
               <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: white; letter-spacing: -0.5px;">
                 Complete Your Experience Details
               </h1>
@@ -859,6 +883,9 @@ Anomabo, Central Region, Ghana
 reservations@sojourncabins.com
 www.sojourncabins.com
   `;
+
+  // ✅ Fetch the guest book PDF before sending
+  const pdfBase64 = await getGuestBookPdfBase64();
 
   const authHeader = `Basic ${Buffer.from(
     `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
