@@ -79,7 +79,11 @@ export async function POST(request: NextRequest) {
 
         console.log('📧 === EMAIL SENDING START ===');
 
+<<<<<<< HEAD
         // Get extras with the needs_guest_input flag from the extras table
+=======
+        // Get extras - we'll fetch needs_guest_input separately since the join might not work
+>>>>>>> main
         const reservationIds = reservations.map(r => r.id);
         const { data: reservationExtras, error: extrasError } = await supabase
           .from('reservation_extras')
@@ -94,11 +98,34 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('Found extras:', reservationExtras?.length || 0);
+        
+        // Fetch the needs_guest_input flag for each extra from the extras table
+        let extrasConfigMap: Record<string, boolean> = {};
+        if (reservationExtras && reservationExtras.length > 0) {
+          const extraCodes = [...new Set(reservationExtras.map((e: any) => e.extra_code))];
+          const { data: extrasConfig } = await supabase
+            .from('extras')
+            .select('code, needs_guest_input')
+            .in('code', extraCodes);
+          
+          if (extrasConfig) {
+            extrasConfigMap = extrasConfig.reduce((acc: any, extra: any) => {
+              acc[extra.code] = extra.needs_guest_input;
+              return acc;
+            }, {});
+          }
+          
+          console.log('📊 Extras config map:', extrasConfigMap);
+        }
 
         // Check if any extras need selection (from database flag or if it's a package)
         const hasExtrasNeedingSelection = reservationExtras && reservationExtras.length > 0 && (
           isPackage || 
+<<<<<<< HEAD
           reservationExtras.some((extra: any) => extra.extras?.needs_guest_input === true)
+=======
+          reservationExtras.some((extra: any) => extrasConfigMap[extra.extra_code] === true)
+>>>>>>> main
         );
 
         console.log('Extras needing selection:', hasExtrasNeedingSelection);
@@ -121,7 +148,18 @@ export async function POST(request: NextRequest) {
             .map((e: any) => {
               // For packages, all extras need selection
               // For regular bookings, use the needs_guest_input flag from the database
+<<<<<<< HEAD
               const needsSelection = isPackage || (e.extras?.needs_guest_input === true);
+=======
+              const needsSelection = isPackage || (extrasConfigMap[e.extra_code] === true);
+              
+              // Debug logging
+              console.log(`📦 Extra: ${e.extra_name}`);
+              console.log(`   - extra_code: ${e.extra_code}`);
+              console.log(`   - isPackage: ${isPackage}`);
+              console.log(`   - needs_guest_input from DB: ${extrasConfigMap[e.extra_code]}`);
+              console.log(`   - needsSelection: ${needsSelection}`);
+>>>>>>> main
               
               return {
                 code: e.extra_code,
@@ -289,3 +327,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Webhook failed' }, { status: 500 });
   }
 }
+
+// Completed code above
