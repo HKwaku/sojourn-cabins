@@ -10,7 +10,7 @@ export default function AmenitiesSection() {
           <line x1="8" y1="13" x2="8" y2="16" strokeWidth={1.2} strokeLinecap="round" />
         </svg>
       ),
-      description: 'Fully stocked'
+      description: ''
     },
     { 
       name: 'Breakfast', 
@@ -22,7 +22,7 @@ export default function AmenitiesSection() {
           <circle cx="16" cy="8" r="1" fill="currentColor" />
         </svg>
       ),
-      description: 'Daily included'
+      description: ''
     },
     { 
       name: 'High-Speed Wifi', 
@@ -31,10 +31,10 @@ export default function AmenitiesSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
         </svg>
       ),
-      description: 'Complimentary'
+      description: ''
     },
     { 
-      name: 'Outdoor Grill', 
+      name: 'Mini-Kitchen', 
       icon: (
         <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <ellipse cx="12" cy="11" rx="9" ry="3" strokeWidth={1.2} />
@@ -43,7 +43,7 @@ export default function AmenitiesSection() {
           <path strokeWidth={1.2} strokeLinecap="round" d="M8 8c.5-1.5 1.5-2.5 2.5-2.5M12 8c.5-1.5 1.5-2.5 2.5-2.5M16 8c.5-1.5 1.5-2.5 2.5-2.5" />
         </svg>
       ),
-      description: 'BBQ ready'
+      description: ''
     },
     { 
       name: 'Private Pool', 
@@ -54,10 +54,10 @@ export default function AmenitiesSection() {
           <path strokeWidth={1.2} strokeLinecap="round" d="M15 5l3 3-3 3" />
         </svg>
       ),
-      description: 'Heated option'
+      description: ''
     },
     { 
-      name: 'Climate Control', 
+      name: 'Air Conditioning', 
       icon: (
         <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
@@ -65,7 +65,7 @@ export default function AmenitiesSection() {
           <path strokeWidth={1.2} strokeLinecap="round" d="M12 9v6M9.5 10.5c.83-.83 2.17-.83 3 0M14.5 13.5c-.83.83-2.17.83-3 0" />
         </svg>
       ),
-      description: 'AC & Heating'
+      description: ''
     }
   ]
 

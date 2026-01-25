@@ -6,6 +6,33 @@ const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
 const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL;
 const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || "Reservations";
 
+const CHECK_IN_TIME = "2:00 PM";
+const CHECK_OUT_TIME = "11:00 AM";
+
+
+// Guest book PDF (public URL)
+const GUEST_BOOK_PDF_URL =
+  "https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/Sojourn_Cabins_guest_book.pdf";
+
+// Simple in-memory cache to avoid downloading the PDF on every email
+let _guestBookPdfBase64 = null;
+
+async function getGuestBookPdfBase64() {
+  if (_guestBookPdfBase64) return _guestBookPdfBase64;
+
+  const res = await fetch(GUEST_BOOK_PDF_URL);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch guest book PDF (${res.status}): ${text}`);
+  }
+
+  const arrayBuf = await res.arrayBuffer();
+  const b64 = Buffer.from(arrayBuf).toString("base64");
+  _guestBookPdfBase64 = b64;
+  return b64;
+}
+
+
 if (!MAILJET_API_KEY || !MAILJET_SECRET_KEY) {
   console.warn("MAILJET_API_KEY or MAILJET_SECRET_KEY is not set");
 }
@@ -375,6 +402,20 @@ export async function sendBookingEmail({ to, name, booking }) {
                       <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Dates</td>
                       <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
                     </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Check-in</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">
+                        ${CHECK_IN_TIME}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Check-out</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">
+                        ${CHECK_OUT_TIME}
+                      </td>
+                    </tr>
+
                     <tr>
                       <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Room</td>
                       <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomsList}</td>
@@ -510,6 +551,20 @@ export async function sendBookingEmail({ to, name, booking }) {
                       <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Dates:</td>
                       <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${datesText || "—"}</td>
                     </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Check-in</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">
+                        ${CHECK_IN_TIME}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0; font-size: 14px; color: #6b7280;">Check-out</td>
+                      <td style="padding: 10px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">
+                        ${CHECK_OUT_TIME}
+                      </td>
+                    </tr>
+
                     <tr>
                       <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Room(s):</td>
                       <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 500; text-align: right;">${roomLinesHtml}</td>
@@ -633,6 +688,14 @@ export async function sendBookingEmail({ to, name, booking }) {
           ],
           Subject: "Booking Confirmed ✅",
           HTMLPart: html,
+          // ✅ Attach guest book PDF to every confirmation email
+          Attachments: [
+            {
+              ContentType: "application/pdf",
+              Filename: "Sojourn_Cabins_Guest_Book.pdf",
+              Base64Content: pdfBase64,
+            },
+          ],
         },
       ],
     }),

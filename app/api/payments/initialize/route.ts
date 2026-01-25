@@ -111,17 +111,15 @@ export async function POST(request: NextRequest) {
     }
     
     // Create reservation for each room
-    const confirmationCodes = []; // ⭐ NEW: Track all codes
+    const confirmationCodes = [];
     
-    // Create reservation for each room
     for (let i = 0; i < roomsToCreate.length; i++) {
       const room = roomsToCreate[i];
       const isPrimary = (i === 0);
       
       // Generate UNIQUE confirmation code for THIS room
       const roomConfirmationCode = `BK${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-      confirmationCodes.push(roomConfirmationCode); // ⭐ NEW: Store code
-  
+      confirmationCodes.push(roomConfirmationCode);
 
       console.log(`Creating reservation ${i + 1}/${roomsToCreate.length}:`, room.roomTypeCode);
       console.log(`- Confirmation code: ${roomConfirmationCode}`);
@@ -143,7 +141,7 @@ export async function POST(request: NextRequest) {
       const { error: insertError } = await supabase
         .from('reservations')
         .insert({
-          confirmation_code: roomConfirmationCode,  // UNIQUE per room
+          confirmation_code: roomConfirmationCode,
           room_type_id: roomTypes.id,
           room_type_code: room.roomTypeCode,
           room_name: room.roomName,
@@ -153,9 +151,9 @@ export async function POST(request: NextRequest) {
           adults: room.adults || body.adults,
           room_subtotal: room.roomSubtotal,
           extras_total: isPrimary ? room.extrasTotal : 0,
-          discount_amount: room.discountAmount || 0,                 // ⭐ Remove isPrimary check
-          room_discount: room.roomDiscount || 0,                     // ⭐ Remove isPrimary check
-          extras_discount: isPrimary ? (room.extrasDiscount || 0) : 0,  // ✅ Keep isPrimary
+          discount_amount: room.discountAmount || 0,
+          room_discount: room.roomDiscount || 0,
+          extras_discount: isPrimary ? (room.extrasDiscount || 0) : 0,
           coupon_code: isPrimary ? room.couponCode : null,
           total: room.finalTotal,
           currency: body.currency,
@@ -166,8 +164,8 @@ export async function POST(request: NextRequest) {
           country_code: body.guest.countryCode || '',
           status: 'pending_payment',
           payment_status: 'pending',
-          payment_reference: reference,  // SAME for all rooms
-          group_reservation_code: groupReservationCode,  // SAME for all rooms
+          payment_reference: reference,
+          group_reservation_code: groupReservationCode,
         });
 
       if (insertError) {
@@ -177,23 +175,8 @@ export async function POST(request: NextRequest) {
 
       console.log(`✅ Created reservation: ${roomConfirmationCode}`);
 
-      // Before the if statement
-      console.log('=== EXTRAS DEBUG ===');
-      console.log('isPrimary:', isPrimary);
-      console.log('room.extras:', room.extras);
-      console.log('room.extras type:', typeof room.extras);
-      console.log('room.extras length:', room.extras ? room.extras.length : 'undefined');
-      if (room.extras && room.extras.length > 0) {
-        console.log('First extra:', JSON.stringify(room.extras[0], null, 2));
-      }
-      console.log('discountAmount:', room.discountAmount);
-      console.log('===================');
-
-      // Insert extras only for first room
+      // Insert extras only for first room AND only if extras were selected
       if (isPrimary && room.extras && room.extras.length > 0) {
-        console.log(`Adding ${room.extras.length} extras to primary reservation`);
-        
-        
         // Get the reservation we just created
         const { data: createdRes } = await supabase
           .from('reservations')
@@ -202,24 +185,36 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (createdRes) {
-          const reservationExtras = room.extras.map((extra: any) => ({
-            reservation_id: createdRes.id,
-            extra_code: extra.code,
-            extra_name: extra.name,
-            price: extra.price,
-            quantity: extra.qty,
-            subtotal: extra.price * extra.qty,
-            discount_amount: extra.discount || 0,  // ⭐ NEW
-          }));
+          // **FILTER: Only insert extras that were actually selected (qty > 0)**
+          const selectedExtras = room.extras.filter((extra: any) => 
+            extra.qty && extra.qty > 0
+          );
           
-          const { error: extrasError } = await supabase
-            .from('reservation_extras')
-            .insert(reservationExtras);
+          console.log(`Total extras in payload: ${room.extras.length}`);
+          console.log(`Selected extras (qty > 0): ${selectedExtras.length}`);
+          
+          if (selectedExtras.length > 0) {
+            const reservationExtras = selectedExtras.map((extra: any) => ({
+              reservation_id: createdRes.id,
+              extra_code: extra.code,
+              extra_name: extra.name,
+              price: extra.price,
+              quantity: extra.qty,
+              subtotal: extra.price * extra.qty,
+              discount_amount: extra.discount || 0,
+            }));
+            
+            const { error: extrasError } = await supabase
+              .from('reservation_extras')
+              .insert(reservationExtras);
 
-          if (extrasError) {
-            console.error('Extras insert error:', extrasError);
+            if (extrasError) {
+              console.error('Extras insert error:', extrasError);
+            } else {
+              console.log(`✅ Added ${selectedExtras.length} selected extras`);
+            }
           } else {
-            console.log('✅ Extras added');
+            console.log('ℹ️ No extras selected (all have qty = 0)');
           }
         }
         
@@ -243,11 +238,11 @@ export async function POST(request: NextRequest) {
     // Return Paystack checkout URL
     return NextResponse.json({
       success: true,
-      authorization_url: paystackData.data.authorization_url, // Paystack checkout URL
-      reference: reference,               // Payment reference
-      groupCode: groupReservationCode, // Group code if applicable
-      confirmationCode: confirmationCodes[0],  // ⭐ NEW: Primary confirmation code
-      confirmationCodes: confirmationCodes    // ⭐ NEW: All codes
+      authorization_url: paystackData.data.authorization_url,
+      reference: reference,
+      groupCode: groupReservationCode,
+      confirmationCode: confirmationCodes[0],
+      confirmationCodes: confirmationCodes
     });
 
   } catch (error: unknown) {

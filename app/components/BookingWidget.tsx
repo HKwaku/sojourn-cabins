@@ -84,6 +84,17 @@ export default function BookingWidget() {
   var root = document.getElementById('booking-search');
   if (!root) return;
 
+  try {
+    ['https://api.paystack.co', 'https://checkout.paystack.com'].forEach(function(href){
+      var l = document.createElement('link');
+      l.rel = 'preconnect';
+      l.href = href;
+      l.crossOrigin = 'anonymous';
+      document.head.appendChild(l);
+    });
+  } catch(e) {}
+
+
   // IMPORTANT: keep <style> wrapper, but quote CSS safely with \`...\`
   root.innerHTML =
     '<style>' +
@@ -595,6 +606,50 @@ export default function BookingWidget() {
     transform:translateY(-0.5px);
   }
 
+    /* ---------- Payment loading ---------- */
+  .pay-loading{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(15,23,42,.35);
+    backdrop-filter:blur(10px);
+    z-index:10050; /* above modals */
+    padding:18px;
+  }
+  .pay-loading .box{
+    width:min(520px, 92vw);
+    background:#ffffff;
+    border:1px solid rgba(226,232,240,1);
+    border-radius:22px;
+    box-shadow:0 26px 70px rgba(15,23,42,.25);
+    padding:18px 18px 16px;
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+  .pay-loading .spinner{
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    border:2px solid rgba(148,163,184,.5);
+    border-top-color:var(--brand);
+    animation:spin .8s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .pay-loading .title{
+    font-weight:800;
+    letter-spacing:-0.01em;
+    margin-bottom:2px;
+  }
+  .pay-loading .hint{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.45;
+  }
+
   /* ---------- Qty controls ---------- */
   .qty{
     display:inline-flex;
@@ -668,19 +723,15 @@ export default function BookingWidget() {
   /* ---------- Extras list ---------- */
   #extras-list{
     display:grid;
-    gap:12px;
+    gap:14px; /* match results spacing */
   }
-  #extras-list > *{
-    border:1px solid rgba(226,232,240,1);
-    border-radius:16px;
-    background:#ffffff;
-    box-shadow:var(--shadow-soft);
-    padding:12px 13px;
-  }
-  #extras-list .name{font-size:15px;}
-  #extras-list .desc{font-size:13px;color:#6b7280;}
-  #extras-list .price{font-size:13px;}
+
+  /* extras will render as .room cards now */
+  #extras-list .extra-room{}
+
+  /* keep these if you still want them scoped to extras */
   #extras-list .qty{margin-left:auto;}
+
 
   /* ---------- Experiences Carousel ---------- */
   .experiences-banner{
@@ -1204,6 +1255,17 @@ export default function BookingWidget() {
 
     '<div id="ovl" class="overlay"></div>' +
 
+    '<div id="pay-loading" class="pay-loading" aria-hidden="true">' +
+      '<div class="box">' +
+        '<div class="spinner"></div>' +
+        '<div>' +
+          '<div class="title">Redirecting to secure payment…</div>' +
+          '<div class="hint">One moment — we’re preparing your checkout.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+
     '<div id="modal-results" class="modal" aria-hidden="true"><div class="sheet">' +
       '<header><div>Available cabins</div><button class="x" data-close="results">×</button></header>' +
       '<main><div id="results-modal" class="results"></div></main>' +
@@ -1295,11 +1357,63 @@ export default function BookingWidget() {
       '<footer><button class="btn secondary" data-back="guest">Back</button><button class="btn" id="confirm">Confirm booking</button></footer>' +
     '</div></div>' +
 
+        // ====== REVIEW MODAL (NEW) ======
+    '<div id="modal-review" class="modal" aria-hidden="true"><div class="sheet">' +
+      '<header><div>Review your booking</div><button class="x" data-close="review">×</button></header>' +
+      '<main>' +
+        '<p style="margin:0 0 8px">Please confirm your details before continuing to payment.</p>' +
+
+        // Center + constrain width like callback page
+        '<div class="review-wrap">' +
+          '<div class="summary summary-confirm" style="margin-top:8px">' +
+
+            // BOOKING DETAILS
+            '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">' +
+              '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Booking details</div>' +
+              '<div class="kv"><span class="label">Guest:</span><span class="divider"></span><span class="value" id="rGuest">—</span></div>' +
+              '<div class="kv"><span class="label">Email:</span><span class="divider"></span><span class="value" id="rEmail">—</span></div>' +
+              '<div class="kv"><span class="label">Phone:</span><span class="divider"></span><span class="value" id="rPhone">—</span></div>' +
+              '<div class="kv"><span class="label">Dates:</span><span class="divider"></span><span class="value" id="rDates">—</span></div>' +
+              '<div class="kv"><span class="label">Room:</span><span class="divider"></span><span class="value" id="rRoom">—</span></div>' +
+              '<div class="kv"><span class="label">Nights:</span><span class="divider"></span><span class="value" id="rNights">0</span></div>' +
+              '<div class="kv"><span class="label">Guests:</span><span class="divider"></span><span class="value" id="rGuests">0</span></div>' +
+            '</div>' +
+
+            // Divider
+            '<div style="border-top:1px solid var(--line);margin:4px 0 10px"></div>' +
+
+            // EXPERIENCES
+            '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Experiences</div>' +
+            '<div id="rExtrasList" class="review-items"></div>' +
+
+            // Divider
+            '<div style="border-top:1px solid var(--line);margin:10px 0 10px"></div>' +
+            
+            '<div class="kv extras"><span class="label">Experiences subtotal:</span><span class="divider"></span><span class="value" id="rExtrasSubtotal">—</span></div>' +
+
+            // Divider
+            '<div style="border-top:1px solid var(--line);margin:10px 0 10px"></div>' +
+
+            // PAYMENT SUMMARY (match callback)
+            '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Payment summary</div>' +
+            '<div class="kv"><span class="label">Room subtotal:</span><span class="divider"></span><span class="value" id="rRoomSubtotal">—</span></div>' +
+            '<div class="kv extras"><span class="label">Experiences:</span><span class="divider"></span><span class="value" id="rExtras">—</span></div>' +
+            '<div class="kv discount" id="rDiscountRow" style="display:none"><span class="label">Discount:</span><span class="divider"></span><span class="value" id="rDiscount">—</span></div>' +
+            '<div class="kv total"><span class="label">Total to pay:</span><span class="divider"></span><span class="value" id="rTotal">—</span></div>' +
+
+          '</div>' +
+        '</div>' +
+      '</main>' +
+      '<footer><button class="btn secondary" id="review-back" data-back="review">Back</button><button class="btn" id="review-continue">Continue to payment</button></footer>' +
+    '</div></div>' +
+
+
     '<div id="modal-thanks" class="modal" aria-hidden="true"><div class="sheet">' +
       '<header><div>Booking confirmed! 🎉</div><button class="x" data-close="thanks">×</button></header>' +
       '<main>' +
                 '<p style="margin:0 0 8px">Thank you! Your reservation is confirmed.</p>' +
           '<div class="summary summary-confirm" style="margin-top:8px">' +
+          
           // Booking details section
           '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">' +
             '<div style="font-size:13px;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:.08em;margin-bottom:4px">Booking details</div>' +
@@ -1355,6 +1469,16 @@ export default function BookingWidget() {
     if (!curr) curr = CURRENCY;
     return new Intl.NumberFormat('en-GB', { style: 'currency', currency: curr }).format(Number(amount || 0));
   }
+
+  function showPayLoading() {
+    var el = document.getElementById('pay-loading');
+    if (el) { el.style.display = 'flex'; el.setAttribute('aria-hidden','false'); }
+  }
+  function hidePayLoading() {
+    var el = document.getElementById('pay-loading');
+    if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden','true'); }
+  }
+
   function iso(d) { 
     // Use local timezone instead of UTC to avoid date shifting
     var date = new Date(d);
@@ -1719,21 +1843,6 @@ export default function BookingWidget() {
       });
     });
     
-    picker.querySelectorAll('[data-action="prev"]').forEach(function(btn) {
-      btn.addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() - 1, 1);
-        
-        // Fetch pricing for new month
-        if (currentRoomTypeId) {
-          var newMonth = currentPickerMonth[pickerId];
-          await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
-        }
-        
-        renderCalendar(pickerId);
-      });
-    });
     
     picker.querySelectorAll('[data-action="next"]').forEach(function(btn) {
       btn.addEventListener('click', async function(e) {
@@ -1910,6 +2019,7 @@ export default function BookingWidget() {
   var roomDiscount = 0;           // ⭐ NEW
   var extrasDiscount = 0;         // ⭐ NEW
   var extrasWithDiscounts = [];   // ⭐ NEW - extras with individual discounts
+  var reviewApproved = false; // gate payment until user confirms on Review modal
 
 
   function getCouponScopeLabel() {
@@ -2250,6 +2360,110 @@ export default function BookingWidget() {
       $('#mTotal2').textContent = formatCurrency(finalTotal, curr);
     }
 
+  function updateReviewModal() {
+    if (!selected) return;
+
+    var curr = selected.currency || CURRENCY;
+    var ci = selectedDates.ci, co = selectedDates.co;
+    var adultsVal = Number((document.getElementById('ad') || {}).value || 2);
+    
+    // Guest details (from the guest form inputs)
+    var firstEl = document.getElementById('gFirst');
+    var lastEl  = document.getElementById('gLast');
+    var emailEl = document.getElementById('gEmail');
+    var phoneEl = document.getElementById('gPhone');
+
+    var guestName = ((firstEl && firstEl.value) ? firstEl.value.trim() : '') +
+                    (((lastEl && lastEl.value) ? (' ' + lastEl.value.trim()) : ''));
+
+    var rGuest = document.getElementById('rGuest');
+    if (rGuest) rGuest.textContent = guestName.trim() || '—';
+
+    var rEmail = document.getElementById('rEmail');
+    if (rEmail) rEmail.textContent = (emailEl && emailEl.value ? emailEl.value.trim() : '') || '—';
+
+    var rPhone = document.getElementById('rPhone');
+    if (rPhone) rPhone.textContent = (phoneEl && phoneEl.value ? phoneEl.value.trim() : '') || '—';
+
+
+    // Dates / nights / guests
+    var rDates = document.getElementById('rDates');
+    if (rDates) rDates.textContent = formatDisplayDate(ci) + ' → ' + formatDisplayDate(co);
+
+    var rNights = document.getElementById('rNights');
+    if (rNights) rNights.textContent = String(selected.nights || 0);
+
+    var rGuests = document.getElementById('rGuests');
+    if (rGuests) rGuests.textContent = String(adultsVal);
+
+    // Rooms + room subtotal
+    var roomSubtotal = 0;
+    var roomsLabel = '';
+    if (Array.isArray(selectedRooms) && selectedRooms.length > 1) {
+      roomsLabel = selectedRooms.map(function (r) { return r.name || r.code || 'Room'; }).join(', ');
+      roomSubtotal = selectedRooms.reduce(function (sum, r) { return sum + (r.total || 0); }, 0);
+    } else {
+      roomsLabel = selected.name || selected.code || 'Room';
+      roomSubtotal = selected.total || 0;
+    }
+
+    var rRoom = document.getElementById('rRoom') || document.getElementById('rRooms');
+    if (rRoom) rRoom.textContent = roomsLabel;
+
+
+    var rRoomSubtotal = document.getElementById('rRoomSubtotal') || document.getElementById('rRoomSub');
+    if (rRoomSubtotal) rRoomSubtotal.textContent = formatCurrency(roomSubtotal, curr);
+
+
+    // Extras list + extras subtotal
+    var extrasSubtotalText = formatCurrency(extrasTotal || 0, curr);
+
+    var rExtrasSubtotal = document.getElementById('rExtrasSubtotal') || document.getElementById('rExtrasSub');
+    if (rExtrasSubtotal) rExtrasSubtotal.textContent = extrasSubtotalText;
+
+    // Also populate the Payment Summary "Experiences:" row (id="rExtras")
+    var rExtras = document.getElementById('rExtras');
+    if (rExtras) rExtras.textContent = extrasSubtotalText;
+
+
+    var listEl = document.getElementById('rExtrasList');
+    if (listEl) {
+      var picked = (extras || []).filter(function (x) { return x && x.qty > 0; });
+      if (!picked.length) {
+        listEl.innerHTML = '<div class="notice" style="display:block">No experiences selected.</div>';
+      } else {
+        listEl.innerHTML = picked.map(function (x) {
+          var lineTotal = (x.price || 0) * (x.qty || 0);
+          return (
+            '<div class="kv">' +
+              '<span class="label">' + (x.qty || 0) + ' × ' + (x.name || x.code || 'Experience') + '</span>' +
+              '<span class="divider"></span>' +
+              '<span class="value">' + formatCurrency(lineTotal, curr) + '</span>' +
+            '</div>'
+
+          );
+        }).join('');
+      }
+    }
+
+    // Discount + final total
+    var discount = calculateDiscount();
+    var rDiscountRow = document.getElementById('rDiscountRow');
+    var rDiscount = document.getElementById('rDiscount');
+
+    if (rDiscountRow && rDiscount) {
+      if (discount > 0) {
+        rDiscountRow.style.display = 'flex';
+        rDiscount.textContent = '−' + formatCurrency(discount, curr);
+      } else {
+        rDiscountRow.style.display = 'none';
+      }
+    }
+
+    var finalTotal = Math.max(0, roomSubtotal + (extrasTotal || 0) - (discount || 0));
+    var rTotal = document.getElementById('rTotal');
+    if (rTotal) rTotal.textContent = formatCurrency(finalTotal, curr);
+  }
 
   // ====== COUPONS ======
   async function validateCoupon(code) {
@@ -2423,12 +2637,12 @@ export default function BookingWidget() {
   async function getExtras() {
     try {
       var data = await supabase.query('extras', {
-        select: 'id,code,name,description,price,category',
+        select: 'id,code,name,description,price,category,image_url',
         eq: { is_active: true },
         order: 'price.asc'
       });
       return data.map(function (e) {
-        return { id: e.id, code: e.code, name: e.name, description: e.description, price: parseFloat(e.price), category: e.category };
+        return { id: e.id, code: e.code, name: e.name, description: e.description, price: parseFloat(e.price), category: e.category, image_url: e.image_url || null };
       });
     } catch (e) { return []; }
   }
@@ -2782,40 +2996,67 @@ export default function BookingWidget() {
   }
 
   function renderExtrasList(list) {
-    var host = $('#extras-list');
-    if (!list.length) { host.innerHTML = '<div class="notice err" style="display:block">No extras available right now.</div>'; return; }
-    host.innerHTML = '';
-    list.forEach(function (x) {
-      var row = document.createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff';
-      var descriptionHtml = x.description ? '<div class="desc" style="margin-top:4px">' + x.description + '</div>' : '';
-      row.innerHTML =
-        '<div><div style="font-weight:700">' + x.name + '</div>' + descriptionHtml + '<div class="muted" style="color:#6b7280;font-size:14px;margin-top:4px">' + formatCurrency(x.price, selected ? selected.currency : CURRENCY) + '</div></div>' +
-        '<div class="qty"><button class="btn secondary" data-minus="' + x.code + '">−</button><span id="qty-' + x.code + '">0</span><button class="btn secondary" data-plus="' + x.code + '">+</button></div>';
-      host.appendChild(row);
-    });
-
-    host.querySelectorAll('[data-plus]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var code = b.getAttribute('data-plus');
-        var item = extras.find(function (e) { return e.code === code; });
-        if (!item) { var base = list.find(function (x) { return x.code === code; }); item = Object.assign({}, base, { qty: 0 }); extras.push(item); }
-        item.qty = (item.qty || 0) + 1;
-        document.getElementById('qty-' + code).textContent = String(item.qty);
-        recalcExtras();
-      });
-    });
-    host.querySelectorAll('[data-minus]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        var code = b.getAttribute('data-minus');
-        var item = extras.find(function (e) { return e.code === code; });
-        if (!item) return;
-        item.qty = Math.max(0, (item.qty || 0) - 1);
-        document.getElementById('qty-' + code).textContent = String(item.qty);
-        recalcExtras();
-      });
-    });
+  var host = $('#extras-list');
+  if (!list.length) {
+    host.innerHTML = '<div class="notice err" style="display:block">No extras available right now.</div>';
+    return;
   }
+
+  host.innerHTML = '';
+
+  list.forEach(function (x) {
+  var card = document.createElement('div');
+  card.className = 'room extra-room';
+
+  var placeholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect fill='%23eef2f7' width='100%25' height='100%25'/%3E%3C/svg%3E";
+  var img = x.image_url ? x.image_url : placeholder;
+
+  card.innerHTML =
+    '<img class="hero" src="' + img + '" alt="' + (x.name || '') + '" onerror="this.src=\\'' + placeholder + '\\'">' +
+    '<div class="body">' +
+      '<div class="name">' + (x.name || '') + '</div>' +
+      '<div class="desc">' + (x.description || '') + '</div>' +
+      '<div class="foot">' +
+        '<div class="price">' + formatCurrency(x.price, selected ? selected.currency : CURRENCY) + '</div>' +
+        '<div class="qty">' +
+          '<button class="btn secondary" data-minus="' + x.code + '">−</button>' +
+          '<span id="qty-' + x.code + '">0</span>' +
+          '<button class="btn secondary" data-plus="' + x.code + '">+</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  host.appendChild(card);
+});
+
+
+  host.querySelectorAll('[data-plus]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.getAttribute('data-plus');
+      var item = extras.find(function (e) { return e.code === code; });
+      if (!item) {
+        var base = list.find(function (x) { return x.code === code; });
+        item = Object.assign({}, base, { qty: 0 });
+        extras.push(item);
+      }
+      item.qty = (item.qty || 0) + 1;
+      document.getElementById('qty-' + code).textContent = String(item.qty);
+      recalcExtras();
+    });
+  });
+
+  host.querySelectorAll('[data-minus]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.getAttribute('data-minus');
+      var item = extras.find(function (e) { return e.code === code; });
+      if (!item) return;
+      item.qty = Math.max(0, (item.qty || 0) - 1);
+      document.getElementById('qty-' + code).textContent = String(item.qty);
+      recalcExtras();
+    });
+  });
+}
+
 
   function recalcExtras() {
     extrasTotal = extras.reduce(function (sum, x) { return sum + (x.price * (x.qty || 0)); }, 0);
@@ -2828,15 +3069,16 @@ export default function BookingWidget() {
   var modResults = $('#modal-results');
   var modExtras = $('#modal-extras');
   var modGuest = $('#modal-guest');
+  var modReview = $('#modal-review');
   var modThanks = $('#modal-thanks');
 
   function openModal(which) {
     ovl.style.display = 'block';
-    var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : modThanks;
+    var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : which === 'review' ? modReview : modThanks;
     el.style.display = 'flex';
   }
   function closeModal(which) {
-    var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : modThanks;
+    var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : which === 'review' ? modReview : modThanks;
     el.style.display = 'none';
     // Always hide overlay when closing a modal - it will be shown again if another modal opens
     ovl.style.display = 'none';
@@ -2846,6 +3088,7 @@ export default function BookingWidget() {
   document.querySelectorAll('[data-close="extras"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('extras'); }); });
   document.querySelectorAll('[data-close="guest"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('guest'); }); });
   document.querySelectorAll('[data-close="thanks"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('thanks'); }); });
+  document.querySelectorAll('[data-close="review"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('review'); reviewApproved = false; openModal('guest'); }); });
   document.querySelectorAll('[data-back="extras"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('extras'); }); });
   document.querySelectorAll('[data-back="guest"]').forEach(function (b) {
     b.addEventListener('click', function(){ closeModal('guest'); openModal('extras'); });
@@ -3157,6 +3400,7 @@ export default function BookingWidget() {
     if (modResults.style.display === 'flex') closeModal('results');
     else if (modExtras.style.display === 'flex') closeModal('extras');
     else if (modGuest.style.display === 'flex') closeModal('guest');
+    else if (modReview.style.display === 'flex') closeModal('review');
     else if (modThanks.style.display === 'flex') closeModal('thanks');
   });
 
@@ -3242,6 +3486,36 @@ export default function BookingWidget() {
     openModal('guest');
   });
 
+    var reviewBackBtn = document.getElementById('review-back');
+  if (reviewBackBtn) {
+    reviewBackBtn.addEventListener('click', function () {
+      reviewApproved = false;
+      closeModal('review');
+      openModal('guest');
+    });
+  }
+
+  var reviewContinueBtn = document.getElementById('review-continue');
+  if (reviewContinueBtn) {
+    reviewContinueBtn.addEventListener('click', function () {
+      // UX: show immediate feedback before we do the payment init call
+      showPayLoading();
+
+      // Prevent double clicks
+      reviewContinueBtn.disabled = true;
+
+      // Let the loading UI paint first, then trigger confirm
+      setTimeout(function () {
+        reviewApproved = true;
+        closeModal('review');
+        var c = document.getElementById('confirm');
+        if (c) c.click();
+      }, 0);
+    });
+  }
+
+
+
     document.getElementById('confirm').addEventListener('click', async function () {
     var firstEl = document.getElementById('gFirst'),
         lastEl  = document.getElementById('gLast'),
@@ -3307,6 +3581,16 @@ export default function BookingWidget() {
       .map(function (x) {
         return { code: x.code, name: x.name, price: x.price, qty: x.qty };
       });
+
+        // --- Review step gate (show review modal before payment) ---
+    if (!reviewApproved) {
+      updateModalSummaries();
+      updateReviewModal();
+      closeModal('guest');
+      openModal('review');
+      return;
+    }
+
 
     // Determine which rooms to use:
     // - if checkboxes have been used: selectedRooms[]
@@ -3559,8 +3843,10 @@ export default function BookingWidget() {
     // Redirect happens in payment initialization code above
 
     } catch (e) {
+      hidePayLoading();
       alert('Error creating reservation: ' + e.message);
     } finally {
+      reviewApproved = false; // reset for next attempt / retry
       btn.disabled = false;
       btn.textContent = old;
     }
@@ -3579,7 +3865,7 @@ export default function BookingWidget() {
     URL.revokeObjectURL(url)
     const rootDiv = document.getElementById('booking-search')
     if (rootDiv) rootDiv.innerHTML = ''
-    ;['ovl','modal-results','modal-extras','modal-guest','modal-thanks'].forEach(id => {
+    ;['ovl','modal-results','modal-extras','modal-guest','modal-review','modal-thanks'].forEach(id => {
       const el = document.getElementById(id)
       if (el) el.remove()
     })
@@ -3748,6 +4034,42 @@ input[type="date"] {
   gap:10px;
 }
 
+/* Review modal: match callback layout (label left, value right, no divider column) */
+#modal-review .summary-confirm .kv{
+  grid-template-columns: 1fr auto; /* label | value */
+  gap: 16px;
+}
+
+#modal-review .summary-confirm .kv .divider{
+  display: none;
+}
+
+#modal-review .summary-confirm .kv .label{
+  text-align: left;
+  min-width: 0;
+}
+
+/* Values align right like callback */
+#modal-review .summary-confirm .kv .value{
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Keep experience names on one line on desktop (NO ellipsis) */
+@media (min-width: 860px){
+  #modal-review #rExtrasList .kv .label{
+    white-space: nowrap;   /* one line on desktop */
+  }
+}
+
+/* Allow wrapping only on smaller screens */
+@media (max-width: 859px){
+  #modal-review #rExtrasList .kv .label{
+    white-space: normal;   /* wrap on smaller screens */
+  }
+}
+
+
 .summary-confirm .kv .label{
   text-align:right;
   color:#6b7280;
@@ -3763,6 +4085,8 @@ input[type="date"] {
   text-align:left;
   font-weight:400;
 }
+
+
 
 /* Remove bold from total row inside confirmation summary */
 .summary-confirm .kv.total{
