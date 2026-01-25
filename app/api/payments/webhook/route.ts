@@ -93,14 +93,19 @@ export async function POST(request: NextRequest) {
         console.log('Found extras:', reservationExtras?.length || 0);
 
         // Check if any extras need selection
-        const hasExtrasNeedingSelection = reservationExtras && reservationExtras.some((extra: any) => {
-          const extraCode = (extra.extra_code || '').toLowerCase();
-          const extraName = (extra.extra_name || '').toLowerCase();
-          return extraCode.includes('chef') || extraName.includes('chef') || 
-                 extraCode.includes('spa') || extraName.includes('spa');
-        });
+        // For packages, ALL extras need selection; for regular bookings, only chef/spa
+        const hasExtrasNeedingSelection = reservationExtras && reservationExtras.length > 0 && (
+          isPackage || 
+          reservationExtras.some((extra: any) => {
+            const extraCode = (extra.extra_code || '').toLowerCase();
+            const extraName = (extra.extra_name || '').toLowerCase();
+            return extraCode.includes('chef') || extraName.includes('chef') || 
+                   extraCode.includes('spa') || extraName.includes('spa');
+          })
+        );
 
         console.log('Extras needing selection:', hasExtrasNeedingSelection);
+        console.log('Is package:', isPackage);
 
         // Calculate totals
         let aggregateRoomSubtotal = 0;
@@ -119,7 +124,9 @@ export async function POST(request: NextRequest) {
             .map((e: any) => {
               const extraCode = (e.extra_code || '').toLowerCase();
               const extraName = (e.extra_name || '').toLowerCase();
-              const needsSelection = extraCode.includes('chef') || extraName.includes('chef') || 
+              // For packages, all extras need selection; for regular bookings, only chef/spa
+              const needsSelection = isPackage || 
+                                    extraCode.includes('chef') || extraName.includes('chef') || 
                                     extraCode.includes('spa') || extraName.includes('spa');
               
               return {
@@ -201,30 +208,33 @@ export async function POST(request: NextRequest) {
         console.log('📧 Is group:', isGroupBooking);
 
         if (!process.env.NEXT_PUBLIC_BASE_URL) {
-          console.error('❌ NEXT_PUBLIC_BASE_URL not set!');
-          return;
+          console.error('❌ NEXT_PUBLIC_BASE_URL not set - emails will fail!');
         }
 
-        // Send booking confirmation email
-        const emailResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`,
-          {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(emailData),
+        // Send booking confirmation email - always attempt to send
+        try {
+          const emailResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`,
+            {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(emailData),
+            }
+          );
+
+          console.log('📧 Email API status:', emailResponse.status);
+
+          if (!emailResponse.ok) {
+            const errorText = await emailResponse.text();
+            console.error('❌ Email failed:', errorText);
+          } else {
+            console.log('✅ Email sent successfully');
           }
-        );
-
-        console.log('📧 Email API status:', emailResponse.status);
-
-        if (!emailResponse.ok) {
-          const errorText = await emailResponse.text();
-          console.error('❌ Email failed:', errorText);
-        } else {
-          console.log('✅ Email sent successfully');
+        } catch (emailSendError: any) {
+          console.error('❌ Error calling email API:', emailSendError.message);
         }
 
         // Send extra selections email if needed
@@ -238,26 +248,30 @@ export async function POST(request: NextRequest) {
             extrasLink: extrasLink,
           };
 
-          const extrasEmailResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-extra-selections-email`,
-            {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(extrasEmailData),
+          try {
+            const extrasEmailResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-extra-selections-email`,
+              {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify(extrasEmailData),
+              }
+            );
+
+            console.log('📧 Extra selections email API status:', extrasEmailResponse.status);
+
+            if (!extrasEmailResponse.ok) {
+              const errorText = await extrasEmailResponse.text();
+              console.error('❌ Extra selections email failed:', errorText);
+            } else {
+              console.log('✅ Extra selections email sent successfully');
+              console.log('📧 Link:', extrasLink);
             }
-          );
-
-          console.log('📧 Extra selections email API status:', extrasEmailResponse.status);
-
-          if (!extrasEmailResponse.ok) {
-            const errorText = await extrasEmailResponse.text();
-            console.error('❌ Extra selections email failed:', errorText);
-          } else {
-            console.log('✅ Extra selections email sent successfully');
-            console.log('📧 Link:', extrasLink);
+          } catch (extraEmailError: any) {
+            console.error('❌ Error calling extra selections email API:', extraEmailError.message);
           }
 
           console.log('📧 === EXTRA SELECTIONS EMAIL END ===');
