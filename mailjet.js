@@ -908,3 +908,6 @@ www.sojourncabins.com
   const data = await response.json();
   return data;
 }
+
+
+//Mailjet helper to generate package details HTML
