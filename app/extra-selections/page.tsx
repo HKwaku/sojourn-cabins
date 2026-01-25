@@ -237,6 +237,33 @@ function ExtraSelectionsContent() {
       }
 
       setReservation(resData)
+
+      // Filter reservation_extras to only show those with needs_guest_input = TRUE
+      if (resData.reservation_extras) {
+        // First, get all extra codes
+        const extraCodes = resData.reservation_extras.map((e: any) => e.extra_code)
+        
+        // Fetch needs_guest_input for these extras
+        const { data: extrasConfig } = await supabase
+          .from('extras')
+          .select('code, needs_guest_input')
+          .in('code', extraCodes)
+        
+        // Create a map for quick lookup
+        const needsInputMap: Record<string, boolean> = {}
+        if (extrasConfig) {
+          extrasConfig.forEach((extra: any) => {
+            needsInputMap[extra.code] = extra.needs_guest_input
+          })
+        }
+        
+        // Filter to only keep extras that need guest input
+        resData.reservation_extras = resData.reservation_extras.filter((e: any) => 
+          needsInputMap[e.extra_code] === true
+        )
+        
+        console.log('Filtered extras to only show those needing guest input:', resData.reservation_extras.length)
+      }
       
       // Check if this is a group booking and calculate total guests
       if (resData.group_reservation_code) {
