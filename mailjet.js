@@ -663,6 +663,9 @@ export async function sendBookingEmail({ to, name, booking }) {
   }
 
 
+  // ✅ Fetch the guest book PDF before sending
+  const pdfBase64 = await getGuestBookPdfBase64();
+
   const authHeader =
     "Basic " +
     Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
@@ -859,6 +862,9 @@ Anomabo, Central Region, Ghana
 reservations@sojourncabins.com
 www.sojourncabins.com
   `;
+
+  // ✅ Fetch the guest book PDF before sending
+  const pdfBase64 = await getGuestBookPdfBase64();
 
   const authHeader = `Basic ${Buffer.from(
     `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
