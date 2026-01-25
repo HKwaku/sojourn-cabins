@@ -326,6 +326,3 @@ export async function POST(request: NextRequest) {
     console.error('Webhook error:', error);
     return NextResponse.json({ error: 'Webhook failed' }, { status: 500 });
   }
-}
-
-//Completed Merge
