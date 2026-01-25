@@ -760,6 +760,7 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
           <td align="center" style="padding: 40px 20px;">
             <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
               
+              
               <!-- Header with Logo -->
               <tr>
                 <td style="padding: 32px 32px 24px 32px; text-align: center; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
@@ -767,21 +768,13 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
                 </td>
               </tr>
 
-              <!-- Celebration Icon & Title -->
+              <!-- Title -->
               <tr>
-                <td style="padding: 32px 32px 0 32px; text-align: center;">
-                  <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                <td style="padding: 32px 32px 16px 32px; text-align: center;">
                   <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Complete Your Experience Details</h1>
-                
+                  <p style="margin: 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Confirmation: ${booking.confirmation_code || booking.group_reservation_code || ''}</p>
                 </td>
               </tr>
-            
-              </h1>
-                <p style="margin: 8px 0 0 0; font-size: 13px; color: #d6d3d1; letter-spacing: 0.3em; text-transform: uppercase;">
-                  ${booking.confirmation_code || booking.group_reservation_code || ''}
-                </p>
-              </td>
-            </tr>
 
           <!-- Content -->
           <tr>
