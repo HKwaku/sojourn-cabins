@@ -227,7 +227,7 @@ export default function Navbar() {
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col h-full pt-36 pb-7 px-5">
+        <div className="flex flex-col h-full pt-32 pb-7 px-5">
           <div className="flex-1 flex flex-col gap-5">
             {navLinks.map((link) => (
               <div

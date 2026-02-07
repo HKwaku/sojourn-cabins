@@ -935,6 +935,106 @@ export default function BookingWidget() {
   .terms-link:hover{
     color:#ea580c;
   }
+
+  /* ---------- Country Code Searchable Dropdown ---------- */
+  .cc-select{
+    position:relative;
+  }
+  .cc-selected{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:14px;
+    cursor:pointer;
+    user-select:none;
+    transition:border-color 0.2s;
+    min-height:42px;
+  }
+  .cc-selected:hover{
+    border-color:#9ca3af;
+  }
+  .cc-selected::after{
+    content:'';
+    margin-left:auto;
+    border:5px solid transparent;
+    border-top:5px solid #6b7280;
+    flex-shrink:0;
+  }
+  .cc-dropdown{
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    right:0;
+    background:#fff;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    z-index:50;
+    overflow:hidden;
+  }
+  .cc-dropdown.open{
+    display:block;
+  }
+  .cc-search{
+    width:100%;
+    padding:10px 14px;
+    border:none;
+    border-bottom:1px solid #e5e7eb;
+    font-size:14px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .cc-search::placeholder{
+    color:#9ca3af;
+  }
+  .cc-list{
+    max-height:220px;
+    overflow-y:auto;
+  }
+  .cc-option{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    font-size:14px;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  .cc-option:hover{
+    background:#f3f4f6;
+  }
+  .cc-option.active{
+    background:#fff7ed;
+    font-weight:600;
+  }
+  .cc-flag{
+    font-size:20px;
+    line-height:1;
+    flex-shrink:0;
+  }
+  .cc-name{
+    flex:1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .cc-code{
+    color:#9ca3af;
+    font-size:13px;
+    flex-shrink:0;
+  }
+  .cc-no-results{
+    padding:12px 14px;
+    color:#9ca3af;
+    font-size:13px;
+    text-align:center;
+  }
+
   .terms-modal{
     position:fixed;
     inset:0;
@@ -1329,7 +1429,16 @@ export default function BookingWidget() {
           '<div><label>First name *</label><input id="gFirst" placeholder="Jane" required></div>' +
           '<div><label>Last name *</label><input id="gLast" placeholder="Doe" required></div>' +
           '<div style="grid-column:span 2"><label>Email *</label><input id="gEmail" type="email" placeholder="jane@example.com" required></div>' +
-          '<div><label>Country Code</label><select id="gCountryCode"></select></div>' +
+          '<div><label>Country Code</label>' +
+            '<div class="cc-select" id="ccSelect">' +
+              '<div class="cc-selected" id="ccSelected">\uD83C\uDDEC\uD83C\uDDED Ghana (+233)</div>' +
+              '<input type="hidden" id="gCountryCode" value="+233">' +
+              '<div class="cc-dropdown" id="ccDropdown">' +
+                '<input type="text" class="cc-search" id="ccSearch" placeholder="Search country...">' +
+                '<div class="cc-list" id="ccList"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
           '<div><label>Phone</label><input id="gPhone" placeholder="123456789"></div>' +
         '</div>' +
         '<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">' +
@@ -3096,149 +3205,149 @@ export default function BookingWidget() {
 
   // ====== EXPERIENCES CAROUSEL ======
   var COUNTRY_OPTIONS = [
-    { region: "Africa", code: "+233", label: "🇬🇭 Ghana (+233)" },
-    { region: "Africa", code: "+234", label: "🇳🇬 Nigeria (+234)" },
-    { region: "Africa", code: "+27", label: "🇿🇦 South Africa (+27)" },
-    { region: "Africa", code: "+254", label: "🇰🇪 Kenya (+254)" },
-    { region: "Africa", code: "+256", label: "🇺🇬 Uganda (+256)" },
-    { region: "Africa", code: "+255", label: "🇹🇿 Tanzania (+255)" },
-    { region: "Africa", code: "+20", label: "🇪🇬 Egypt (+20)" },
-    { region: "Africa", code: "+213", label: "🇩🇿 Algeria (+213)" },
-    { region: "Africa", code: "+244", label: "🇦🇴 Angola (+244)" },
-    { region: "Africa", code: "+229", label: "🇧🇯 Benin (+229)" },
-    { region: "Africa", code: "+267", label: "🇧🇼 Botswana (+267)" },
-    { region: "Africa", code: "+226", label: "🇧🇫 Burkina Faso (+226)" },
-    { region: "Africa", code: "+257", label: "🇧🇮 Burundi (+257)" },
-    { region: "Africa", code: "+237", label: "🇨🇲 Cameroon (+237)" },
-    { region: "Africa", code: "+238", label: "🇨🇻 Cape Verde (+238)" },
-    { region: "Africa", code: "+236", label: "🇨🇫 Central African Republic (+236)" },
-    { region: "Africa", code: "+235", label: "🇹🇩 Chad (+235)" },
-    { region: "Africa", code: "+269", label: "🇰🇲 Comoros (+269)" },
-    { region: "Africa", code: "+242", label: "🇨🇬 Congo (+242)" },
-    { region: "Africa", code: "+243", label: "🇨🇩 Congo (DRC) (+243)" },
-    { region: "Africa", code: "+225", label: "🇨🇮 Côte d'Ivoire (+225)" },
-    { region: "Africa", code: "+253", label: "🇩🇯 Djibouti (+253)" },
-    { region: "Africa", code: "+240", label: "🇬🇶 Equatorial Guinea (+240)" },
-    { region: "Africa", code: "+291", label: "🇪🇷 Eritrea (+291)" },
-    { region: "Africa", code: "+251", label: "🇪🇹 Ethiopia (+251)" },
-    { region: "Africa", code: "+241", label: "🇬🇦 Gabon (+241)" },
-    { region: "Africa", code: "+220", label: "🇬🇲 Gambia (+220)" },
-    { region: "Africa", code: "+224", label: "🇬🇳 Guinea (+224)" },
-    { region: "Africa", code: "+245", label: "🇬🇼 Guinea-Bissau (+245)" },
-    { region: "Africa", code: "+266", label: "🇱🇸 Lesotho (+266)" },
-    { region: "Africa", code: "+231", label: "🇱🇷 Liberia (+231)" },
-    { region: "Africa", code: "+218", label: "🇱🇾 Libya (+218)" },
-    { region: "Africa", code: "+261", label: "🇲🇬 Madagascar (+261)" },
-    { region: "Africa", code: "+265", label: "🇲🇼 Malawi (+265)" },
-    { region: "Africa", code: "+223", label: "🇲🇱 Mali (+223)" },
-    { region: "Africa", code: "+222", label: "🇲🇷 Mauritania (+222)" },
-    { region: "Africa", code: "+230", label: "🇲🇺 Mauritius (+230)" },
-    { region: "Africa", code: "+212", label: "🇲🇦 Morocco (+212)" },
-    { region: "Africa", code: "+258", label: "🇲🇿 Mozambique (+258)" },
-    { region: "Africa", code: "+264", label: "🇳🇦 Namibia (+264)" },
-    { region: "Africa", code: "+227", label: "🇳🇪 Niger (+227)" },
-    { region: "Africa", code: "+250", label: "🇷🇼 Rwanda (+250)" },
-    { region: "Africa", code: "+239", label: "🇸🇹 Sao Tome & Principe (+239)" },
-    { region: "Africa", code: "+221", label: "🇸🇳 Senegal (+221)" },
-    { region: "Africa", code: "+248", label: "🇸🇨 Seychelles (+248)" },
-    { region: "Africa", code: "+232", label: "🇸🇱 Sierra Leone (+232)" },
-    { region: "Africa", code: "+252", label: "🇸🇴 Somalia (+252)" },
-    { region: "Africa", code: "+211", label: "🇸🇸 South Sudan (+211)" },
-    { region: "Africa", code: "+249", label: "🇸🇩 Sudan (+249)" },
-    { region: "Africa", code: "+268", label: "🇸🇿 Eswatini (+268)" },
-    { region: "Africa", code: "+216", label: "🇹🇳 Tunisia (+216)" },
-    { region: "Africa", code: "+260", label: "🇿🇲 Zambia (+260)" },
-    { region: "Africa", code: "+263", label: "🇿🇼 Zimbabwe (+263)" },
-    { region: "Europe", code: "+44", label: "🇬🇧 United Kingdom (+44)" },
-    { region: "Europe", code: "+33", label: "🇫🇷 France (+33)" },
-    { region: "Europe", code: "+49", label: "🇩🇪 Germany (+49)" },
-    { region: "Europe", code: "+34", label: "🇪🇸 Spain (+34)" },
-    { region: "Europe", code: "+39", label: "🇮🇹 Italy (+39)" },
-    { region: "Europe", code: "+31", label: "🇳🇱 Netherlands (+31)" },
-    { region: "Europe", code: "+41", label: "🇨🇭 Switzerland (+41)" },
-    { region: "Europe", code: "+46", label: "🇸🇪 Sweden (+46)" },
-    { region: "Europe", code: "+47", label: "🇳🇴 Norway (+47)" },
-    { region: "Europe", code: "+45", label: "🇩🇰 Denmark (+45)" },
-    { region: "Europe", code: "+48", label: "🇵🇱 Poland (+48)" },
-    { region: "Europe", code: "+351", label: "🇵🇹 Portugal (+351)" },
-    { region: "Europe", code: "+30", label: "🇬🇷 Greece (+30)" },
-    { region: "Europe", code: "+43", label: "🇦🇹 Austria (+43)" },
-    { region: "Europe", code: "+32", label: "🇧🇪 Belgium (+32)" },
-    { region: "Europe", code: "+353", label: "🇮🇪 Ireland (+353)" },
-    { region: "Europe", code: "+358", label: "🇫🇮 Finland (+358)" },
-    { region: "Europe", code: "+420", label: "🇨🇿 Czechia (+420)" },
-    { region: "Europe", code: "+40", label: "🇷🇴 Romania (+40)" },
-    { region: "Europe", code: "+36", label: "🇭🇺 Hungary (+36)" },
-    { region: "Europe", code: "+7", label: "🇷🇺 Russia (+7)" },
-    { region: "Europe", code: "+380", label: "🇺🇦 Ukraine (+380)" },
-    { region: "Europe", code: "+355", label: "🇦🇱 Albania (+355)" },
-    { region: "Europe", code: "+359", label: "🇧🇬 Bulgaria (+359)" },
-    { region: "Europe", code: "+385", label: "🇭🇷 Croatia (+385)" },
-    { region: "Europe", code: "+357", label: "🇨🇾 Cyprus (+357)" },
-    { region: "Europe", code: "+372", label: "🇪🇪 Estonia (+372)" },
-    { region: "Europe", code: "+354", label: "🇮🇸 Iceland (+354)" },
-    { region: "Europe", code: "+371", label: "🇱🇻 Latvia (+371)" },
-    { region: "Europe", code: "+370", label: "🇱🇹 Lithuania (+370)" },
-    { region: "Europe", code: "+352", label: "🇱🇺 Luxembourg (+352)" },
-    { region: "Europe", code: "+356", label: "🇲🇹 Malta (+356)" },
-    { region: "Europe", code: "+373", label: "🇲🇩 Moldova (+373)" },
-    { region: "Europe", code: "+377", label: "🇲🇨 Monaco (+377)" },
-    { region: "Europe", code: "+382", label: "🇲🇪 Montenegro (+382)" },
-    { region: "Europe", code: "+381", label: "🇷🇸 Serbia (+381)" },
-    { region: "Europe", code: "+421", label: "🇸🇰 Slovakia (+421)" },
-    { region: "Europe", code: "+386", label: "🇸🇮 Slovenia (+386)" },
-    { region: "Americas", code: "+1", label: "🇺🇸 United States (+1)" },
-    { region: "Americas", code: "+1", label: "🇨🇦 Canada (+1)" },
-    { region: "Americas", code: "+52", label: "🇲🇽 Mexico (+52)" },
-    { region: "Americas", code: "+55", label: "🇧🇷 Brazil (+55)" },
-    { region: "Americas", code: "+54", label: "🇦🇷 Argentina (+54)" },
-    { region: "Americas", code: "+57", label: "🇨🇴 Colombia (+57)" },
-    { region: "Americas", code: "+56", label: "🇨🇱 Chile (+56)" },
-    { region: "Americas", code: "+51", label: "🇵🇪 Peru (+51)" },
-    { region: "Americas", code: "+58", label: "🇻🇪 Venezuela (+58)" },
-    { region: "Asia", code: "+91", label: "🇮🇳 India (+91)" },
-    { region: "Asia", code: "+86", label: "🇨🇳 China (+86)" },
-    { region: "Asia", code: "+81", label: "🇯🇵 Japan (+81)" },
-    { region: "Asia", code: "+82", label: "🇰🇷 South Korea (+82)" },
-    { region: "Asia", code: "+65", label: "🇸🇬 Singapore (+65)" },
-    { region: "Asia", code: "+971", label: "🇦🇪 United Arab Emirates (+971)" },
-    { region: "Asia", code: "+966", label: "🇸🇦 Saudi Arabia (+966)" },
-    { region: "Asia", code: "+62", label: "🇮🇩 Indonesia (+62)" },
-    { region: "Asia", code: "+60", label: "🇲🇾 Malaysia (+60)" },
-    { region: "Asia", code: "+66", label: "🇹🇭 Thailand (+66)" },
-    { region: "Asia", code: "+63", label: "🇵🇭 Philippines (+63)" },
-    { region: "Asia", code: "+84", label: "🇻🇳 Vietnam (+84)" },
-    { region: "Asia", code: "+92", label: "🇵🇰 Pakistan (+92)" },
-    { region: "Asia", code: "+880", label: "🇧🇩 Bangladesh (+880)" },
-    { region: "Asia", code: "+90", label: "🇹🇷 Turkey (+90)" },
-    { region: "Asia", code: "+972", label: "🇮🇱 Israel (+972)" },
-    { region: "Asia", code: "+98", label: "🇮🇷 Iran (+98)" },
-    { region: "Asia", code: "+964", label: "🇮🇶 Iraq (+964)" },
-    { region: "Asia", code: "+962", label: "🇯🇴 Jordan (+962)" },
-    { region: "Asia", code: "+965", label: "🇰🇼 Kuwait (+965)" },
-    { region: "Asia", code: "+961", label: "🇱🇧 Lebanon (+961)" },
-    { region: "Asia", code: "+968", label: "🇴🇲 Oman (+968)" },
-    { region: "Asia", code: "+974", label: "🇶🇦 Qatar (+974)" },
-    { region: "Asia", code: "+94", label: "🇱🇰 Sri Lanka (+94)" },
-    { region: "Asia", code: "+886", label: "🇹🇼 Taiwan (+886)" },
-    { region: "Asia", code: "+93", label: "🇦🇫 Afghanistan (+93)" },
-    { region: "Asia", code: "+374", label: "🇦🇲 Armenia (+374)" },
-    { region: "Asia", code: "+994", label: "🇦🇿 Azerbaijan (+994)" },
-    { region: "Asia", code: "+975", label: "🇧🇹 Bhutan (+975)" },
-    { region: "Asia", code: "+673", label: "🇧🇳 Brunei (+673)" },
-    { region: "Asia", code: "+855", label: "🇰🇭 Cambodia (+855)" },
-    { region: "Asia", code: "+7", label: "🇰🇿 Kazakhstan (+7)" },
-    { region: "Asia", code: "+996", label: "🇰🇬 Kyrgyzstan (+996)" },
-    { region: "Asia", code: "+856", label: "🇱🇦 Laos (+856)" },
-    { region: "Asia", code: "+960", label: "🇲🇻 Maldives (+960)" },
-    { region: "Asia", code: "+976", label: "🇲🇳 Mongolia (+976)" },
-    { region: "Asia", code: "+977", label: "🇳🇵 Nepal (+977)" },
-    { region: "Asia", code: "+998", label: "🇺🇿 Uzbekistan (+998)" },
-    { region: "Oceania", code: "+61", label: "🇦🇺 Australia (+61)" },
-    { region: "Oceania", code: "+64", label: "🇳🇿 New Zealand (+64)" },
-    { region: "Oceania", code: "+679", label: "🇫🇯 Fiji (+679)" },
-    { region: "Oceania", code: "+685", label: "🇼🇸 Samoa (+685)" },
-    { region: "Oceania", code: "+676", label: "🇹🇴 Tonga (+676)" }
+    { name: "Afghanistan", flag: "\uD83C\uDDE6\uD83C\uDDEB", code: "+93" },
+    { name: "Albania", flag: "\uD83C\uDDE6\uD83C\uDDF1", code: "+355" },
+    { name: "Algeria", flag: "\uD83C\uDDE9\uD83C\uDDFF", code: "+213" },
+    { name: "Angola", flag: "\uD83C\uDDE6\uD83C\uDDF4", code: "+244" },
+    { name: "Argentina", flag: "\uD83C\uDDE6\uD83C\uDDF7", code: "+54" },
+    { name: "Armenia", flag: "\uD83C\uDDE6\uD83C\uDDF2", code: "+374" },
+    { name: "Australia", flag: "\uD83C\uDDE6\uD83C\uDDFA", code: "+61" },
+    { name: "Austria", flag: "\uD83C\uDDE6\uD83C\uDDF9", code: "+43" },
+    { name: "Azerbaijan", flag: "\uD83C\uDDE6\uD83C\uDDFF", code: "+994" },
+    { name: "Bangladesh", flag: "\uD83C\uDDE7\uD83C\uDDE9", code: "+880" },
+    { name: "Belgium", flag: "\uD83C\uDDE7\uD83C\uDDEA", code: "+32" },
+    { name: "Benin", flag: "\uD83C\uDDE7\uD83C\uDDEF", code: "+229" },
+    { name: "Bhutan", flag: "\uD83C\uDDE7\uD83C\uDDF9", code: "+975" },
+    { name: "Botswana", flag: "\uD83C\uDDE7\uD83C\uDDFC", code: "+267" },
+    { name: "Brazil", flag: "\uD83C\uDDE7\uD83C\uDDF7", code: "+55" },
+    { name: "Brunei", flag: "\uD83C\uDDE7\uD83C\uDDF3", code: "+673" },
+    { name: "Bulgaria", flag: "\uD83C\uDDE7\uD83C\uDDEC", code: "+359" },
+    { name: "Burkina Faso", flag: "\uD83C\uDDE7\uD83C\uDDEB", code: "+226" },
+    { name: "Burundi", flag: "\uD83C\uDDE7\uD83C\uDDEE", code: "+257" },
+    { name: "Cambodia", flag: "\uD83C\uDDF0\uD83C\uDDED", code: "+855" },
+    { name: "Cameroon", flag: "\uD83C\uDDE8\uD83C\uDDF2", code: "+237" },
+    { name: "Canada", flag: "\uD83C\uDDE8\uD83C\uDDE6", code: "+1" },
+    { name: "Cape Verde", flag: "\uD83C\uDDE8\uD83C\uDDFB", code: "+238" },
+    { name: "Central African Republic", flag: "\uD83C\uDDE8\uD83C\uDDEB", code: "+236" },
+    { name: "Chad", flag: "\uD83C\uDDF9\uD83C\uDDE9", code: "+235" },
+    { name: "Chile", flag: "\uD83C\uDDE8\uD83C\uDDF1", code: "+56" },
+    { name: "China", flag: "\uD83C\uDDE8\uD83C\uDDF3", code: "+86" },
+    { name: "Colombia", flag: "\uD83C\uDDE8\uD83C\uDDF4", code: "+57" },
+    { name: "Comoros", flag: "\uD83C\uDDF0\uD83C\uDDF2", code: "+269" },
+    { name: "Congo", flag: "\uD83C\uDDE8\uD83C\uDDEC", code: "+242" },
+    { name: "Congo (DRC)", flag: "\uD83C\uDDE8\uD83C\uDDE9", code: "+243" },
+    { name: "C\u00F4te d'Ivoire", flag: "\uD83C\uDDE8\uD83C\uDDEE", code: "+225" },
+    { name: "Croatia", flag: "\uD83C\uDDED\uD83C\uDDF7", code: "+385" },
+    { name: "Cyprus", flag: "\uD83C\uDDE8\uD83C\uDDFE", code: "+357" },
+    { name: "Czechia", flag: "\uD83C\uDDE8\uD83C\uDDFF", code: "+420" },
+    { name: "Denmark", flag: "\uD83C\uDDE9\uD83C\uDDF0", code: "+45" },
+    { name: "Djibouti", flag: "\uD83C\uDDE9\uD83C\uDDEF", code: "+253" },
+    { name: "Egypt", flag: "\uD83C\uDDEA\uD83C\uDDEC", code: "+20" },
+    { name: "Equatorial Guinea", flag: "\uD83C\uDDEC\uD83C\uDDF6", code: "+240" },
+    { name: "Eritrea", flag: "\uD83C\uDDEA\uD83C\uDDF7", code: "+291" },
+    { name: "Estonia", flag: "\uD83C\uDDEA\uD83C\uDDEA", code: "+372" },
+    { name: "Eswatini", flag: "\uD83C\uDDF8\uD83C\uDDFF", code: "+268" },
+    { name: "Ethiopia", flag: "\uD83C\uDDEA\uD83C\uDDF9", code: "+251" },
+    { name: "Fiji", flag: "\uD83C\uDDEB\uD83C\uDDEF", code: "+679" },
+    { name: "Finland", flag: "\uD83C\uDDEB\uD83C\uDDEE", code: "+358" },
+    { name: "France", flag: "\uD83C\uDDEB\uD83C\uDDF7", code: "+33" },
+    { name: "Gabon", flag: "\uD83C\uDDEC\uD83C\uDDE6", code: "+241" },
+    { name: "Gambia", flag: "\uD83C\uDDEC\uD83C\uDDF2", code: "+220" },
+    { name: "Germany", flag: "\uD83C\uDDE9\uD83C\uDDEA", code: "+49" },
+    { name: "Ghana", flag: "\uD83C\uDDEC\uD83C\uDDED", code: "+233" },
+    { name: "Greece", flag: "\uD83C\uDDEC\uD83C\uDDF7", code: "+30" },
+    { name: "Guinea", flag: "\uD83C\uDDEC\uD83C\uDDF3", code: "+224" },
+    { name: "Guinea-Bissau", flag: "\uD83C\uDDEC\uD83C\uDDFC", code: "+245" },
+    { name: "Hungary", flag: "\uD83C\uDDED\uD83C\uDDFA", code: "+36" },
+    { name: "Iceland", flag: "\uD83C\uDDEE\uD83C\uDDF8", code: "+354" },
+    { name: "India", flag: "\uD83C\uDDEE\uD83C\uDDF3", code: "+91" },
+    { name: "Indonesia", flag: "\uD83C\uDDEE\uD83C\uDDE9", code: "+62" },
+    { name: "Iran", flag: "\uD83C\uDDEE\uD83C\uDDF7", code: "+98" },
+    { name: "Iraq", flag: "\uD83C\uDDEE\uD83C\uDDF6", code: "+964" },
+    { name: "Ireland", flag: "\uD83C\uDDEE\uD83C\uDDEA", code: "+353" },
+    { name: "Israel", flag: "\uD83C\uDDEE\uD83C\uDDF1", code: "+972" },
+    { name: "Italy", flag: "\uD83C\uDDEE\uD83C\uDDF9", code: "+39" },
+    { name: "Japan", flag: "\uD83C\uDDEF\uD83C\uDDF5", code: "+81" },
+    { name: "Jordan", flag: "\uD83C\uDDEF\uD83C\uDDF4", code: "+962" },
+    { name: "Kazakhstan", flag: "\uD83C\uDDF0\uD83C\uDDFF", code: "+7" },
+    { name: "Kenya", flag: "\uD83C\uDDF0\uD83C\uDDEA", code: "+254" },
+    { name: "Kuwait", flag: "\uD83C\uDDF0\uD83C\uDDFC", code: "+965" },
+    { name: "Kyrgyzstan", flag: "\uD83C\uDDF0\uD83C\uDDEC", code: "+996" },
+    { name: "Laos", flag: "\uD83C\uDDF1\uD83C\uDDE6", code: "+856" },
+    { name: "Latvia", flag: "\uD83C\uDDF1\uD83C\uDDFB", code: "+371" },
+    { name: "Lebanon", flag: "\uD83C\uDDF1\uD83C\uDDE7", code: "+961" },
+    { name: "Lesotho", flag: "\uD83C\uDDF1\uD83C\uDDF8", code: "+266" },
+    { name: "Liberia", flag: "\uD83C\uDDF1\uD83C\uDDF7", code: "+231" },
+    { name: "Libya", flag: "\uD83C\uDDF1\uD83C\uDDFE", code: "+218" },
+    { name: "Lithuania", flag: "\uD83C\uDDF1\uD83C\uDDF9", code: "+370" },
+    { name: "Luxembourg", flag: "\uD83C\uDDF1\uD83C\uDDFA", code: "+352" },
+    { name: "Madagascar", flag: "\uD83C\uDDF2\uD83C\uDDEC", code: "+261" },
+    { name: "Malawi", flag: "\uD83C\uDDF2\uD83C\uDDFC", code: "+265" },
+    { name: "Malaysia", flag: "\uD83C\uDDF2\uD83C\uDDFE", code: "+60" },
+    { name: "Maldives", flag: "\uD83C\uDDF2\uD83C\uDDFB", code: "+960" },
+    { name: "Mali", flag: "\uD83C\uDDF2\uD83C\uDDF1", code: "+223" },
+    { name: "Malta", flag: "\uD83C\uDDF2\uD83C\uDDF9", code: "+356" },
+    { name: "Mauritania", flag: "\uD83C\uDDF2\uD83C\uDDF7", code: "+222" },
+    { name: "Mauritius", flag: "\uD83C\uDDF2\uD83C\uDDFA", code: "+230" },
+    { name: "Mexico", flag: "\uD83C\uDDF2\uD83C\uDDFD", code: "+52" },
+    { name: "Moldova", flag: "\uD83C\uDDF2\uD83C\uDDE9", code: "+373" },
+    { name: "Monaco", flag: "\uD83C\uDDF2\uD83C\uDDE8", code: "+377" },
+    { name: "Mongolia", flag: "\uD83C\uDDF2\uD83C\uDDF3", code: "+976" },
+    { name: "Montenegro", flag: "\uD83C\uDDF2\uD83C\uDDEA", code: "+382" },
+    { name: "Morocco", flag: "\uD83C\uDDF2\uD83C\uDDE6", code: "+212" },
+    { name: "Mozambique", flag: "\uD83C\uDDF2\uD83C\uDDFF", code: "+258" },
+    { name: "Namibia", flag: "\uD83C\uDDF3\uD83C\uDDE6", code: "+264" },
+    { name: "Nepal", flag: "\uD83C\uDDF3\uD83C\uDDF5", code: "+977" },
+    { name: "Netherlands", flag: "\uD83C\uDDF3\uD83C\uDDF1", code: "+31" },
+    { name: "New Zealand", flag: "\uD83C\uDDF3\uD83C\uDDFF", code: "+64" },
+    { name: "Niger", flag: "\uD83C\uDDF3\uD83C\uDDEA", code: "+227" },
+    { name: "Nigeria", flag: "\uD83C\uDDF3\uD83C\uDDEC", code: "+234" },
+    { name: "Norway", flag: "\uD83C\uDDF3\uD83C\uDDF4", code: "+47" },
+    { name: "Oman", flag: "\uD83C\uDDF4\uD83C\uDDF2", code: "+968" },
+    { name: "Pakistan", flag: "\uD83C\uDDF5\uD83C\uDDF0", code: "+92" },
+    { name: "Peru", flag: "\uD83C\uDDF5\uD83C\uDDEA", code: "+51" },
+    { name: "Philippines", flag: "\uD83C\uDDF5\uD83C\uDDED", code: "+63" },
+    { name: "Poland", flag: "\uD83C\uDDF5\uD83C\uDDF1", code: "+48" },
+    { name: "Portugal", flag: "\uD83C\uDDF5\uD83C\uDDF9", code: "+351" },
+    { name: "Qatar", flag: "\uD83C\uDDF6\uD83C\uDDE6", code: "+974" },
+    { name: "Romania", flag: "\uD83C\uDDF7\uD83C\uDDF4", code: "+40" },
+    { name: "Russia", flag: "\uD83C\uDDF7\uD83C\uDDFA", code: "+7" },
+    { name: "Rwanda", flag: "\uD83C\uDDF7\uD83C\uDDFC", code: "+250" },
+    { name: "Samoa", flag: "\uD83C\uDDFC\uD83C\uDDF8", code: "+685" },
+    { name: "Sao Tome & Principe", flag: "\uD83C\uDDF8\uD83C\uDDF9", code: "+239" },
+    { name: "Saudi Arabia", flag: "\uD83C\uDDF8\uD83C\uDDE6", code: "+966" },
+    { name: "Senegal", flag: "\uD83C\uDDF8\uD83C\uDDF3", code: "+221" },
+    { name: "Serbia", flag: "\uD83C\uDDF7\uD83C\uDDF8", code: "+381" },
+    { name: "Seychelles", flag: "\uD83C\uDDF8\uD83C\uDDE8", code: "+248" },
+    { name: "Sierra Leone", flag: "\uD83C\uDDF8\uD83C\uDDF1", code: "+232" },
+    { name: "Singapore", flag: "\uD83C\uDDF8\uD83C\uDDEC", code: "+65" },
+    { name: "Slovakia", flag: "\uD83C\uDDF8\uD83C\uDDF0", code: "+421" },
+    { name: "Slovenia", flag: "\uD83C\uDDF8\uD83C\uDDEE", code: "+386" },
+    { name: "Somalia", flag: "\uD83C\uDDF8\uD83C\uDDF4", code: "+252" },
+    { name: "South Africa", flag: "\uD83C\uDDFF\uD83C\uDDE6", code: "+27" },
+    { name: "South Korea", flag: "\uD83C\uDDF0\uD83C\uDDF7", code: "+82" },
+    { name: "South Sudan", flag: "\uD83C\uDDF8\uD83C\uDDF8", code: "+211" },
+    { name: "Spain", flag: "\uD83C\uDDEA\uD83C\uDDF8", code: "+34" },
+    { name: "Sri Lanka", flag: "\uD83C\uDDF1\uD83C\uDDF0", code: "+94" },
+    { name: "Sudan", flag: "\uD83C\uDDF8\uD83C\uDDE9", code: "+249" },
+    { name: "Sweden", flag: "\uD83C\uDDF8\uD83C\uDDEA", code: "+46" },
+    { name: "Switzerland", flag: "\uD83C\uDDE8\uD83C\uDDED", code: "+41" },
+    { name: "Taiwan", flag: "\uD83C\uDDF9\uD83C\uDDFC", code: "+886" },
+    { name: "Tanzania", flag: "\uD83C\uDDF9\uD83C\uDDFF", code: "+255" },
+    { name: "Thailand", flag: "\uD83C\uDDF9\uD83C\uDDED", code: "+66" },
+    { name: "Tonga", flag: "\uD83C\uDDF9\uD83C\uDDF4", code: "+676" },
+    { name: "Tunisia", flag: "\uD83C\uDDF9\uD83C\uDDF3", code: "+216" },
+    { name: "Turkey", flag: "\uD83C\uDDF9\uD83C\uDDF7", code: "+90" },
+    { name: "Uganda", flag: "\uD83C\uDDFA\uD83C\uDDEC", code: "+256" },
+    { name: "Ukraine", flag: "\uD83C\uDDFA\uD83C\uDDE6", code: "+380" },
+    { name: "United Arab Emirates", flag: "\uD83C\uDDE6\uD83C\uDDEA", code: "+971" },
+    { name: "United Kingdom", flag: "\uD83C\uDDEC\uD83C\uDDE7", code: "+44" },
+    { name: "United States", flag: "\uD83C\uDDFA\uD83C\uDDF8", code: "+1" },
+    { name: "Uzbekistan", flag: "\uD83C\uDDFA\uD83C\uDDFF", code: "+998" },
+    { name: "Venezuela", flag: "\uD83C\uDDFB\uD83C\uDDEA", code: "+58" },
+    { name: "Vietnam", flag: "\uD83C\uDDFB\uD83C\uDDF3", code: "+84" },
+    { name: "Zambia", flag: "\uD83C\uDDFF\uD83C\uDDF2", code: "+260" },
+    { name: "Zimbabwe", flag: "\uD83C\uDDFF\uD83C\uDDFC", code: "+263" }
   ];
 
   var experiencesData = [
@@ -3347,25 +3456,178 @@ export default function BookingWidget() {
     }
   });
 
-  // ====== COUNTRY CODE DROPDOWN ======
-  var countryCodeSelect = $('#gCountryCode');
-  if (countryCodeSelect) {
-    // Populate country code dropdown
-    COUNTRY_OPTIONS.forEach(function(country) {
-      var option = document.createElement('option');
-      option.value = country.code;
-      option.textContent = country.label;
-      countryCodeSelect.appendChild(option);
+  // ====== COUNTRY CODE SEARCHABLE DROPDOWN ======
+  var ccSelect = $('#ccSelect');
+  var ccSelected = $('#ccSelected');
+  var ccDropdown = $('#ccDropdown');
+  var ccSearch = $('#ccSearch');
+  var ccList = $('#ccList');
+  var ccHidden = $('#gCountryCode');
+
+  function renderCountryList(filter) {
+    var q = (filter || '').toLowerCase();
+    var html = '';
+    var count = 0;
+    COUNTRY_OPTIONS.forEach(function(c) {
+      if (q && c.name.toLowerCase().indexOf(q) === -1 && c.code.indexOf(q) === -1) return;
+      var isActive = ccHidden.value === c.code ? ' active' : '';
+      html += '<div class="cc-option' + isActive + '" data-code="' + c.code + '" data-name="' + c.name + '" data-flag="' + c.flag + '">' +
+        '<span class="cc-flag">' + c.flag + '</span>' +
+        '<span class="cc-name">' + c.name + '</span>' +
+        '<span class="cc-code">' + c.code + '</span>' +
+      '</div>';
+      count++;
     });
-    // Set Ghana as default
-    countryCodeSelect.value = '+233';
+    if (!count) html = '<div class="cc-no-results">No countries found</div>';
+    ccList.innerHTML = html;
   }
+
+  function selectCountry(code, name, flag) {
+    ccHidden.value = code;
+    ccSelected.innerHTML = flag + ' ' + name + ' (' + code + ')';
+    ccDropdown.classList.remove('open');
+    ccSearch.value = '';
+  }
+
+  // Toggle dropdown
+  ccSelected.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var isOpen = ccDropdown.classList.contains('open');
+    if (isOpen) {
+      ccDropdown.classList.remove('open');
+    } else {
+      renderCountryList('');
+      ccDropdown.classList.add('open');
+      ccSearch.focus();
+    }
+  });
+
+  // Search filtering
+  ccSearch.addEventListener('input', function() {
+    renderCountryList(ccSearch.value);
+  });
+  ccSearch.addEventListener('click', function(e) { e.stopPropagation(); });
+
+  // Select option
+  ccList.addEventListener('click', function(e) {
+    var opt = e.target.closest('.cc-option');
+    if (opt) {
+      selectCountry(opt.dataset.code, opt.dataset.name, opt.dataset.flag);
+    }
+  });
+
+  // Close on outside click
+  document.addEventListener('click', function(e) {
+    if (!ccSelect.contains(e.target)) {
+      ccDropdown.classList.remove('open');
+      ccSearch.value = '';
+    }
+  });
+
+  // Initial render
+  renderCountryList('');
 
   // ====== TERMS MODAL ======
   var termsModal = $('#terms-modal');
   var termsBody = $('#terms-body');
   
-  var termsContent = '<div style="max-width:800px"><h2 style="font-size:24px;font-weight:300;font-family:serif;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Introduction</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">These Booking Terms & Conditions and the General Booking Information contained on our web site will form the basis of your agreement with Sojourn Cabins ("the Company"). They apply only to holiday arrangements which you book with us and which we agree to make, provide or perform as applicable as part of our agreement with you and no other third party. This Agreement shall be governed and construed in all respects in accordance with the laws of Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Contract</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">A contract only exists between Sojourn Cabins ("we/our/us") and the "clients" from the time a Confirmation Invoice is dispatched / received and a payment must be made by the available means on our payment portal.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Payment</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Full payment is required at the time of booking to confirm your reservation.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Cancellation Policy</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Cancellations made more than 30 days before check-in will receive a full refund minus a 10% processing fee. Cancellations made 15-30 days before check-in will receive a 50% refund. Cancellations made less than 15 days before check-in are non-refundable.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Check-in and Check-out</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Check-in time is 3:00 PM and check-out time is 11:00 AM. Early check-in or late check-out may be arranged subject to availability and additional charges.</p><h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Guest Responsibilities</h2><p style="color:#6b7280;line-height:1.7;margin-bottom:16px">Guests are responsible for any damage to the property beyond normal wear and tear. Guests must comply with all house rules and local regulations.</p></div>';
+  var sH = '<h2 style="font-size:24px;font-weight:300;font-family:serif;margin:32px 0 24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">';
+  var sP = '<p style="color:#6b7280;line-height:1.7;margin-bottom:16px">';
+  var termsContent = '<div style="max-width:800px">' +
+
+    '<h2 style="font-size:24px;font-weight:300;font-family:serif;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #e5e7eb">Introduction</h2>' +
+    sP + 'These Booking Terms &amp; Conditions and the General Booking Information contained on our web site will form the basis of your agreement with Sojourn Cabins (\u201Cthe Company\u201D). They apply only to holiday arrangements which you book with us and which we agree to make, provide or perform as applicable as part of our agreement with you and no other third party. This Agreement shall be governed and construed in all respects in accordance with the laws of Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts.</p>' +
+
+    sH + 'Contract</h2>' +
+    sP + 'A contract only exists between Sojourn Cabins (\u201Cwe/our/us\u201D) and the \u201Cclients\u201D from the time a Confirmation Invoice is dispatched / received and a payment must be made by the available means on our payment portal.</p>' +
+
+    sH + 'Booking Form</h2>' +
+    sP + 'To make a booking with Sojourn Cabins a Booking Form will need to be completed accurately at <a href="https://sojourngh.com" target="_blank" rel="noreferrer" style="color:#111827;font-weight:500;text-decoration:underline">sojourngh.com</a> and submitted. In the event a booking is made without completing a Booking Form, for instance a telephone booking, it is a condition that the information is accurately given. A telephone booking is a contract between us and the \u201Cclients\u201D from the time a Confirmation/Invoice is dispatched when Credit Card / Debit details will be required. We require full payment before a booking will be completed. Until that time no contract or agreement will be considered to exist between us. On all bookings a damage deposit is required.</p>' +
+
+    sH + 'Party Leader and Group Composition</h2>' +
+    sP + 'The Party Leader is the person or agency who holds the booking, to whom all correspondence and invoices are addressed and who is responsible for the rental. Spouses\u2019 names are not considered interchangeable. Accommodation is provided only for the number of guests shown on the booking form.</p>' +
+    sP + 'Any additional persons wishing to book are required to notify us, as soon as possible and make confirmation in writing with any payment due immediately, unless we advise otherwise, but no later than 8 working days before departure or we reserve the right to refuse any such persons and may cancel the booking.</p>' +
+    sP + 'No persons other than those stated on the Booking Form or accepted at such later date by Sojourn Cabins as additional persons shall be entitled to utilise and have the benefit of the accommodation and facilities of the property. The number of people staying in the cabin must not exceed the maximum number as shown in our website. Sojourn Cabins will ask any person to leave the assigned cabin in a case of non-compliance. Subletting, sharing or assigning the accommodation is prohibited.</p>' +
+    sP + 'In the event that a person not named on the Booking Form or accepted as an additional person is deemed by us as agents as utilising the accommodation and facilities, we reserve the right to raise an additional charge for such accommodation etc, which shall be the joint and several liability of the clients. Additionally, should any activity or large gathering of people other than those noted on our invoice take place (e.g. party, wedding reception) we must be informed about it at the time of booking or through any of our Representatives beforehand. Our cabins are let for holiday purposes only and commercial activities may only be carried out with our prior knowledge and or written approval on our invoice. This extra charge varies depending on the property and can be deducted from your credit or debit card without further notice.</p>' +
+
+    sH + 'Rental Period</h2>' +
+    sP + 'All rental periods are indicated on your final invoice. Prices shown on our website refer to one night rental period. We do not accept bookings that go beyond 7 days at a time. The rental charge includes: the cabin for the rental period; a walking tour of Anomabo; a change of bed linens, bath towels; house wares such as linens, cooking utensils and china; electricity; water and hot water from taps; garden and pool maintenance; all local taxes.</p>' +
+    sP + 'It does not include: outgoing telephone calls; Extra Services as requested; eating; chef services; repairs for damages to the property caused by your party; food; travel; car rental; transfers and travel insurance; staff gratuities.</p>' +
+
+    sH + 'Methods of Payment</h2>' +
+    sP + 'Payments can be made by: debit/credit card, or mobile money transfer via our booking website. All prices are in GHS and payments have to be received in GHS unless otherwise agreed.</p>' +
+
+    sH + 'Price Guarantee</h2>' +
+    sP + 'Once you have made a booking and made all relevant payments, paid a deposit, we guarantee that the cost of your holiday will not change, no matter what happens to exchange rates or aviation fuel costs. The only exception is Government imposed cost increases such as VAT.</p>' +
+
+    sH + 'Holiday Pack</h2>' +
+    sP + 'The Holiday Pack includes all vouchers, list of Extra Services requested, driving directions, contact names and telephone numbers, useful information. The Holiday Pack will be provided once the fully completed Booking Form and the total Invoice Price have been received. The Holiday Pack will not be issued if essential information, including group composition, is missing in the Booking Form. Errors or omissions in the Holiday Pack must be noted and conveyed to us immediately.</p>' +
+
+    sH + 'Information Booklet</h2>' +
+    sP + 'Please note that the information contained in our Information Booklet is to be considered only as an indication. The information contained in the Information Booklet was accurate at the time of publication and made in good faith. Please check the Invoice and our website as changes might occur and updated information are posted on our website.</p>' +
+
+    sH + 'Payments</h2>' +
+    sP + 'All bookings must be paid in full. Sojourn Cabins reserves the right to refuse or terminate any booking where the client has not complied with the payment terms specified. If your bank\u2019s country of issue is not within Ghana, please allow at least 5 to 7 days for final payment clearance. It is the responsibility of the client to ensure that all foreign exchange and bank transfer fees are paid to ensure the amounts due are received in full. We advise, particularly for those booking from overseas to phone your credit / debit card company / bank prior to attempting to make a booking so they are aware you are going to be making a payment to Sojourn Cabins. This will eliminate the possibility of your card being rejected on the grounds of fraud protection.</p>' +
+    sP + 'Cancellation by Sojourn Cabins: we reserve the right to cancel your booking if outstanding payments are not received on or before due dates specified on your booking invoice. Where cancellation is required for this reason, all monies already paid less any bank charges and administration costs of GHS 50 will be refunded to you. Should you wish to make alternative payment arrangements, it is your responsibility to contact us immediately to discuss options. We reserve the right in our absolute discretion to refuse a booking without giving reasons.</p>' +
+    sP + 'Full Payment date 56 days before departure: The outstanding balance is due 56 days before departure unless otherwise agreed. If your booking is made within 56 days of departure, the total price becomes due at the time of booking. We must receive a cleared payment by the due date stated on the invoice. If we do not receive this payment in time, we reserve the right to cancel your booking and retain your deposit.</p>' +
+
+    sH + 'Changes by You (Client)</h2>' +
+    sP + 'Change of dates and cabin size: if you wish to change any part of your booking, you must advise us of any such changes by written notice. We will endeavour to meet reasonable requests for changes, subject to availability, but cannot guarantee to do so. Where it is possible to make changes, we may charge a GHS 50 administration fee unless such changes are outside your control (in which case no fee will be charged). Please note that we are unable to make any changes to bookings within 30 days of departure. We cannot guarantee to make any changes to bookings within 56 days of departure and may charge you for any losses we incur in making changes at that time. If the requested change means that your payment(s) increase, we will advise you of the increase. If the requested change means that the total holiday price is reduced, we are not obliged to refund the difference, but shall use our discretion.</p>' +
+    sP + 'Change of party leader or composition: if you wish to transfer your confirmed booking to another person, this can be done provided that we are notified, the full payment is received and an administration charge of GHS 50 is paid. The transferee must provide the information we require and satisfy all the requirements set out in these terms. Both transferor and transferee will be jointly and severally liable for the holiday price and additional charges which will be due at the time of transfer.</p>' +
+
+    sH + 'Cancellation by You (Client)</h2>' +
+    sP + 'If you want to cancel your booking, then you or the party leader must contact us immediately in writing (by email or by recorded delivery letter) stating the reason(s). If you do cancel your booking, the following cancellation charges shall apply:</p>' +
+    '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:16px">' +
+      '<ul style="list-style:none;padding:0;margin:0">' +
+        '<li style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5e7eb"><span style="color:#6b7280">More than 14 days before check-in</span><strong style="color:#111827">Full refund less transaction and administration fees</strong></li>' +
+        '<li style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5e7eb"><span style="color:#6b7280">Between 7 and 14 days before check-in</span><strong style="color:#111827">50% of total price less transaction and administration fees</strong></li>' +
+        '<li style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:#6b7280">Less than 7 days before check-in</span><strong style="color:#111827">Non-refundable</strong></li>' +
+      '</ul>' +
+    '</div>' +
+    sP + 'If only some members of your group cancel but others decide to continue, no refund will be made for those who cancel but the holiday will continue for the remaining guests. If one of your party is prevented from travelling due to death, injury, illness or other relevant reasons, a refund will not be issued but you may make a claim under your travel insurance policy. If clients reduce group numbers (which causes an increase in price per person) the remaining party must pay the price increase unless we are able to re-let the weeks to other clients. All cancellations must be confirmed in writing to the email address <a href="mailto:theteam@sojourngh.com" style="color:#111827;font-weight:500;text-decoration:underline">theteam@sojourngh.com</a>.</p>' +
+
+    sH + 'Cancellation by Sojourn Cabins</h2>' +
+    sP + 'In the unlikely event we have to make a significant change or cancel your confirmed holiday booking, we will let you know as soon as possible and offer an alternative cabin or a full refund. Our liability in such circumstances is limited to a full refund of all monies paid.</p>' +
+
+    sH + 'Arrival &amp; Departure Times</h2>' +
+    sP + 'Normal Check in time: Guests can arrive on the cabin at any time after 2pm on the arrival day. Check out must be by 11am on the departure day. If you arrive or depart early or late, you must make prior arrangements with us \u2013 additional charges may apply.</p>' +
+    sP + 'The cabins will have been thoroughly cleaned and prepared for your arrival, but if you find anything wrong when you arrive, please inform us immediately. We will use our reasonable endeavours to send someone out to remedy any problem as soon as possible. Please note that arrangements made in respect of departure may be changed at our discretion or by arrangement with us (e.g. you need to leave earlier or later than stated above).</p>' +
+
+    sH + 'Travel Insurance</h2>' +
+    sP + 'We strongly recommend that you arrange comprehensive holiday insurance which covers cancellation, medical expenses, repatriation and loss or damage to luggage and personal possessions prior to travelling. The minimum requirement is that you have a policy covering cancellation and medical expenses and repatriation in case of injury or illness. Any decision not to purchase insurance remains at your own discretion and at your own risk. We shall not be liable for any costs, losses or expenses incurred by you which could have been avoided had you taken out appropriate insurance.</p>' +
+
+    sH + 'Your Safety and Security</h2>' +
+    sP + 'Sojourn Cabins offer the best value and service for your accommodation and hope that your stay with us is pleasant, safe and trouble free. Please be aware that standards of accommodation and local safety, hygiene and security standards may differ from those you are accustomed to at home in your own country.</p>' +
+    sP + 'It remains your responsibility to take all sensible precautions throughout your stay. You are responsible for the safety and behaviour of all members of your party. Our properties are not suitable for people with reduced mobility. You must ensure that you and your party arrive in a fit and sober state when taking possession of your accommodation. Use all electrical equipment with care and caution; report any faulty equipment and do not attempt repairs yourself. Follow all instructions displayed at the properties and in the information packs. Make sure children are supervised at all times and take particular care near swimming pools and the beach. Do not allow children to go to the beach unsupervised or swim in the sea.</p>' +
+
+    sH + 'Special Requests</h2>' +
+    sP + 'If you have a special request, such as an anniversary cake, please let us know at the time of booking or when you submit the booking form, and we will note your requirement and inform the owner or property agent. We cannot guarantee that such requests will be met but we will do our best to accommodate them where possible. Any costs incurred for the provision of special requests will be notified to you in advance and confirmed on your invoice. Please note that such requests do not constitute any part of our agreement with you unless we actually confirm to you that we can fulfil the request and accept the relevant cost(s).</p>' +
+
+    sH + 'Security/Damage Deposits</h2>' +
+    sP + 'Most cabin owners ask that you agree to a \u201CSecurity Deposit\u201D which is held to cover any loss or damage to their property caused by you or a member of your party. Security deposits are taken on arrival in cash (GHS or USD), by a pre-authorization with a credit or debit card. Deposits will be refunded within 72 hours of departure providing there is no loss or damage caused by you or any of your party. Please inform us immediately if you do cause any damage. Where, with your consent we will/can automatically deduct said charge from the security/damage deposit being held in the form of credit/debit/cash by Sojourn Cabins. No guests other than those on the booking form can sleep at the property. Wedding celebration breakage deposits are to be paid via bank transfer/credit card/debit card with the balance of your cabin rental on the due date shown on your invoice and will be returned no later than 14 days from the date of departure stated on your invoice subject to zero damages/breakages/unlawful celebrations being reported.</p>' +
+
+    sH + 'Complaints and Correspondence</h2>' +
+    sP + 'We hope that you enjoy your holiday and the services of Sojourn Cabins, but if you have any complaints, we want to rectify them as quickly as possible. It is our intention that any complaint is resolved quickly and to your satisfaction. Should you have any complaints / issues with your accommodation upon your arrival you must give Sojourn Cabins a reasonable amount of time to rectify / resolve any such issues. Should any clients of Sojourn Cabins vacate said property before Sojourn Cabins has had time to rectify any issues / complaints we will not be responsible for any costs of relocation or compensation.</p>' +
+    sP + 'In the unlikely event that you are still dissatisfied with any part of our services, our office team will ask you to record the details by way of photographs and forward these to our Ghana office by email or recorded delivery within 12 days of the complaint or latest, the return date of your holiday with us. Failure to give written notification sent by email / recorded delivery within 12 days of your complaint or latest from the return date of your holiday shall result in our not being liable for any loss or compensation whatsoever or howsoever arising. Sojourn Cabins will respond to your complaint within 14 days of receiving your recorded letter as a management report may be required.</p>' +
+    sP + 'We can only correspond and accept complaints in written form from the Party Leader and are only able to correspond with the party leader due to the data protection act on any such matters relating to the booking. Similar or same properties may be advertised with other agents. Not giving Sojourn Cabins the option to book/relocate said property as an alternative option will cancel any option of refund/compensation. The Party Leader is the person or agency who holds the booking, to whom all correspondence and invoices are addressed and who is responsible for the rental. We cannot accept complaints from other members in the party. Our maximum liability to you if we are found to have been at fault in relation to the booking is limited to the commission we have earned or are due to earn in relation to the booking in question.</p>' +
+
+    sH + 'Building Works</h2>' +
+    sP + 'There may be new building/renovation work taking place close to your cabin. We take steps to try and monitor this and advise you if any building work is likely to affect your cabin. Should we consider that a neighbouring building plot or plots would seriously affect your property with either noise or dust pollution or both, then we will use our reasonable endeavours to offer you an alternative from the Sojourn Cabins portfolio only. Where works or public works occur at short notice or without notice, and which are outside of our control, we cannot be held liable for any inconvenience to you, but we will ask the owners to compensate you, and if this is agreed, we will pass this on to you on behalf of the property owner.</p>' +
+    sP + 'New building work starting after publication of individual cabin descriptions may in some way distort our description of the property we have considered peaceful or quiet. Building or road works may be in progress nearby, a neighbour may start building a swimming pool or wall, or the local water board may decide to drill for water in the vicinity. This work may start early in the morning as it is local practice and can start at any time in the year. As it is not always possible to gauge the extent of such works we regret we cannot advise you of the constantly changing conditions. If within 7 days of the start of your holiday we become aware of such works taking place on a plot immediately adjacent to your property (that is, an adjoining plot - not across the road or merely nearby) that in our opinion could materially spoil your enjoyment of your holiday we will advise you. You may then either a) cancel and receive a full refund for accommodation and car hire if the latter is booked with ourselves or b) change your booking to another available (subject to availability) cabin from Sojourn Cabins portfolio only for the same period either paying the difference if it is more expensive or receiving a refund if it is cheaper, or c) change your booking to another available cabin for a different period either paying the difference if it is more expensive or receiving a refund if it is cheaper or d) leave your reservation as it is and hope that there is not too much noise or dust to spoil your holiday. If you choose option (d), to stay with the reservation, it is extremely unlikely that after arrival we will be able to move you to any alternative accommodation if you suffer any inconvenience as described above, nor will any claim for compensation be accepted for any loss of enjoyment due to building or any other associated works within the vicinity of your holiday cabin. You should note that we are not responsible for such work, are not able to stop such work taking place nor control the noise level. Nor can we be responsible for any building works that start during a holiday and under no circumstances will we pay any compensation at all in such cases.</p>' +
+
+    sH + 'Law and Jurisdiction</h2>' +
+    sP + 'This Agreement shall be governed and construed in all respects in accordance with the laws of Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts and not outside of the Ghanaian courts. This applies to consumer claims that are made outside of the Ghanaian Courts and its jurisdiction.</p>' +
+
+    sH + 'Responsibility</h2>' +
+    sP + 'By completing and returning the Booking Form, you and all members of your party acknowledge full awareness of these Booking Terms &amp; Conditions and agree to accept and abide by the terms stated.</p>' +
+
+    sH + 'Condition of Cabin on Checkout</h2>' +
+    sP + 'On departure you should leave the cabin in a reasonably clean and tidy condition so that it can be efficiently prepared for the next guests. If excess rubbish must be cleared or excessive cleaning of the cabin is necessary following your stay, any charges will either be: (a) deducted from your security deposit; or (b) invoiced to your postal address.</p>' +
+
+    sH + 'Pricing Errors</h2>' +
+    sP + 'Whilst we make every effort to ensure the accuracy of the pricing information provided, regrettably errors may occasionally occur. When we become aware of any such error, we will endeavour to notify you at the time of booking (if we are then aware of the mistake), within 7 days of the time of booking or as soon as reasonably possible. If a booking is already in place, you will have the choice to continue with the chosen itinerary at the corrected price or amend to a different holiday. We reserve the right to cancel the booking if you do not wish to accept the price that applies to your holiday or any quoted alternatives.</p>' +
+
+  '</div>';
 
   $('#open-terms').addEventListener('click', function() {
     termsBody.innerHTML = termsContent;

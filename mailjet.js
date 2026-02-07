@@ -5,6 +5,7 @@ const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
 const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
 const MAILJET_FROM_EMAIL = process.env.MAILJET_FROM_EMAIL;
 const MAILJET_FROM_NAME = process.env.MAILJET_FROM_NAME || "Reservations";
+const MAILJET_BCC_EMAIL = process.env.MAILJET_BCC_EMAIL || "theteam@sojourngh.com";
 
 const CHECK_IN_TIME = "2:00 PM";
 const CHECK_OUT_TIME = "11:00 AM";
@@ -689,6 +690,12 @@ export async function sendBookingEmail({ to, name, booking }) {
               Name: guestName || name || "",
             },
           ],
+          Bcc: [
+            {
+              Email: MAILJET_BCC_EMAIL,
+              Name: "Sojourn Team",
+            },
+          ],
           Subject: "Booking Confirmed ✅",
           HTMLPart: html,
           // ✅ Attach guest book PDF to every confirmation email
@@ -932,6 +939,12 @@ www.sojourncabins.com
           {
             Email: to,
             Name: guestName,
+          },
+        ],
+        Bcc: [
+          {
+            Email: MAILJET_BCC_EMAIL,
+            Name: "Sojourn Team",
           },
         ],
         Subject: `Complete Your Experience Details - ${booking.confirmation_code || booking.group_reservation_code || 'Booking'}`,

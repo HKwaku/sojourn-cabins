@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
-  { src: '/cabins/ext000.jpg', alt: '' },
+  { src: '/cabins/ext00.jpg', alt: '' },
   { src: '/cabins/ext0.jpg', alt: '' },
   { src: '/cabins/sea.jpg', alt: '' },
   { src: '/cabins/sun.jpg', alt: '' },
@@ -128,7 +128,7 @@ export default function GalleryPage() {
         </div>
 
         <div className="relative z-10 flex h-full items-end px-5 sm:px-6 md:px-10 pb-10 md:pb-14">
-          <div className="max-w-xl text-white">
+          <div className="max-w-xl text-center text-white">
             <p className="text-[10px] tracking-[0.35em] uppercase mb-3 text-gray-200">
               
             </p>

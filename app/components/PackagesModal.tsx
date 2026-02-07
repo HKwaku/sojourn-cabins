@@ -15,21 +15,149 @@ const HEADERS: HeadersInit = {
 
 
 const COUNTRY_OPTIONS = [
-  { code: '+233', label: '🇬🇭 Ghana (+233)' },
-  { code: '+234', label: '🇳🇬 Nigeria (+234)' },
-  { code: '+27', label: '🇿🇦 South Africa (+27)' },
-  { code: '+254', label: '🇰🇪 Kenya (+254)' },
-  { code: '+44', label: '🇬🇧 United Kingdom (+44)' },
-  { code: '+1', label: '🇺🇸 United States (+1)' },
-  { code: '+1', label: '🇨🇦 Canada (+1)' },
-  { code: '+33', label: '🇫🇷 France (+33)' },
-  { code: '+49', label: '🇩🇪 Germany (+49)' },
-  { code: '+34', label: '🇪🇸 Spain (+34)' },
-  { code: '+39', label: '🇮🇹 Italy (+39)' },
-  { code: '+91', label: '🇮🇳 India (+91)' },
-  { code: '+86', label: '🇨🇳 China (+86)' },
-  { code: '+971', label: '🇦🇪 UAE (+971)' },
-  { code: '+61', label: '🇦🇺 Australia (+61)' },
+  { name: "Afghanistan", flag: "🇦🇫", code: "+93" },
+  { name: "Albania", flag: "🇦🇱", code: "+355" },
+  { name: "Algeria", flag: "🇩🇿", code: "+213" },
+  { name: "Angola", flag: "🇦🇴", code: "+244" },
+  { name: "Argentina", flag: "🇦🇷", code: "+54" },
+  { name: "Armenia", flag: "🇦🇲", code: "+374" },
+  { name: "Australia", flag: "🇦🇺", code: "+61" },
+  { name: "Austria", flag: "🇦🇹", code: "+43" },
+  { name: "Azerbaijan", flag: "🇦🇿", code: "+994" },
+  { name: "Bangladesh", flag: "🇧🇩", code: "+880" },
+  { name: "Belgium", flag: "🇧🇪", code: "+32" },
+  { name: "Benin", flag: "🇧🇯", code: "+229" },
+  { name: "Bhutan", flag: "🇧🇹", code: "+975" },
+  { name: "Botswana", flag: "🇧🇼", code: "+267" },
+  { name: "Brazil", flag: "🇧🇷", code: "+55" },
+  { name: "Brunei", flag: "🇧🇳", code: "+673" },
+  { name: "Bulgaria", flag: "🇧🇬", code: "+359" },
+  { name: "Burkina Faso", flag: "🇧🇫", code: "+226" },
+  { name: "Burundi", flag: "🇧🇮", code: "+257" },
+  { name: "Cambodia", flag: "🇰🇭", code: "+855" },
+  { name: "Cameroon", flag: "🇨🇲", code: "+237" },
+  { name: "Canada", flag: "🇨🇦", code: "+1" },
+  { name: "Cape Verde", flag: "🇨🇻", code: "+238" },
+  { name: "Central African Republic", flag: "🇨🇫", code: "+236" },
+  { name: "Chad", flag: "🇹🇩", code: "+235" },
+  { name: "Chile", flag: "🇨🇱", code: "+56" },
+  { name: "China", flag: "🇨🇳", code: "+86" },
+  { name: "Colombia", flag: "🇨🇴", code: "+57" },
+  { name: "Comoros", flag: "🇰🇲", code: "+269" },
+  { name: "Congo", flag: "🇨🇬", code: "+242" },
+  { name: "Congo (DRC)", flag: "🇨🇩", code: "+243" },
+  { name: "Côte d'Ivoire", flag: "🇨🇮", code: "+225" },
+  { name: "Croatia", flag: "🇭🇷", code: "+385" },
+  { name: "Cyprus", flag: "🇨🇾", code: "+357" },
+  { name: "Czechia", flag: "🇨🇿", code: "+420" },
+  { name: "Denmark", flag: "🇩🇰", code: "+45" },
+  { name: "Djibouti", flag: "🇩🇯", code: "+253" },
+  { name: "Egypt", flag: "🇪🇬", code: "+20" },
+  { name: "Equatorial Guinea", flag: "🇬🇶", code: "+240" },
+  { name: "Eritrea", flag: "🇪🇷", code: "+291" },
+  { name: "Estonia", flag: "🇪🇪", code: "+372" },
+  { name: "Eswatini", flag: "🇸🇿", code: "+268" },
+  { name: "Ethiopia", flag: "🇪🇹", code: "+251" },
+  { name: "Fiji", flag: "🇫🇯", code: "+679" },
+  { name: "Finland", flag: "🇫🇮", code: "+358" },
+  { name: "France", flag: "🇫🇷", code: "+33" },
+  { name: "Gabon", flag: "🇬🇦", code: "+241" },
+  { name: "Gambia", flag: "🇬🇲", code: "+220" },
+  { name: "Germany", flag: "🇩🇪", code: "+49" },
+  { name: "Ghana", flag: "🇬🇭", code: "+233" },
+  { name: "Greece", flag: "🇬🇷", code: "+30" },
+  { name: "Guinea", flag: "🇬🇳", code: "+224" },
+  { name: "Guinea-Bissau", flag: "🇬🇼", code: "+245" },
+  { name: "Hungary", flag: "🇭🇺", code: "+36" },
+  { name: "Iceland", flag: "🇮🇸", code: "+354" },
+  { name: "India", flag: "🇮🇳", code: "+91" },
+  { name: "Indonesia", flag: "🇮🇩", code: "+62" },
+  { name: "Iran", flag: "🇮🇷", code: "+98" },
+  { name: "Iraq", flag: "🇮🇶", code: "+964" },
+  { name: "Ireland", flag: "🇮🇪", code: "+353" },
+  { name: "Israel", flag: "🇮🇱", code: "+972" },
+  { name: "Italy", flag: "🇮🇹", code: "+39" },
+  { name: "Japan", flag: "🇯🇵", code: "+81" },
+  { name: "Jordan", flag: "🇯🇴", code: "+962" },
+  { name: "Kazakhstan", flag: "🇰🇿", code: "+7" },
+  { name: "Kenya", flag: "🇰🇪", code: "+254" },
+  { name: "Kuwait", flag: "🇰🇼", code: "+965" },
+  { name: "Kyrgyzstan", flag: "🇰🇬", code: "+996" },
+  { name: "Laos", flag: "🇱🇦", code: "+856" },
+  { name: "Latvia", flag: "🇱🇻", code: "+371" },
+  { name: "Lebanon", flag: "🇱🇧", code: "+961" },
+  { name: "Lesotho", flag: "🇱🇸", code: "+266" },
+  { name: "Liberia", flag: "🇱🇷", code: "+231" },
+  { name: "Libya", flag: "🇱🇾", code: "+218" },
+  { name: "Lithuania", flag: "🇱🇹", code: "+370" },
+  { name: "Luxembourg", flag: "🇱🇺", code: "+352" },
+  { name: "Madagascar", flag: "🇲🇬", code: "+261" },
+  { name: "Malawi", flag: "🇲🇼", code: "+265" },
+  { name: "Malaysia", flag: "🇲🇾", code: "+60" },
+  { name: "Maldives", flag: "🇲🇻", code: "+960" },
+  { name: "Mali", flag: "🇲🇱", code: "+223" },
+  { name: "Malta", flag: "🇲🇹", code: "+356" },
+  { name: "Mauritania", flag: "🇲🇷", code: "+222" },
+  { name: "Mauritius", flag: "🇲🇺", code: "+230" },
+  { name: "Mexico", flag: "🇲🇽", code: "+52" },
+  { name: "Moldova", flag: "🇲🇩", code: "+373" },
+  { name: "Monaco", flag: "🇲🇨", code: "+377" },
+  { name: "Mongolia", flag: "🇲🇳", code: "+976" },
+  { name: "Montenegro", flag: "🇲🇪", code: "+382" },
+  { name: "Morocco", flag: "🇲🇦", code: "+212" },
+  { name: "Mozambique", flag: "🇲🇿", code: "+258" },
+  { name: "Namibia", flag: "🇳🇦", code: "+264" },
+  { name: "Nepal", flag: "🇳🇵", code: "+977" },
+  { name: "Netherlands", flag: "🇳🇱", code: "+31" },
+  { name: "New Zealand", flag: "🇳🇿", code: "+64" },
+  { name: "Niger", flag: "🇳🇪", code: "+227" },
+  { name: "Nigeria", flag: "🇳🇬", code: "+234" },
+  { name: "Norway", flag: "🇳🇴", code: "+47" },
+  { name: "Oman", flag: "🇴🇲", code: "+968" },
+  { name: "Pakistan", flag: "🇵🇰", code: "+92" },
+  { name: "Peru", flag: "🇵🇪", code: "+51" },
+  { name: "Philippines", flag: "🇵🇭", code: "+63" },
+  { name: "Poland", flag: "🇵🇱", code: "+48" },
+  { name: "Portugal", flag: "🇵🇹", code: "+351" },
+  { name: "Qatar", flag: "🇶🇦", code: "+974" },
+  { name: "Romania", flag: "🇷🇴", code: "+40" },
+  { name: "Russia", flag: "🇷🇺", code: "+7" },
+  { name: "Rwanda", flag: "🇷🇼", code: "+250" },
+  { name: "Samoa", flag: "🇼🇸", code: "+685" },
+  { name: "Sao Tome & Principe", flag: "🇸🇹", code: "+239" },
+  { name: "Saudi Arabia", flag: "🇸🇦", code: "+966" },
+  { name: "Senegal", flag: "🇸🇳", code: "+221" },
+  { name: "Serbia", flag: "🇷🇸", code: "+381" },
+  { name: "Seychelles", flag: "🇸🇨", code: "+248" },
+  { name: "Sierra Leone", flag: "🇸🇱", code: "+232" },
+  { name: "Singapore", flag: "🇸🇬", code: "+65" },
+  { name: "Slovakia", flag: "🇸🇰", code: "+421" },
+  { name: "Slovenia", flag: "🇸🇮", code: "+386" },
+  { name: "Somalia", flag: "🇸🇴", code: "+252" },
+  { name: "South Africa", flag: "🇿🇦", code: "+27" },
+  { name: "South Korea", flag: "🇰🇷", code: "+82" },
+  { name: "South Sudan", flag: "🇸🇸", code: "+211" },
+  { name: "Spain", flag: "🇪🇸", code: "+34" },
+  { name: "Sri Lanka", flag: "🇱🇰", code: "+94" },
+  { name: "Sudan", flag: "🇸🇩", code: "+249" },
+  { name: "Sweden", flag: "🇸🇪", code: "+46" },
+  { name: "Switzerland", flag: "🇨🇭", code: "+41" },
+  { name: "Taiwan", flag: "🇹🇼", code: "+886" },
+  { name: "Tanzania", flag: "🇹🇿", code: "+255" },
+  { name: "Thailand", flag: "🇹🇭", code: "+66" },
+  { name: "Tonga", flag: "🇹🇴", code: "+676" },
+  { name: "Tunisia", flag: "🇹🇳", code: "+216" },
+  { name: "Turkey", flag: "🇹🇷", code: "+90" },
+  { name: "Uganda", flag: "🇺🇬", code: "+256" },
+  { name: "Ukraine", flag: "🇺🇦", code: "+380" },
+  { name: "United Arab Emirates", flag: "🇦🇪", code: "+971" },
+  { name: "United Kingdom", flag: "🇬🇧", code: "+44" },
+  { name: "United States", flag: "🇺🇸", code: "+1" },
+  { name: "Uzbekistan", flag: "🇺🇿", code: "+998" },
+  { name: "Venezuela", flag: "🇻🇪", code: "+58" },
+  { name: "Vietnam", flag: "🇻🇳", code: "+84" },
+  { name: "Zambia", flag: "🇿🇲", code: "+260" },
+  { name: "Zimbabwe", flag: "🇿🇼", code: "+263" },
 ];
 
 type PackageRow = {
@@ -238,6 +366,9 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+233');
+  const [ccOpen, setCcOpen] = useState(false);
+  const [ccSearch, setCcSearch] = useState('');
+  const ccRef = useRef<HTMLDivElement>(null);
   const [adults, setAdults] = useState(2);
   const [notes, setNotes] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -305,6 +436,28 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
   () => (selectedPackageId ? extrasByPackage[selectedPackageId] ?? [] : []),
   [selectedPackageId, extrasByPackage]
 );
+
+  // Close country dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ccRef.current && !ccRef.current.contains(e.target as Node)) {
+        setCcOpen(false);
+        setCcSearch('');
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Helper: get selected country object
+  const selectedCountry = COUNTRY_OPTIONS.find(c => c.code === countryCode) || COUNTRY_OPTIONS.find(c => c.name === 'Ghana')!;
+
+  // Filtered countries for search
+  const filteredCountries = useMemo(() => {
+    if (!ccSearch) return COUNTRY_OPTIONS;
+    const q = ccSearch.toLowerCase();
+    return COUNTRY_OPTIONS.filter(c => c.name.toLowerCase().includes(q) || c.code.includes(q));
+  }, [ccSearch]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -2040,17 +2193,48 @@ function formatDate(isoDate?: string | null): string {
                         Phone Number *
                       </label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <select
-                          value={countryCode}
-                          onChange={(e) => setCountryCode(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition bg-white"
-                        >
-                          {COUNTRY_OPTIONS.map((opt) => (
-                            <option key={opt.code + opt.label} value={opt.code}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative" ref={ccRef}>
+                          <button
+                            type="button"
+                            onClick={() => { setCcOpen(!ccOpen); setCcSearch(''); }}
+                            className="w-full flex items-center gap-2 px-4 py-3 border-2 border-slate-200 rounded-xl bg-white text-left text-sm hover:border-slate-300 focus:border-orange-500 focus:outline-none transition"
+                          >
+                            <span className="text-xl leading-none">{selectedCountry.flag}</span>
+                            <span className="flex-1 truncate">{selectedCountry.name} ({selectedCountry.code})</span>
+                            <svg className={`w-4 h-4 text-slate-400 transition-transform ${ccOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </button>
+                          {ccOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                              <input
+                                type="text"
+                                value={ccSearch}
+                                onChange={(e) => setCcSearch(e.target.value)}
+                                placeholder="Search country..."
+                                className="w-full px-4 py-3 border-b border-slate-200 text-sm outline-none"
+                                autoFocus
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="max-h-56 overflow-y-auto">
+                                {filteredCountries.length === 0 ? (
+                                  <div className="px-4 py-3 text-sm text-slate-400 text-center">No countries found</div>
+                                ) : (
+                                  filteredCountries.map((c) => (
+                                    <button
+                                      key={c.name}
+                                      type="button"
+                                      onClick={() => { setCountryCode(c.code); setCcOpen(false); setCcSearch(''); }}
+                                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition text-left ${countryCode === c.code && selectedCountry.name === c.name ? 'bg-orange-50 font-semibold' : ''}`}
+                                    >
+                                      <span className="text-xl leading-none flex-shrink-0">{c.flag}</span>
+                                      <span className="flex-1 truncate">{c.name}</span>
+                                      <span className="text-slate-400 text-xs flex-shrink-0">{c.code}</span>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         <input
                           type="tel"
                           required
@@ -2296,8 +2480,8 @@ function formatDate(isoDate?: string | null): string {
                   <div className="prose prose-slate max-w-none">
                     <h2 className="text-2xl font-serif font-light mb-6 pb-4 border-b border-slate-200">Introduction</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      These Booking Terms & Conditions and the General Booking Information contained on our web
-                      site will form the basis of your agreement with Sojourn Cabins ("the Company"). They apply
+                      These Booking Terms &amp; Conditions and the General Booking Information contained on our web
+                      site will form the basis of your agreement with Sojourn Cabins (&ldquo;the Company&rdquo;). They apply
                       only to holiday arrangements which you book with us and which we agree to make, provide or
                       perform as applicable as part of our agreement with you and no other third party. This
                       Agreement shall be governed and construed in all respects in accordance with the laws of
@@ -2306,33 +2490,367 @@ function formatDate(isoDate?: string | null): string {
 
                     <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Contract</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      A contract only exists between Sojourn Cabins ("we/our/us") and the "clients" from the time
+                      A contract only exists between Sojourn Cabins (&ldquo;we/our/us&rdquo;) and the &ldquo;clients&rdquo; from the time
                       a Confirmation Invoice is dispatched / received and a payment must be made by the available
                       means on our payment portal.
                     </p>
 
-                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Payment</h2>
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Booking Form</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      Full payment is required at the time of booking to confirm your reservation.
+                      To make a booking with Sojourn Cabins a Booking Form will need to be completed accurately at{' '}
+                      <a href="https://sojourngh.com" target="_blank" rel="noreferrer" className="text-slate-900 font-medium hover:underline">
+                        sojourngh.com
+                      </a> and submitted.
+                      In the event a booking is made without completing a Booking Form, for instance a telephone
+                      booking, it is a condition that the information is accurately given. A telephone booking is a
+                      contract between us and the &ldquo;clients&rdquo; from the time a Confirmation/Invoice is dispatched when
+                      Credit Card / Debit details will be required. We require full payment before a booking will be
+                      completed. Until that time no contract or agreement will be considered to exist between us. On
+                      all bookings a damage deposit is required.
                     </p>
 
-                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Cancellation Policy</h2>
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Party Leader and Group Composition</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      Cancellations made more than 30 days before check-in will receive a full refund minus a 10% processing fee.
-                      Cancellations made 15-30 days before check-in will receive a 50% refund. Cancellations made less than 15 days
-                      before check-in are non-refundable.
+                      The Party Leader is the person or agency who holds the booking, to whom all correspondence and
+                      invoices are addressed and who is responsible for the rental. Spouses&rsquo; names are not considered
+                      interchangeable. Accommodation is provided only for the number of guests shown on the booking
+                      form.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Any additional persons wishing to book are required to notify us, as soon as possible and make
+                      confirmation in writing with any payment due immediately, unless we advise otherwise, but no
+                      later than 8 working days before departure or we reserve the right to refuse any such persons
+                      and may cancel the booking.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      No persons other than those stated on the Booking Form or accepted at such later date by
+                      Sojourn Cabins as additional persons shall be entitled to utilise and have the benefit of the
+                      accommodation and facilities of the property. The number of people staying in the cabin must
+                      not exceed the maximum number as shown in our website. Sojourn Cabins will ask any person to
+                      leave the assigned cabin in a case of non-compliance. Subletting, sharing or assigning the
+                      accommodation is prohibited.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      In the event that a person not named on the Booking Form or accepted as an additional person is
+                      deemed by us as agents as utilising the accommodation and facilities, we reserve the right to
+                      raise an additional charge for such accommodation etc, which shall be the joint and several
+                      liability of the clients. Additionally, should any activity or large gathering of people other
+                      than those noted on our invoice take place (e.g. party, wedding reception) we must be informed
+                      about it at the time of booking or through any of our Representatives beforehand. Our cabins are let for holiday purposes only and commercial activities may
+                      only be carried out with our prior knowledge and or written approval on our invoice. This extra
+                      charge varies depending on the property and can be deducted from your credit or debit card
+                      without further notice.
                     </p>
 
-                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Check-in and Check-out</h2>
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Rental Period</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      Check-in time is 3:00 PM and check-out time is 11:00 AM. Early check-in or late check-out may be arranged
-                      subject to availability and additional charges.
+                      All rental periods are indicated on your final invoice. Prices shown on our website refer to
+                      one night rental period. We do not accept bookings that go beyond 7 days at a time. The rental
+                      charge includes: the cabin for the rental period; a walking tour of Anomabo; a change of bed
+                      linens, bath towels; house wares such as linens, cooking utensils and china; electricity; water
+                      and hot water from taps; garden and pool maintenance; all local taxes.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      It does not include: outgoing telephone calls; Extra Services as requested; eating; chef
+                      services; repairs for damages to the property caused by your party; food; travel; car rental;
+                      transfers and travel insurance; staff gratuities.
                     </p>
 
-                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Guest Responsibilities</h2>
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Methods of Payment</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
-                      Guests are responsible for any damage to the property beyond normal wear and tear. Guests must comply with
-                      all house rules and local regulations.
+                      Payments can be made by: debit/credit card, or mobile money transfer via our booking website.
+                      All prices are in GHS and payments have to be received in GHS unless otherwise agreed.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Price Guarantee</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Once you have made a booking and made all relevant payments, paid a deposit, we guarantee that
+                      the cost of your holiday will not change, no matter what happens to exchange rates or aviation
+                      fuel costs. The only exception is Government imposed cost increases such as VAT.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Holiday Pack</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      The Holiday Pack includes all vouchers, list of Extra Services requested, driving directions,
+                      contact names and telephone numbers, useful information. The Holiday Pack will be provided once
+                      the fully completed Booking Form and the total Invoice Price have been received. The Holiday
+                      Pack will not be issued if essential information, including group composition, is missing in the
+                      Booking Form. Errors or omissions in the Holiday Pack must be noted and conveyed to us
+                      immediately.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Information Booklet</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Please note that the information contained in our Information Booklet is to be considered only
+                      as an indication. The information contained in the Information Booklet was accurate at the time
+                      of publication and made in good faith. Please check the Invoice and our website as changes might
+                      occur and updated information are posted on our website.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Payments</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      All bookings must be paid in full. Sojourn Cabins reserves the right to refuse or terminate any
+                      booking where the client has not complied with the payment terms specified. If your bank&rsquo;s
+                      country of issue is not within Ghana, please allow at least 5 to 7 days for final payment
+                      clearance. It is the responsibility of the client to ensure that all foreign exchange and bank
+                      transfer fees are paid to ensure the amounts due are received in full. We advise, particularly
+                      for those booking from overseas to phone your credit / debit card company / bank prior to
+                      attempting to make a booking so they are aware you are going to be making a payment to Sojourn
+                      Cabins. This will eliminate the possibility of your card being rejected on the grounds of fraud
+                      protection.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Cancellation by Sojourn Cabins: we reserve the right to cancel your booking if outstanding
+                      payments are not received on or before due dates specified on your booking invoice. Where
+                      cancellation is required for this reason, all monies already paid less any bank charges and
+                      administration costs of GHS 50 will be refunded to you. Should you wish to
+                      make alternative payment arrangements, it is your responsibility to contact us immediately to
+                      discuss options. We reserve the right in our absolute discretion to refuse a booking without
+                      giving reasons.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Full Payment date 56 days before departure: The outstanding balance is due 56 days before
+                      departure unless otherwise agreed. If your booking is made within 56 days of departure, the
+                      total price becomes due at the time of booking. We must receive a cleared payment by the due
+                      date stated on the invoice. If we do not receive this payment in time, we reserve the right to
+                      cancel your booking and retain your deposit.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Changes by You (Client)</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Change of dates and cabin size: if you wish to change any part of your booking, you must advise
+                      us of any such changes by written notice. We will endeavour to meet reasonable requests for
+                      changes, subject to availability, but cannot guarantee to do so. Where it is possible to make
+                      changes, we may charge a GHS 50 administration fee unless such changes are outside your control (in
+                      which case no fee will be charged). Please note that we are unable to make any changes to
+                      bookings within 30 days of departure. We cannot guarantee to make any changes to bookings within
+                      56 days of departure and may charge you for any losses we incur in making changes at that time.
+                      If the requested change means that your payment(s) increase, we will advise you of the increase.
+                      If the requested change means that the total holiday price is reduced, we are not obliged to
+                      refund the difference, but shall use our discretion.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Change of party leader or composition: if you wish to transfer your confirmed booking to another
+                      person, this can be done provided that we are notified, the full payment is received and an
+                      administration charge of GHS 50 is paid. The transferee must provide the information we require
+                      and satisfy all the requirements set out in these terms. Both transferor and transferee will be
+                      jointly and severally liable for the holiday price and additional charges which will be due at
+                      the time of transfer.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Cancellation by You (Client)</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      If you want to cancel your booking, then you or the party leader must contact us immediately in
+                      writing (by email or by recorded delivery letter) stating the reason(s). If you do cancel your
+                      booking, the following cancellation charges shall apply:
+                    </p>
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 mb-4">
+                      <ul className="space-y-3 list-none pl-0">
+                        <li className="flex justify-between py-2 border-b border-slate-200">
+                          <span className="text-slate-600">More than 14 days before check-in</span>
+                          <span className="font-medium text-slate-900">Full refund less transaction and administration fees</span>
+                        </li>
+                        <li className="flex justify-between py-2 border-b border-slate-200">
+                          <span className="text-slate-600">Between 7 and 14 days before check-in</span>
+                          <span className="font-medium text-slate-900">50% of total price less transaction and administration fees</span>
+                        </li>
+                        <li className="flex justify-between py-2">
+                          <span className="text-slate-600">Less than 7 days before check-in</span>
+                          <span className="font-medium text-slate-900">Non-refundable</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      If only some members of your group cancel but others decide to continue, no refund will be made
+                      for those who cancel but the holiday will continue for the remaining guests. If one of your
+                      party is prevented from travelling due to death, injury, illness or other relevant reasons, a
+                      refund will not be issued but you may make a claim under your travel insurance policy. If
+                      clients reduce group numbers (which causes an increase in price per person) the remaining party
+                      must pay the price increase unless we are able to re-let the weeks to other clients. All
+                      cancellations must be confirmed in writing to the email address{' '}
+                      <a href="mailto:theteam@sojourngh.com" className="text-slate-900 font-medium hover:underline">
+                        theteam@sojourngh.com
+                      </a>.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Cancellation by Sojourn Cabins</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      In the unlikely event we have to make a significant change or cancel your confirmed holiday
+                      booking, we will let you know as soon as possible and offer an alternative cabin or a full
+                      refund. Our liability in such circumstances is limited to a full refund of all monies paid.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Arrival &amp; Departure Times</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Normal Check in time: Guests can arrive on the cabin at any time after 2pm on the arrival day.
+                      Check out must be by 11am on the departure day. If you arrive or depart early or late, you must
+                      make prior arrangements with us &ndash; additional charges may apply.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      The cabins will have been thoroughly cleaned and prepared for your arrival, but if you find
+                      anything wrong when you arrive, please inform us immediately. We will use our reasonable
+                      endeavours to send someone out to remedy any problem as soon as possible. Please note that
+                      arrangements made in respect of departure may be changed at our discretion or by arrangement
+                      with us (e.g. you need to leave earlier or later than stated above).
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Travel Insurance</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      We strongly recommend that you arrange comprehensive holiday insurance which covers
+                      cancellation, medical expenses, repatriation and loss or damage to luggage and personal
+                      possessions prior to travelling. The minimum requirement is that you have a policy covering
+                      cancellation and medical expenses and repatriation in case of injury or illness. Any decision
+                      not to purchase insurance remains at your own discretion and at your own risk. We shall not be
+                      liable for any costs, losses or expenses incurred by you which could have been avoided had you
+                      taken out appropriate insurance.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Your Safety and Security</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Sojourn Cabins offer the best value and service for your accommodation and hope that your stay
+                      with us is pleasant, safe and trouble free. Please be aware that standards of accommodation and
+                      local safety, hygiene and security standards may differ from those you are accustomed to at home
+                      in your own country.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      It remains your responsibility to take all sensible precautions throughout your stay. You are
+                      responsible for the safety and behaviour of all members of your party. Our properties are not
+                      suitable for people with reduced mobility. You must ensure that you and your party arrive in a
+                      fit and sober state when taking possession of your accommodation. Use all electrical equipment
+                      with care and caution; report any faulty equipment and do not attempt repairs yourself. Follow
+                      all instructions displayed at the properties and in the information packs. Make sure children
+                      are supervised at all times and take particular care near swimming pools and the beach. Do not
+                      allow children to go to the beach unsupervised or swim in the sea.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Special Requests</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      If you have a special request, such as an anniversary cake, please let us know at the time of
+                      booking or when you submit the booking form, and we will note your requirement and inform the
+                      owner or property agent. We cannot guarantee that such requests will be met but we will do our
+                      best to accommodate them where possible. Any costs incurred for the provision of special
+                      requests will be notified to you in advance and confirmed on your invoice. Please note that such
+                      requests do not constitute any part of our agreement with you unless we actually confirm to you
+                      that we can fulfil the request and accept the relevant cost(s).
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Security/Damage Deposits</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Most cabin owners ask that you agree to a &ldquo;Security Deposit&rdquo; which is held to cover any loss or
+                      damage to their property caused by you or a member of your party. Security deposits are taken on
+                      arrival in cash (GHS or USD), by a pre-authorization with a credit or debit card. Deposits will
+                      be refunded within 72 hours of departure providing there is no loss or damage caused by you or
+                      any of your party. Please inform us immediately if you do cause any damage. Where, with your
+                      consent we will/can automatically deduct said charge from the security/damage deposit being held
+                      in the form of credit/debit/cash by Sojourn Cabins. No guests other than those on the booking
+                      form can sleep at the property. Wedding celebration breakage deposits are to be paid via bank
+                      transfer/credit card/debit card with the balance of your cabin rental on the due date shown on
+                      your invoice and will be returned no later than 14 days from the date of departure stated on your
+                      invoice subject to zero damages/breakages/unlawful celebrations being reported.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Complaints and Correspondence</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      We hope that you enjoy your holiday and the services of Sojourn Cabins, but if you have any
+                      complaints, we want to rectify them as quickly as possible. It is our intention that any
+                      complaint is resolved quickly and to your satisfaction. Should you have any complaints / issues
+                      with your accommodation upon your arrival you must give Sojourn Cabins a reasonable amount of
+                      time to rectify / resolve any such issues. Should any clients of Sojourn Cabins vacate said
+                      property before Sojourn Cabins has had time to rectify any issues / complaints we will not be
+                      responsible for any costs of relocation or compensation.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      In the unlikely event that you are still dissatisfied with any part of our services, our office
+                      team will ask you to record the details by way of photographs and forward these to our Ghana
+                      office by email or recorded delivery within 12 days of the complaint or latest, the return date
+                      of your holiday with us. Failure to give written notification sent by email / recorded delivery
+                      within 12 days of your complaint or latest from the return date of your holiday shall result in
+                      our not being liable for any loss or compensation whatsoever or howsoever arising. Sojourn
+                      Cabins will respond to your complaint within 14 days of receiving your recorded letter as a
+                      management report may be required.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      We can only correspond and accept complaints in written form from the Party Leader and are only
+                      able to correspond with the party leader due to the data protection act on any such matters
+                      relating to the booking. Similar or same properties may be advertised with other agents. Not
+                      giving Sojourn Cabins the option to book/relocate said property as an alternative option will
+                      cancel any option of refund/compensation. The Party Leader is the person or agency who holds the
+                      booking, to whom all correspondence and invoices are addressed and who is responsible for the
+                      rental. We cannot accept complaints from other members in the party. Our maximum liability to
+                      you if we are found to have been at fault in relation to the booking is limited to the
+                      commission we have earned or are due to earn in relation to the booking in question.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Building Works</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      There may be new building/renovation work taking place close to your cabin. We take steps to try
+                      and monitor this and advise you if any building work is likely to affect your cabin. Should we
+                      consider that a neighbouring building plot or plots would seriously affect your property with
+                      either noise or dust pollution or both, then we will use our reasonable endeavours to offer you
+                      an alternative from the Sojourn Cabins portfolio only. Where works or public works occur at short
+                      notice or without notice, and which are outside of our control, we cannot be held liable for any
+                      inconvenience to you, but we will ask the owners to compensate you, and if this is agreed, we
+                      will pass this on to you on behalf of the property owner.
+                    </p>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      New building work starting after publication of individual cabin descriptions may in some way
+                      distort our description of the property we have considered peaceful or quiet. Building or road
+                      works may be in progress nearby, a neighbour may start building a swimming pool or wall, or the
+                      local water board may decide to drill for water in the vicinity. This work may start early in the
+                      morning as it is local practice and can start at any time in the year. As it is not always
+                      possible to gauge the extent of such works we regret we cannot advise you of the constantly
+                      changing conditions. If within 7 days of the start of your holiday we become aware of such works
+                      taking place on a plot immediately adjacent to your property (that is, an adjoining plot - not
+                      across the road or merely nearby) that in our opinion could materially spoil your enjoyment of
+                      your holiday we will advise you. You may then either a) cancel and receive a full refund for
+                      accommodation and car hire if the latter is booked with ourselves or b) change your booking to
+                      another available (subject to availability) cabin from Sojourn Cabins portfolio only for the same
+                      period either paying the difference if it is more expensive or receiving a refund if it is
+                      cheaper, or c) change your booking to another available cabin for a different period either
+                      paying the difference if it is more expensive or receiving a refund if it is cheaper or d) leave
+                      your reservation as it is and hope that there is not too much noise or dust to spoil your
+                      holiday. If you choose option (d), to stay with the reservation, it is extremely unlikely that
+                      after arrival we will be able to move you to any alternative accommodation if you suffer any
+                      inconvenience as described above, nor will any claim for compensation be accepted for any loss of
+                      enjoyment due to building or any other associated works within the vicinity of your holiday
+                      cabin. You should note that we are not responsible for such work, are not able to stop such work
+                      taking place nor control the noise level. Nor can we be responsible for any building works that
+                      start during a holiday and under no circumstances will we pay any compensation at all in such
+                      cases.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Law and Jurisdiction</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      This Agreement shall be governed and construed in all respects in accordance with the laws of
+                      Ghana. The parties hereto submit to the exclusive jurisdiction of the Ghanaian Courts and not
+                      outside of the Ghanaian courts. This applies to consumer claims that are made outside of the
+                      Ghanaian Courts and its jurisdiction.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Responsibility</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      By completing and returning the Booking Form, you and all members of your party acknowledge full
+                      awareness of these Booking Terms &amp; Conditions and agree to accept and abide by the terms
+                      stated.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Condition of Cabin on Checkout</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      On departure you should leave the cabin in a reasonably clean and tidy condition so that it can
+                      be efficiently prepared for the next guests. If excess rubbish must be cleared or excessive
+                      cleaning of the cabin is necessary following your stay, any charges will either be: (a) deducted
+                      from your security deposit; or (b) invoiced to your postal address.
+                    </p>
+
+                    <h2 className="text-2xl font-serif font-light mt-8 mb-6 pb-4 border-b border-slate-200">Pricing Errors</h2>
+                    <p className="text-slate-600 leading-relaxed mb-4">
+                      Whilst we make every effort to ensure the accuracy of the pricing information provided,
+                      regrettably errors may occasionally occur. When we become aware of any such error, we will
+                      endeavour to notify you at the time of booking (if we are then aware of the mistake), within 7
+                      days of the time of booking or as soon as reasonably possible. If a booking is already in place,
+                      you will have the choice to continue with the chosen itinerary at the corrected price or amend
+                      to a different holiday. We reserve the right to cancel the booking if you do not wish to accept
+                      the price that applies to your holiday or any quoted alternatives.
                     </p>
                   </div>
                 </div>

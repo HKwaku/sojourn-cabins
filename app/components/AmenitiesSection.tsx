@@ -34,15 +34,20 @@ export default function AmenitiesSection() {
       description: ''
     },
     { 
-      name: 'Mini-Kitchen', 
-      icon: (
-        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <ellipse cx="12" cy="11" rx="9" ry="3" strokeWidth={1.2} />
-          <path strokeWidth={1.2} strokeLinecap="round" d="M3 11v2c0 1.66 4.03 3 9 3s9-1.34 9-3v-2M7 14v5M17 14v5M12 14v7" />
-          <line x1="9" y1="21" x2="15" y2="21" strokeWidth={1.2} strokeLinecap="round" />
-          <path strokeWidth={1.2} strokeLinecap="round" d="M8 8c.5-1.5 1.5-2.5 2.5-2.5M12 8c.5-1.5 1.5-2.5 2.5-2.5M16 8c.5-1.5 1.5-2.5 2.5-2.5" />
-        </svg>
-      ),
+     name: 'Curated Experiences', 
+        icon: (
+          <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Lotus flower petals */}
+            <path strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" 
+              d="M12 19c0-2.5-2-4-4-6 0 0 0-4 4-4 4 0 4 4 4 4-2 2-4 3.5-4 6z" />
+            <path strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" 
+              d="M12 19c-2.5 0-4-2-6-4 0 0-1-3 2-5 3-2 5 0 5 0 0 3 1 5.5-1 9z" />
+            <path strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" 
+              d="M12 19c2.5 0 4-2 6-4 0 0 1-3-2-5-3-2-5 0-5 0 0 3-1 5.5 1 9z" />
+            {/* Spa stones base */}
+            <ellipse cx="12" cy="19.5" rx="6" ry="1.5" strokeWidth={1.2} />
+          </svg>
+        ),
       description: ''
     },
     { 
