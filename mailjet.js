@@ -772,7 +772,6 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
     : '<p style="color: #6b7280;">No experiences requiring details</p>';
 
   const htmlContent = `
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -804,35 +803,6 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
               </p>
             </td>
           </tr>
-=======
-  <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-      <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f3f4f6;">
-        <tr>
-          <td align="center" style="padding: 40px 20px;">
-            <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
-              
-              
-              <!-- Header with Logo -->
-              <tr>
-                <td style="padding: 32px 32px 24px 32px; text-align: center; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
-                  <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" style="width: 180px; height: auto; display: inline-block;" />
-                </td>
-              </tr>
-
-              <!-- Title -->
-              <tr>
-                <td style="padding: 32px 32px 16px 32px; text-align: center;">
-                  <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Complete Your Experience Details</h1>
-                  <p style="margin: 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Confirmation: ${booking.confirmation_code || booking.group_reservation_code || ''}</p>
-                </td>
-              </tr>
->>>>>>> main
 
           <!-- Content -->
           <tr>
