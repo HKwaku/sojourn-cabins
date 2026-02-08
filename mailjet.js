@@ -791,7 +791,7 @@ export async function sendExtraSelectionsEmail({ to, name, booking, extrasLink }
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" style="padding-bottom: 12px;">
-                    <img src="https://res.cloudinary.com/dvsalazae/image/upload/v1738159934/Sojourn_Cabins_Logo_White_vvfk1w.png" alt="Sojourn Cabins" width="200" height="auto" style="width: 200px; height: auto; max-width: 100%; display: block; border: 0;" />
+                    <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" width="200" height="auto" style="width: 200px; height: auto; max-width: 100%; display: block; border: 0;" />
                   </td>
                 </tr>
               </table>
