@@ -1868,17 +1868,14 @@ export default function BookingWidget() {
     var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
     currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
     
-    // Render calendar immediately, then load pricing in background
-    renderCalendar(pickerId);
-
-    // Fetch pricing for current and next month in parallel
+    // Fetch pricing for current and next month in parallel, then render once
     var month = currentPickerMonth[pickerId];
     await Promise.all([
       fetchCalendarPricing(month.getFullYear(), month.getMonth(), currentRoomTypeId),
       fetchCalendarPricing(month.getFullYear(), month.getMonth() + 1, currentRoomTypeId)
     ]);
-    // Re-render with prices
-    if (activePickerId === pickerId) renderCalendar(pickerId);
+    
+    renderCalendar(pickerId);
   }
 
   function closeDatePicker() {
@@ -2040,12 +2037,12 @@ export default function BookingWidget() {
         e.preventDefault();
         e.stopPropagation();
         currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() - 1, 1);
-        renderCalendar(pickerId);
         
-        // Fetch pricing for new month in background, then re-render
+        // Fetch pricing for new month
         var newMonth = currentPickerMonth[pickerId];
         await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
-        if (activePickerId === pickerId) renderCalendar(pickerId);
+        
+        renderCalendar(pickerId);
       });
     });
     
@@ -2055,12 +2052,12 @@ export default function BookingWidget() {
         e.preventDefault();
         e.stopPropagation();
         currentPickerMonth[pickerId] = new Date(month.getFullYear(), month.getMonth() + 1, 1);
-        renderCalendar(pickerId);
         
-        // Fetch pricing for new month in background, then re-render
+        // Fetch pricing for new month
         var newMonth = currentPickerMonth[pickerId];
         await fetchCalendarPricing(newMonth.getFullYear(), newMonth.getMonth(), currentRoomTypeId);
-        if (activePickerId === pickerId) renderCalendar(pickerId);
+        
+        renderCalendar(pickerId);
       });
     });
     
