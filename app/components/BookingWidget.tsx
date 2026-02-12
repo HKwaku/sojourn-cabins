@@ -232,7 +232,7 @@ export default function BookingWidget() {
     color:var(--text);
     font-size:16px;
     line-height:1.3;
-    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .08s ease;
+    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
   }
   input:hover,select:hover{
     border-color:#94a3b8;
@@ -242,7 +242,6 @@ export default function BookingWidget() {
     border-color:var(--brand);
     box-shadow:0 0 0 1px rgba(249,115,22,.8),0 0 0 6px rgba(249,115,22,.18);
     outline:none;
-    transform:translateY(-0.5px);
   }
   input::placeholder{color:#9ca3af;}
 
