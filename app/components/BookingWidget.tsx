@@ -1263,8 +1263,8 @@ export default function BookingWidget() {
     z-index: 9999999 !important;
   }
   
-  /* Mobile: Make calendar more prominent */
-  @media (max-width: 640px) {
+  /* Small/medium screens: calendar as fixed centered overlay */
+  @media (max-width: 1024px) {
     .date-picker-dropdown {
       position: fixed;
       top: 50%;
@@ -1273,6 +1273,7 @@ export default function BookingWidget() {
       width: 90vw;
       max-width: 400px;
       margin-top: 0;
+      min-width: unset;
       z-index: 99999999 !important;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
