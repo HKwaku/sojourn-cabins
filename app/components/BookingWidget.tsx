@@ -590,12 +590,12 @@ export default function BookingWidget() {
   @media (max-width:640px){
     .modal{
       padding:0;
-      align-items:stretch;
+      align-items:flex-end;
     }
     .sheet{
       max-height:100vh;
       max-height:100dvh;
-      border-radius:0;
+      border-radius:16px 16px 0 0;
       border:none;
     }
     .sheet header{
@@ -604,6 +604,7 @@ export default function BookingWidget() {
     }
     .sheet main{
       padding:16px 16px 14px;
+      flex:0 1 auto;
     }
     .sheet footer{
       padding:14px 16px;
