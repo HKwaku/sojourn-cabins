@@ -597,10 +597,12 @@ export default function Page() {
                 ? 'md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto'
                 : 'md:grid-cols-2 lg:grid-cols-3'
             }`}>
-              {featuredPackages.map((pkg, index) => (
+              {featuredPackages.map((pkg, index) => {
+                const isSoldOut = !pkg.nextAvailable;
+                return (
                 <div
                   key={pkg.id}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col border border-stone-100"
+                  className={`group bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-500 flex flex-col border ${isSoldOut ? 'border-stone-200 opacity-75' : 'border-stone-100 hover:shadow-xl'}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* Package Image */}
@@ -610,7 +612,7 @@ export default function Page() {
                         <img
                           src={pkg.image_url ?? undefined}
                           alt={pkg.name ?? undefined}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          className={`w-full h-full object-cover transition-transform duration-700 ${isSoldOut ? 'grayscale' : 'group-hover:scale-110'}`}
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -628,6 +630,12 @@ export default function Page() {
                         Featured
                       </span>
                     </div>
+                    {/* Sold Out Badge */}
+                    {isSoldOut && (
+                      <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                        Sold Out
+                      </div>
+                    )}
                   </div>
 
                   {/* Package Content */}
@@ -724,7 +732,7 @@ export default function Page() {
                     <div className="space-y-3">
                       {/* Availability */}
                       <div className="flex items-center gap-2 text-sm">
-                        <div className={`w-2 h-2 rounded-full ${pkg.nextAvailable ? 'bg-emerald-400' : 'bg-stone-300'}`} />
+                        <div className={`w-2 h-2 rounded-full ${pkg.nextAvailable ? 'bg-emerald-400' : 'bg-red-400'}`} />
                         {pkg.nextAvailable ? (
                           <span className="text-stone-600">
                             Available from{' '}
@@ -744,18 +752,22 @@ export default function Page() {
                       {/* Book Button */}
                       <button
                         type="button"
+                        disabled={isSoldOut}
                         onClick={() => {
-                          setInitialPackageId(pkg.id)
-                          setPackagesOpen(true)
+                          if (!isSoldOut) {
+                            setInitialPackageId(pkg.id)
+                            setPackagesOpen(true)
+                          }
                         }}
-                        className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm tracking-wide font-medium hover:bg-stone-800 active:scale-[0.98] transition-all duration-300"
+                        className={`w-full py-3.5 rounded-xl text-sm tracking-wide font-medium transition-all duration-300 ${isSoldOut ? 'bg-stone-300 text-stone-500 cursor-not-allowed' : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98]'}`}
                         >
-                        Book Package
+                        {isSoldOut ? 'Sold Out' : 'Book Package'}
                         </button>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

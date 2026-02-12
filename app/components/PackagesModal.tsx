@@ -1781,11 +1781,13 @@ function formatDate(isoDate?: string | null): string {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {packages.map((pkg) => (
+                    {packages.map((pkg) => {
+                      const isSoldOut = !nextAvailableByPackage[pkg.id];
+                      return (
                       <div
                         key={pkg.id}
-                        onClick={() => handleSelectPackage(pkg.id)}
-                        className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col border border-stone-100 cursor-pointer"
+                        onClick={() => !isSoldOut && handleSelectPackage(pkg.id)}
+                        className={`group bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-500 flex flex-col border ${isSoldOut ? 'border-stone-200 opacity-75 cursor-not-allowed' : 'border-stone-100 hover:shadow-xl cursor-pointer'}`}
                       >
                         {/* Package Image */}
                         {pkg.image_url && (
@@ -1793,9 +1795,14 @@ function formatDate(isoDate?: string | null): string {
                             <img
                               src={pkg.image_url}
                               alt={pkg.name ?? ''}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              className={`w-full h-full object-cover transition-transform duration-700 ${isSoldOut ? 'grayscale' : 'group-hover:scale-110'}`}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            {isSoldOut && (
+                              <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                                Sold Out
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -1866,10 +1873,10 @@ function formatDate(isoDate?: string | null): string {
                             </>
                           )}
 
-                          {/* NEW: Available from (same style as featured packages) */}
-                          {nextAvailableByPackage[pkg.id] && (
-                            <>
-                              <div className="flex items-center gap-2 text-sm mb-4">
+                          {/* Availability / Sold Out */}
+                          <div className="flex items-center gap-2 text-sm mb-4">
+                            {nextAvailableByPackage[pkg.id] ? (
+                              <>
                                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
                                 <span className="text-stone-600">
                                   Available from{' '}
@@ -1877,10 +1884,15 @@ function formatDate(isoDate?: string | null): string {
                                     {formatDate(nextAvailableByPackage[pkg.id] as string)}
                                   </span>
                                 </span>
-                              </div>
-                              <div className="h-px bg-stone-200 mb-4" />
-                            </>
-                          )}
+                              </>
+                            ) : (
+                              <>
+                                <span className="w-2 h-2 rounded-full bg-red-400" />
+                                <span className="text-red-500 font-semibold uppercase tracking-wide">Sold Out</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="h-px bg-stone-200 mb-4" />
 
                           {/* Spacer */}
                           <div className="flex-1" />
@@ -1891,13 +1903,15 @@ function formatDate(isoDate?: string | null): string {
                           {/* Select Button */}
                           <button
                             type="button"
-                            className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm tracking-wide font-medium hover:bg-stone-800 active:scale-[0.98] transition-all duration-300"
+                            disabled={isSoldOut}
+                            className={`w-full py-3.5 rounded-xl text-sm tracking-wide font-medium transition-all duration-300 ${isSoldOut ? 'bg-stone-300 text-stone-500 cursor-not-allowed' : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98]'}`}
                           >
-                            Select Package
+                            {isSoldOut ? 'Sold Out' : 'Select Package'}
                           </button>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
 
                   <div className="mt-8 flex justify-center gap-4">
