@@ -737,7 +737,7 @@ export default function Page() {
                             </span>
                           </span>
                         ) : (
-                          <span className="text-stone-400">No availability soon</span>
+                          <span className="text-red-500 font-semibold uppercase tracking-wide">Sold Out</span>
                         )}
                       </div>
 
