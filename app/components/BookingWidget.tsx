@@ -557,6 +557,8 @@ export default function BookingWidget() {
     flex-direction:column;
     overflow:hidden;
     overflow-x:hidden;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
   }
 
   .sheet header{
@@ -573,6 +575,9 @@ export default function BookingWidget() {
     padding:16px 14px 14px;
     overflow:auto;
     flex:1;
+    -webkit-overflow-scrolling:touch;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
   }
   .sheet footer{
     padding:12px 14px;
