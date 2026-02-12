@@ -159,7 +159,8 @@ export default function BookingWidget() {
   .card::before{
     content:"";
     position:absolute;
-    inset:-40%;
+    inset:0;
+    border-radius:inherit;
     background:
       radial-gradient(circle at 0 0,rgba(249,115,22,.10) 0,transparent 55%),
       radial-gradient(circle at 90% 120%,rgba(59,130,246,.12) 0,transparent 55%);
@@ -557,8 +558,6 @@ export default function BookingWidget() {
     flex-direction:column;
     overflow:hidden;
     overflow-x:hidden;
-    -webkit-transform:translateZ(0);
-    transform:translateZ(0);
   }
 
   .sheet header{
@@ -570,14 +569,14 @@ export default function BookingWidget() {
     display:flex;
     justify-content:space-between;
     align-items:center;
+    flex-shrink:0;
   }
   .sheet main{
     padding:16px 14px 14px;
-    overflow:auto;
+    overflow-y:auto;
+    overflow-x:hidden;
     flex:1;
     -webkit-overflow-scrolling:touch;
-    -webkit-transform:translateZ(0);
-    transform:translateZ(0);
   }
   .sheet footer{
     padding:12px 14px;
@@ -586,6 +585,30 @@ export default function BookingWidget() {
     gap:10px;
     justify-content:space-between;
     background:#f9fafb;
+    flex-shrink:0;
+  }
+  @media (max-width:640px){
+    .modal{
+      padding:0;
+      align-items:stretch;
+    }
+    .sheet{
+      max-height:100vh;
+      max-height:100dvh;
+      border-radius:0;
+      border:none;
+    }
+    .sheet header{
+      padding:14px 16px;
+      min-height:52px;
+    }
+    .sheet main{
+      padding:16px 16px 14px;
+    }
+    .sheet footer{
+      padding:14px 16px;
+      padding-bottom:max(14px, env(safe-area-inset-bottom));
+    }
   }
 
   /* close button */
@@ -596,18 +619,20 @@ export default function BookingWidget() {
     cursor:pointer;
     line-height:1;
     color:#9ca3af;
-    width:34px;
-    height:34px;
+    width:44px;
+    height:44px;
     border-radius:999px;
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:background .15s ease,color .15s ease,transform .1s ease;
+    transition:background .15s ease,color .15s ease;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+    flex-shrink:0;
   }
   .x:hover{
     color:#111827;
     background:#e5e7eb;
-    transform:translateY(-0.5px);
   }
 
     /* ---------- Payment loading ---------- */
@@ -989,7 +1014,7 @@ export default function BookingWidget() {
     padding:10px 14px;
     border:none;
     border-bottom:1px solid #e5e7eb;
-    font-size:14px;
+    font-size:16px;
     outline:none;
     box-sizing:border-box;
   }
@@ -1113,9 +1138,44 @@ export default function BookingWidget() {
       padding:12px 18px;
       font-size:13px;
       min-height:44px;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
     }
     .btn.secondary{
       min-height:44px;
+    }
+    label{
+      font-size:12px;
+      margin-bottom:6px;
+      padding:2px 0;
+    }
+    .room{
+      transition:none;
+    }
+    .room:hover{
+      transform:none;
+    }
+    .experiences-banner{
+      min-height:56px;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
+    .terms-checkbox-container{
+      padding:14px;
+      gap:12px;
+    }
+    .terms-checkbox{
+      width:22px;
+      height:22px;
+      min-width:22px;
+    }
+    .cc-selected{
+      min-height:44px;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .cc-option{
+      min-height:44px;
+      -webkit-tap-highlight-color:transparent;
     }
   }
   @media (max-width:380px){
@@ -1124,11 +1184,16 @@ export default function BookingWidget() {
     .btn{padding:10px 15px;}
   }
 
-  /* Prevent horizontal scroll and zoom on mobile */
+  /* Prevent horizontal scroll on mobile */
   #booking-search, .wrap, .card, .grid, .grid > div { min-width:0; max-width:100%; }
   html, body { overflow-x:hidden; }
   * { box-sizing:border-box; }
   input, select, textarea { max-width:100%; }
+
+  /* iOS Safari: prevent zoom on focus for all inputs */
+  @supports (-webkit-touch-callout:none){
+    input,select,textarea{font-size:16px !important;}
+  }
 
   /* Custom Date Picker Styles */
     .date-picker-wrapper {
@@ -1140,7 +1205,7 @@ export default function BookingWidget() {
     padding: 12px 14px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     background: white;
   }
@@ -3185,16 +3250,37 @@ export default function BookingWidget() {
   var modReview = $('#modal-review');
   var modThanks = $('#modal-thanks');
 
+  var _scrollY = 0;
+  function lockBody() {
+    _scrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + _scrollY + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+  }
+  function unlockBody() {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.overflow = '';
+    window.scrollTo(0, _scrollY);
+  }
+
   function openModal(which) {
     ovl.style.display = 'block';
     var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : which === 'review' ? modReview : modThanks;
     el.style.display = 'flex';
+    lockBody();
   }
   function closeModal(which) {
     var el = which === 'results' ? modResults : which === 'extras' ? modExtras : which === 'guest' ? modGuest : which === 'review' ? modReview : modThanks;
     el.style.display = 'none';
-    // Always hide overlay when closing a modal - it will be shown again if another modal opens
     ovl.style.display = 'none';
+    // Only unlock body if no other modals are visible
+    var anyOpen = [modResults, modExtras, modGuest, modReview, modThanks].some(function(m){ return m && m.style.display === 'flex'; });
+    if (!anyOpen) unlockBody();
   }
 
   document.querySelectorAll('[data-close="results"]').forEach(function (b) { b.addEventListener('click', function(){ closeModal('results'); }); });
@@ -4174,7 +4260,7 @@ input, select {
   width:100%; max-width:100%; min-width:0;
   padding:14px 16px; border:1px solid var(--line); border-radius:10px;
   background:#f8fafc; color:var(--text);
-  font-size:15px; transition:border-color .2s, box-shadow .2s;
+  font-size:16px; transition:border-color .2s, box-shadow .2s;
 }
 input:hover, select:hover { border-color:#cbd5e1; }
 input:focus, select:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(0,0,0,.05); outline:none; }
