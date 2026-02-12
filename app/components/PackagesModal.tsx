@@ -898,22 +898,34 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
         const horizonEndISO = toLocalISO(horizonEnd);
 
 
-        // 1) Fetch all reservations overlapping the horizon,
-        //    then match them to package rooms by id *or* code
+        // 1) Fetch reservations AND blocked dates in parallel
         const resUrl =
           `${SUPABASE_URL}/rest/v1/reservations` +
           `?select=room_type_id,room_type_code,check_in,check_out,status` +
           `&check_in=lt.${horizonEndISO}&check_out=gt.${horizonStartISO}` +
           `&status=not.in.("cancelled","no_show")`;
 
-        const reservations = await fetchJSON<{
-          room_type_id: string | null;
-          room_type_code: string | null;
-          check_in: string;
-          check_out: string;
-          status: string | null;
-        }[]>(resUrl);
+        const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
+        const blockedUrl = roomIds.length
+          ? `${SUPABASE_URL}/rest/v1/blocked_dates` +
+            `?select=room_type_id,blocked_date` +
+            `&room_type_id=in.(${roomIds.join(',')})`
+          : null;
 
+        const [reservations, blocked] = await Promise.all([
+          fetchJSON<{
+            room_type_id: string | null;
+            room_type_code: string | null;
+            check_in: string;
+            check_out: string;
+            status: string | null;
+          }[]>(resUrl),
+          blockedUrl
+            ? fetchJSON<{ room_type_id: number; blocked_date: string }[]>(blockedUrl)
+            : Promise.resolve([] as { room_type_id: number; blocked_date: string }[]),
+        ]);
+
+        // Process reservations
         reservations.forEach((r) => {
           if (!r.check_in || !r.check_out) return;
 
@@ -925,7 +937,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             : undefined;
 
           const key = idKey ?? codeKey;
-          if (!key) return; // reservation not for a room in this package
+          if (!key) return;
 
           let cur = new Date(r.check_in + 'T00:00:00');
           const end = new Date(r.check_out + 'T00:00:00');
@@ -934,34 +946,18 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           const set = occupancy[key];
           if (!set) return;
 
-          // mark [check_in, check_out) as occupied
           while (cur < end) {
             set.add(toLocalISO(cur));
             cur.setDate(cur.getDate() + 1);
           }
-
         });
 
-        // 2) Fetch blocked dates for these rooms (blocked_dates only has room_type_id)
-        const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
-        if (roomIds.length) {
-          const blockedUrl =
-            `${SUPABASE_URL}/rest/v1/blocked_dates` +
-            `?select=room_type_id,blocked_date` +
-            `&room_type_id=in.(${roomIds.join(',')})`;
-
-          const blocked = await fetchJSON<{
-            room_type_id: number;
-            blocked_date: string;
-          }[]>(blockedUrl);
-
-          blocked.forEach((b) => {
-            const key = roomKeyById[String(b.room_type_id)];
-            if (!key || !b.blocked_date) return;
-            occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
-
-          });
-        }
+        // Process blocked dates
+        blocked.forEach((b) => {
+          const key = roomKeyById[String(b.room_type_id)];
+          if (!key || !b.blocked_date) return;
+          occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
+        });
 
         const disabled: string[] = [];
 
@@ -1093,20 +1089,32 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
         const horizonEndISO = toLocalISO(horizonEnd);
 
 
-        // 1) Reservations overlapping [checkIn, horizonEnd]
+        // 1) Fetch reservations AND blocked dates in parallel
         const resUrl =
           `${SUPABASE_URL}/rest/v1/reservations` +
           `?select=room_type_id,room_type_code,check_in,check_out,status` +
           `&check_in=lt.${horizonEndISO}&check_out=gt.${horizonStartISO}` +
           `&status=not.in.("cancelled","no_show")`;
 
-        const reservations = await fetchJSON<{
-          room_type_id: string | null;
-          room_type_code: string | null;
-          check_in: string;
-          check_out: string;
-          status: string | null;
-        }[]>(resUrl);
+        const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
+        const blockedUrl = roomIds.length
+          ? `${SUPABASE_URL}/rest/v1/blocked_dates` +
+            `?select=room_type_id,blocked_date` +
+            `&room_type_id=in.(${roomIds.join(',')})`
+          : null;
+
+        const [reservations, blocked] = await Promise.all([
+          fetchJSON<{
+            room_type_id: string | null;
+            room_type_code: string | null;
+            check_in: string;
+            check_out: string;
+            status: string | null;
+          }[]>(resUrl),
+          blockedUrl
+            ? fetchJSON<{ room_type_id: number; blocked_date: string }[]>(blockedUrl)
+            : Promise.resolve([] as { room_type_id: number; blocked_date: string }[]),
+        ]);
 
         reservations.forEach((r) => {
           if (!r.check_in || !r.check_out) return;
@@ -1132,28 +1140,13 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             set.add(toLocalISO(cur));
             cur.setDate(cur.getDate() + 1);
           }
-
         });
 
-        // 2) Blocked dates for these rooms
-        const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
-        if (roomIds.length) {
-          const blockedUrl =
-            `${SUPABASE_URL}/rest/v1/blocked_dates` +
-            `?select=room_type_id,blocked_date` +
-            `&room_type_id=in.(${roomIds.join(',')})`;
-
-          const blocked = await fetchJSON<{
-            room_type_id: number;
-            blocked_date: string;
-          }[]>(blockedUrl);
-
-          blocked.forEach((b) => {
-            const key = roomKeyById[String(b.room_type_id)];
-            if (!key || !b.blocked_date) return;
-            occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
-          });
-        }
+        blocked.forEach((b) => {
+          const key = roomKeyById[String(b.room_type_id)];
+          if (!key || !b.blocked_date) return;
+          occupancy[key]?.add(String(b.blocked_date).slice(0, 10));
+        });
 
         const invalid: string[] = [];
 
@@ -1246,27 +1239,13 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     const co = checkOut;
 
     try {
-      // 1) Load ALL reservations that overlap the selected date range.
-      //    (We don't filter by room in SQL – we match by id/code in JS,
-      //     like the booking widget does.)
+      // 1) Load reservations AND blocked dates in parallel
       const resUrl =
       `${SUPABASE_URL}/rest/v1/reservations` +
       `?select=room_type_id,room_type_code,check_in,check_out,status` +
       `&check_in=lt.${co}&check_out=gt.${ci}` +
       `&status=not.in.("cancelled","no_show")`;
 
-
-      const reservations = await fetchJSON<
-        {
-          room_type_id: string | null;
-          room_type_code: string | null;
-          check_in: string;
-          check_out: string;
-          status: string | null;
-        }[]
-      >(resUrl);
-
-      // 2) Load blocked dates for these room types in the same range
       const roomIds = rooms.map((r) => String(r.id));
       const idList = roomIds.join(',');
       const blockedUrl =
@@ -1275,9 +1254,20 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
         `&blocked_date=gte.${ci}&blocked_date=lt.${co}` +
         (idList ? `&room_type_id=in.(${idList})` : '');
 
-      const blocked = await fetchJSON<
-        { room_type_id: string | null; blocked_date: string }[]
-      >(blockedUrl);
+      const [reservations, blocked] = await Promise.all([
+        fetchJSON<
+          {
+            room_type_id: string | null;
+            room_type_code: string | null;
+            check_in: string;
+            check_out: string;
+            status: string | null;
+          }[]
+        >(resUrl),
+        fetchJSON<
+          { room_type_id: string | null; blocked_date: string }[]
+        >(blockedUrl),
+      ]);
 
       const available = rooms.filter((room) => {
         const roomId = String(room.id);

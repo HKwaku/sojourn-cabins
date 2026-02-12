@@ -34,8 +34,12 @@ export default function BookingWidget() {
     if (params.select) qs.set('select', params.select);
     if (params.eq) Object.keys(params.eq).forEach(function (k) { qs.set(k, 'eq.' + params.eq[k]); });
     if (params.order) qs.set('order', params.order);
+    if (params.gt) Object.keys(params.gt).forEach(function (k) { qs.set(k, 'gt.' + params.gt[k]); });
     if (params.gte) Object.keys(params.gte).forEach(function (k) { qs.set(k, 'gte.' + params.gte[k]); });
+    if (params.lt) Object.keys(params.lt).forEach(function (k) { qs.set(k, 'lt.' + params.lt[k]); });
     if (params.lte) Object.keys(params.lte).forEach(function (k) { qs.set(k, 'lte.' + params.lte[k]); });
+    if (params.neq) Object.keys(params.neq).forEach(function (k) { qs.set(k, 'neq.' + params.neq[k]); });
+    if (params.in_) Object.keys(params.in_).forEach(function (k) { qs.set(k, 'in.(' + params.in_[k].join(',') + ')'); });
 
     var url = this.url + '/rest/v1/' + table + '?' + qs.toString();
     var res = await fetch(url, { headers: this.headers });
@@ -1863,14 +1867,19 @@ export default function BookingWidget() {
     var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
     currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
     
-    // Fetch pricing for current and next month if we have a room type
+    // Render calendar immediately, then load pricing in background
+    renderCalendar(pickerId);
+
+    // Fetch pricing for current and next month in parallel
     if (currentRoomTypeId) {
       var month = currentPickerMonth[pickerId];
-      await fetchCalendarPricing(month.getFullYear(), month.getMonth(), currentRoomTypeId);
-      await fetchCalendarPricing(month.getFullYear(), month.getMonth() + 1, currentRoomTypeId);
+      await Promise.all([
+        fetchCalendarPricing(month.getFullYear(), month.getMonth(), currentRoomTypeId),
+        fetchCalendarPricing(month.getFullYear(), month.getMonth() + 1, currentRoomTypeId)
+      ]);
+      // Re-render with prices
+      if (activePickerId === pickerId) renderCalendar(pickerId);
     }
-    
-    renderCalendar(pickerId);
   }
 
   function closeDatePicker() {
@@ -1882,14 +1891,12 @@ export default function BookingWidget() {
   }
 
   async function fetchCalendarPricing(year, month, roomTypeId) {
-  // roomTypeId not used anymore; kept to avoid changing call sites
   try {
     var firstDay = new Date(year, month, 1);
     var lastDay = new Date(year, month + 1, 0);
     var checkIn = iso(firstDay);
-    var checkOut = iso(new Date(lastDay.getTime() + 86400000)); // +1 day
+    var checkOut = iso(new Date(lastDay.getTime() + 86400000));
 
-    // 1) Get all active room types (so prices always exist per day)
     var roomTypes = await supabase.query('room_types', {
       select: 'id,currency',
       eq: { is_active: true }
@@ -1897,32 +1904,34 @@ export default function BookingWidget() {
 
     if (!roomTypes || !roomTypes.length) return;
 
-    // 2) For each room type, fetch nightly rates and keep the MIN per date
-    for (var r = 0; r < roomTypes.length; r++) {
-      var rt = roomTypes[r];
+    // Fetch pricing for ALL room types in parallel
+    var pricingPromises = roomTypes.map(function(rt) {
+      return supabase.rpc('calculate_dynamic_price', {
+        p_room_type_id: rt.id,
+        p_check_in: checkIn,
+        p_check_out: checkOut,
+        p_pricing_model_id: null
+      }).then(function(pricingData) {
+        return { data: pricingData, currency: rt.currency };
+      }).catch(function() { return null; });
+    });
 
-      try {
-        var pricingData = await supabase.rpc('calculate_dynamic_price', {
-          p_room_type_id: rt.id,
-          p_check_in: checkIn,
-          p_check_out: checkOut,
-          p_pricing_model_id: null
-        });
+    var results = await Promise.all(pricingPromises);
 
-        if (pricingData && pricingData.nightly_rates) {
-          for (var i = 0; i < pricingData.nightly_rates.length; i++) {
-            var night = pricingData.nightly_rates[i];
-            var nightDate = night.date;
-            var nightRate = parseFloat(night.rate || 0);
-            var nightCurrency = night.currency || pricingData.currency || rt.currency || 'GHS';
+    for (var r = 0; r < results.length; r++) {
+      if (!results[r] || !results[r].data || !results[r].data.nightly_rates) continue;
+      var pricingData = results[r].data;
+      var rtCurrency = results[r].currency;
 
-            if (!calendarPrices[nightDate] || nightRate < calendarPrices[nightDate].price) {
-              calendarPrices[nightDate] = { price: nightRate, currency: nightCurrency };
-            }
-          }
+      for (var i = 0; i < pricingData.nightly_rates.length; i++) {
+        var night = pricingData.nightly_rates[i];
+        var nightDate = night.date;
+        var nightRate = parseFloat(night.rate || 0);
+        var nightCurrency = night.currency || pricingData.currency || rtCurrency || 'GHS';
+
+        if (!calendarPrices[nightDate] || nightRate < calendarPrices[nightDate].price) {
+          calendarPrices[nightDate] = { price: nightRate, currency: nightCurrency };
         }
-      } catch (e) {
-        // ignore per-room failures, keep going
       }
     }
   } catch (err) {
@@ -2119,9 +2128,7 @@ export default function BookingWidget() {
     var adultsVal = Number(($('#ad') || {}).value || 2) || 1;
     var todayIso = iso(new Date());
 
-    // Start a new generation for this async run
     var gen = ++disabledDatesGeneration;
-
     var newDisabled = [];
 
     // 1) Always disable past dates
@@ -2129,66 +2136,94 @@ export default function BookingWidget() {
       newDisabled.push(addDaysISO(todayIso, i));
     }
 
-    // 2) For the next 365 days, disable any date where the
-    //    *combined capacity* of all available cabins is
-    //    less than the selected number of adults.
-    var MAX_LOOKAHEAD_DAYS = 365;
-    var BATCH_SIZE = 30; // process in batches to keep UI responsive
+    // 2) Bulk-fetch reservations + blocked_dates (2 API calls instead of 365)
+    try {
+      var horizonEnd = addDaysISO(todayIso, 366);
 
-    for (var batchStart = 0; batchStart <= MAX_LOOKAHEAD_DAYS; batchStart += BATCH_SIZE) {
-      // If a newer run started, abort this one
+      // Fetch room types, reservations, and blocked dates in parallel
+      var roomTypesP = supabase.query('room_types', {
+        select: 'id,code,max_adults',
+        eq: { is_active: true }
+      });
+
+      var reservationsP = supabase.query('reservations', {
+        select: 'room_type_id,room_type_code,check_in,check_out,status',
+        gt: { check_out: todayIso },
+        lt: { check_in: horizonEnd }
+      });
+
+      var blockedP = supabase.query('blocked_dates', {
+        select: 'room_type_id,blocked_date',
+        gte: { blocked_date: todayIso },
+        lte: { blocked_date: horizonEnd }
+      });
+
+      var bulkResults = await Promise.all([roomTypesP, reservationsP, blockedP]);
       if (gen !== disabledDatesGeneration) return;
 
-      // Create batch of promises
-      var promises = [];
-      var dates = [];
-      
-      for (var i = 0; i < BATCH_SIZE && (batchStart + i) <= MAX_LOOKAHEAD_DAYS; i++) {
-        var offset = batchStart + i;
-        var ciIso = addDaysISO(todayIso, offset);
-        var coIso = addDaysISO(ciIso, 1);
-        
-        dates.push(ciIso);
-        promises.push(
-          getAvailableRooms(ciIso, coIso, adultsVal).catch(function() { return null; })
-        );
-      }
+      var roomTypes = bulkResults[0] || [];
+      var reservations = (bulkResults[1] || []).filter(function(r) {
+        return r.status !== 'cancelled' && r.status !== 'no_show';
+      });
+      var blockedDates = bulkResults[2] || [];
 
-      // Wait for all promises in this batch
-      try {
-        var results = await Promise.all(promises);
-        
-        // Check each result
-        for (var i = 0; i < results.length; i++) {
-          var rooms = results[i];
-          var ciIso = dates[i];
-          
-          if (!rooms || !rooms.length) {
-            newDisabled.push(ciIso);
-          } else {
-            var totalCap = 0;
-            rooms.forEach(function (room) {
-              var cap = room.maxAdults != null ? parseInt(room.maxAdults, 10) : 0;
-              if (!Number.isFinite(cap) || cap < 0) cap = 0;
-              totalCap += cap;
-            });
+      // Build occupancy set per room: dates when the room is occupied
+      var occupancy = {};
+      var roomCapacity = {};
+      roomTypes.forEach(function(rt) {
+        occupancy[String(rt.id)] = {};
+        roomCapacity[String(rt.id)] = parseInt(rt.max_adults || 0, 10) || 0;
+        if (rt.code) {
+          occupancy[rt.code] = occupancy[String(rt.id)];
+          roomCapacity[rt.code] = roomCapacity[String(rt.id)];
+        }
+      });
 
-            if (totalCap < adultsVal) {
-              newDisabled.push(ciIso);
-            }
+      // Mark reservation dates as occupied
+      reservations.forEach(function(r) {
+        var key = r.room_type_id ? String(r.room_type_id) : (r.room_type_code || null);
+        if (!key || !occupancy[key]) return;
+        var ci = new Date(r.check_in + 'T00:00:00');
+        var co = new Date(r.check_out + 'T00:00:00');
+        while (ci < co) {
+          occupancy[key][iso(ci)] = true;
+          ci.setDate(ci.getDate() + 1);
+        }
+      });
+
+      // Mark blocked dates as occupied
+      blockedDates.forEach(function(b) {
+        var key = b.room_type_id ? String(b.room_type_id) : null;
+        if (!key || !occupancy[key]) return;
+        var d = String(b.blocked_date).slice(0, 10);
+        occupancy[key][d] = true;
+      });
+
+      // For each day in the horizon, check if combined capacity of free rooms >= adults
+      var roomIds = roomTypes.map(function(rt) { return String(rt.id); });
+      for (var offset = 0; offset <= 365; offset++) {
+        var dateStr = addDaysISO(todayIso, offset);
+        var totalFreeCap = 0;
+
+        for (var r = 0; r < roomIds.length; r++) {
+          var rid = roomIds[r];
+          if (!occupancy[rid][dateStr]) {
+            totalFreeCap += (roomCapacity[rid] || 0);
           }
         }
-      } catch (e) {
-        // On error, continue to next batch
+
+        if (totalFreeCap < adultsVal) {
+          newDisabled.push(dateStr);
+        }
       }
+    } catch (e) {
+      // On error, leave only past dates disabled
+      console.warn('Bulk disabled-dates fetch failed:', e);
     }
 
-    // If another run started while we were waiting, don't overwrite
     if (gen !== disabledDatesGeneration) return;
-
     disabledDates = newDisabled;
 
-    // Refresh calendar if one is open
     if (activePickerId) {
       renderCalendar(activePickerId);
     }
