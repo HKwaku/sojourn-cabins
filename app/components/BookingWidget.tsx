@@ -1234,6 +1234,8 @@ export default function BookingWidget() {
     font-size: 16px;
     cursor: pointer;
     background: white;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .date-picker-input:focus {
     outline: none;
@@ -1272,7 +1274,19 @@ export default function BookingWidget() {
       max-width: 400px;
       margin-top: 0;
       z-index: 99999999 !important;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .date-picker-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 99999998;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+    .date-picker-backdrop.active {
+      display: block;
     }
   }
 
@@ -1288,10 +1302,17 @@ export default function BookingWidget() {
   .date-picker-nav {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 8px 14px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #374151;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .date-picker-nav:hover {
     color: var(--brand);
@@ -1333,8 +1354,12 @@ export default function BookingWidget() {
   background: white;
   color: #111827;
   position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 
-  /* ✅ prevent price text spilling outside the tile */
+  /* prevent price text spilling outside the tile */
   overflow: hidden;
   min-width: 0;
 }
@@ -1448,6 +1473,7 @@ export default function BookingWidget() {
 
     '</div></div>' +
 
+    '<div id="dp-backdrop" class="date-picker-backdrop"></div>' +
     '<div id="ovl" class="overlay"></div>' +
 
     '<div id="pay-loading" class="pay-loading" aria-hidden="true">' +
@@ -1845,6 +1871,13 @@ export default function BookingWidget() {
         closeDatePicker();
       }
     });
+
+    // Backdrop tap closes calendar on mobile
+    var backdrop = $('#dp-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', function() { closeDatePicker(); });
+      backdrop.addEventListener('touchend', function(e) { e.preventDefault(); closeDatePicker(); });
+    }
   }
 
   function formatDisplayDate(isoDate) {
@@ -1863,6 +1896,10 @@ export default function BookingWidget() {
     activePickerId = pickerId;
     var picker = $('#' + pickerId + '-picker');
     picker.classList.add('active');
+    
+    // Show backdrop on mobile
+    var backdrop = $('#dp-backdrop');
+    if (backdrop) backdrop.classList.add('active');
     
     var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
     currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
@@ -1886,6 +1923,8 @@ export default function BookingWidget() {
       picker.classList.remove('active');
       activePickerId = null;
     }
+    var backdrop = $('#dp-backdrop');
+    if (backdrop) backdrop.classList.remove('active');
   }
 
   async function fetchCalendarPricing(year, month, roomTypeId) {
