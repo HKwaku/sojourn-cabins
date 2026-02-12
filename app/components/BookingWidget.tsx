@@ -1234,8 +1234,6 @@ export default function BookingWidget() {
     font-size: 16px;
     cursor: pointer;
     background: white;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
   .date-picker-input:focus {
     outline: none;
@@ -1263,9 +1261,9 @@ export default function BookingWidget() {
     z-index: 9999999 !important;
   }
   
-  /* Small/medium screens: calendar as fixed centered overlay */
-  @media (max-width: 1024px) {
-    .date-picker-dropdown.active {
+  /* Mobile: Make calendar more prominent */
+  @media (max-width: 640px) {
+    .date-picker-dropdown {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -1273,18 +1271,8 @@ export default function BookingWidget() {
       width: 90vw;
       max-width: 400px;
       margin-top: 0;
-      min-width: unset;
       z-index: 99999999 !important;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-    /* Fullscreen dim backdrop via pseudo — stays in same stacking context as dropdown */
-    .date-picker-dropdown.active::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      z-index: -1;
-      pointer-events: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     }
   }
 
@@ -1300,17 +1288,10 @@ export default function BookingWidget() {
   .date-picker-nav {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
-    padding: 8px 14px;
-    min-width: 44px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 4px 8px;
     color: #374151;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
   .date-picker-nav:hover {
     color: var(--brand);
@@ -1352,10 +1333,6 @@ export default function BookingWidget() {
   background: white;
   color: #111827;
   position: relative;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none;
-  user-select: none;
 
   /* prevent price text spilling outside the tile */
   overflow: hidden;
