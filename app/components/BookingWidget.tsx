@@ -176,7 +176,7 @@ export default function BookingWidget() {
     z-index:1;
   }
       .card > .grid{
-    z-index: 2; /* ensure date-picker (inside grid) sits above the summary */
+    z-index: 2;
   }
 
   @media (max-width:640px){
@@ -1265,7 +1265,7 @@ export default function BookingWidget() {
   
   /* Small/medium screens: calendar as fixed centered overlay */
   @media (max-width: 1024px) {
-    .date-picker-dropdown {
+    .date-picker-dropdown.active {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -1277,17 +1277,14 @@ export default function BookingWidget() {
       z-index: 99999999 !important;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    .date-picker-backdrop {
-      display: none;
+    /* Fullscreen dim backdrop via pseudo — stays in same stacking context as dropdown */
+    .date-picker-dropdown.active::before {
+      content: "";
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 99999998;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: none;
-    }
-    .date-picker-backdrop.active {
-      display: block;
+      background: rgba(0,0,0,0.35);
+      z-index: -1;
+      pointer-events: auto;
     }
   }
 
@@ -1474,7 +1471,6 @@ export default function BookingWidget() {
 
     '</div></div>' +
 
-    '<div id="dp-backdrop" class="date-picker-backdrop"></div>' +
     '<div id="ovl" class="overlay"></div>' +
 
     '<div id="pay-loading" class="pay-loading" aria-hidden="true">' +
@@ -1873,12 +1869,6 @@ export default function BookingWidget() {
       }
     });
 
-    // Backdrop tap closes calendar on mobile
-    var backdrop = $('#dp-backdrop');
-    if (backdrop) {
-      backdrop.addEventListener('click', function() { closeDatePicker(); });
-      backdrop.addEventListener('touchend', function(e) { e.preventDefault(); closeDatePicker(); });
-    }
   }
 
   function formatDisplayDate(isoDate) {
@@ -1897,10 +1887,6 @@ export default function BookingWidget() {
     activePickerId = pickerId;
     var picker = $('#' + pickerId + '-picker');
     picker.classList.add('active');
-    
-    // Show backdrop on mobile
-    var backdrop = $('#dp-backdrop');
-    if (backdrop) backdrop.classList.add('active');
     
     var baseDate = selectedDates[pickerId] ? new Date(selectedDates[pickerId] + 'T00:00:00') : new Date();
     currentPickerMonth[pickerId] = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
@@ -1924,8 +1910,6 @@ export default function BookingWidget() {
       picker.classList.remove('active');
       activePickerId = null;
     }
-    var backdrop = $('#dp-backdrop');
-    if (backdrop) backdrop.classList.remove('active');
   }
 
   async function fetchCalendarPricing(year, month, roomTypeId) {
