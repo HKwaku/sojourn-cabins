@@ -1075,7 +1075,7 @@ export default function BookingWidget() {
     align-items:center;
     justify-content:center;
     padding:20px;
-    overflow-y:auto;
+    overflow:hidden;
   }
   .terms-modal.active{
     display:flex;
@@ -1084,11 +1084,14 @@ export default function BookingWidget() {
     position:relative;
     width:100%;
     max-width:900px;
-    max-height:90vh;
+    max-height:calc(100vh - 40px);
+    max-height:calc(100dvh - 40px);
     background:#fff;
     border-radius:24px;
     overflow:hidden;
     box-shadow:0 25px 60px rgba(0,0,0,0.3);
+    display:flex;
+    flex-direction:column;
   }
   .terms-header{
     padding:24px 30px;
@@ -1097,9 +1100,7 @@ export default function BookingWidget() {
     justify-content:space-between;
     align-items:center;
     background:#fff;
-    position:sticky;
-    top:0;
-    z-index:10;
+    flex-shrink:0;
   }
   .terms-title{
     font-size:24px;
@@ -1108,8 +1109,8 @@ export default function BookingWidget() {
     color:#111827;
   }
   .terms-close{
-    width:36px;
-    height:36px;
+    width:44px;
+    height:44px;
     border-radius:50%;
     background:#f3f4f6;
     border:0;
@@ -1119,6 +1120,9 @@ export default function BookingWidget() {
     cursor:pointer;
     font-size:20px;
     color:#6b7280;
+    flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
   }
   .terms-close:hover{
     background:#e5e7eb;
@@ -1127,7 +1131,24 @@ export default function BookingWidget() {
   .terms-body{
     padding:30px;
     overflow-y:auto;
-    max-height:calc(90vh - 88px);
+    flex:1;
+    -webkit-overflow-scrolling:touch;
+  }
+  @media (max-width:640px){
+    .terms-modal{
+      padding:0;
+    }
+    .terms-content{
+      max-height:100vh;
+      max-height:100dvh;
+      border-radius:0;
+    }
+    .terms-header{
+      padding:16px;
+    }
+    .terms-body{
+      padding:16px;
+    }
   }
 
   /* ---------- Responsive tighten ---------- */
