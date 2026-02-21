@@ -21,9 +21,9 @@ function ChevronRight() {
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
-  { src: '/cabins/ext00.JPG', alt: '' },
-  { src: '/cabins/ext0.JPG', alt: '' },
-  { src: '/cabins/sea.jpg', alt: '' },
+  { src: '/cabins/ext3.jpg', alt: '' },
+  { src: '/cabins/4a4.jpg', alt: '' },
+  { src: '/cabins/sea4.jpg', alt: '' },
   { src: '/cabins/sun.jpg', alt: '' },
   { src: '/cabins/sand.jpg', alt: '' },
   { src: '/cabins/ext13.jpg', alt: '' },
