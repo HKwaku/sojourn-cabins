@@ -26,7 +26,7 @@ const galleryCategories = [
   {
     title: 'Interior',
     description: 'Calm, minimal interiors designed for slow stays.',
-    images: ['/cabins/int1.jpg', '/cabins/int2.jpg'],
+    images: ['/cabins/int1.jpg', '/cabins/int2.jpg', '/cabins/int4.jpg', '/cabins/int5.jpg', '/cabins/int6.jpg', '/cabins/int7.jpg'],
   },
   {
     title: 'Chef Experience',
@@ -36,7 +36,7 @@ const galleryCategories = [
   {
     title: 'Wellness',
     description: 'Guided wellness, massages and facials.',
-    images: ['/cabins/well1.jpg', '/cabins/well2.jpg', '/cabins/well3.jpg'],
+    images: ['/cabins/well1.jpg', '/cabins/well3.jpg'],
   },
   {
     title: 'Sip & Paint',
@@ -84,9 +84,11 @@ function MiniSlideshow({ images }: { images: string[] }) {
           src={img}
           alt=""
           fill
-          className={`object-cover absolute inset-0 transition-opacity duration-[2000ms] ${
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className={`object-cover absolute inset-0 transition-opacity duration-[1200ms] ${
             i === index ? 'opacity-100' : 'opacity-0'
           }`}
+          loading={i === 0 ? 'eager' : 'lazy'}
         />
       ))}
     </div>

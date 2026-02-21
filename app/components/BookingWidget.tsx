@@ -579,7 +579,7 @@ export default function BookingWidget() {
     padding:16px 14px 14px;
     overflow-y:auto;
     overflow-x:hidden;
-    flex:1;
+    flex:0 1 auto;
     -webkit-overflow-scrolling:touch;
   }
   .sheet footer{
@@ -607,12 +607,14 @@ export default function BookingWidget() {
       min-height:52px;
     }
     .sheet main{
-      padding:16px 16px 14px;
+      padding:16px 16px 8px;
       flex:0 1 auto;
     }
     .sheet footer{
       padding:14px 16px;
-      padding-bottom:max(14px, env(safe-area-inset-bottom));
+    }
+    .sheet{
+      padding-bottom:env(safe-area-inset-bottom, 0);
     }
   }
 
@@ -942,7 +944,7 @@ export default function BookingWidget() {
     display:flex;
     align-items:start;
     gap:10px;
-    margin:20px 0;
+    margin:20px 0 0;
     padding:16px;
     background:#f9fafb;
     border-radius:12px;
@@ -3507,7 +3509,7 @@ export default function BookingWidget() {
     },
     {
       title: 'Dinner Under The Stars',
-      image: '/experiences/dinner.jpg',
+      image: '/experiences/dinner1.jpg',
       description: 'Create magical memories with an intimate dinner under the African sky. Our team sets up a beautiful beachside dining experience complete with elegant table settings and a crackling bonfire.'
     },
     {

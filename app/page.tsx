@@ -55,7 +55,7 @@ export default function HomePage() {
     {
       id: 4,
       title: 'Dinner Under The Stars',
-      image: '/experiences/dinner.jpg',
+      image: '/experiences/dinner1.jpg',
       shortDescription: 'Romantic dinner under the stars with that special someone along with our exquisite bon-fire experience.',
       fullDescription: 'Create magical memories with an intimate dinner under the African sky. Our team sets up a beautiful beachside dining experience complete with elegant table settings, ambient lighting, and a crackling bonfire. Perfect for proposals, anniversaries, or simply celebrating love.',
       highlights: [
@@ -127,6 +127,7 @@ export default function HomePage() {
             src="/cabins/sun.jpg"
             alt="SUN Cabin"
             fill
+            sizes="100vw"
             className="object-cover"
             priority
           />
@@ -144,7 +145,7 @@ export default function HomePage() {
                   your own personal balcony, private pool and lounge area
                 </p>
                 <div className="flex flex-wrap gap-3 mb-8">
-                  {['Ocean View', 'Private Pool', 'Balcony', 'King Bed'].map((feature) => (
+                  {['Ocean View', 'Private Pool', 'Balcony', 'Queen Bed'].map((feature) => (
                     <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
                       {feature}
                     </span>
@@ -152,7 +153,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-300"
                 >
                   Reserve SUN
                 </a>
@@ -164,10 +165,12 @@ export default function HomePage() {
         {/* SEA Cabin */}
         <div className="relative h-screen">
           <Image
-            src="/cabins/sea.jpg"
+            src="/cabins/sea4.jpg"
             alt="SEA Cabin"
             fill
+            sizes="100vw"
             className="object-cover"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-l from-black/70 via-black/40 to-transparent" />
           
@@ -183,7 +186,7 @@ export default function HomePage() {
                   your own personal balcony, private pool and lounge area
                 </p>
                 <div className="flex flex-wrap gap-3 mb-8 justify-end">
-                  {['Atlantic View', 'Private Pool', 'Terrace', 'Queen Bed'].map((feature) => (
+                  {['Ocean View', 'Private Pool', 'Patio', 'Queen Bed'].map((feature) => (
                     <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
                       {feature}
                     </span>
@@ -191,7 +194,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-300"
                 >
                   Reserve SEA
                 </a>
@@ -206,7 +209,9 @@ export default function HomePage() {
             src="/cabins/sand.jpg"
             alt="SAND Cabin"
             fill
+            sizes="100vw"
             className="object-cover"
+            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
           
@@ -222,7 +227,7 @@ export default function HomePage() {
                   your own personal balcony, private pool and lounge area
                 </p>
                 <div className="flex flex-wrap gap-3 mb-8">
-                  {['Coastal View', 'Private Pool', 'Patio', 'King Bed'].map((feature) => (
+                  {['Ocean View', 'Private Pool', 'Patio', 'Queen Bed'].map((feature) => (
                     <span key={feature} className="px-4 py-2 border border-white/30 text-white text-sm tracking-wider uppercase backdrop-blur-sm">
                       {feature}
                     </span>
@@ -230,7 +235,7 @@ export default function HomePage() {
                 </div>
                 <a 
                   href="/book-escape" 
-                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-500"
+                  className="inline-block px-10 py-4 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-black hover:text-white transition-all duration-300"
                 >
                   Reserve SAND
                 </a>
@@ -246,7 +251,9 @@ export default function HomePage() {
           src="/amenities-feature.jpg"
           alt="Sojourn experience"
           fill
+          sizes="100vw"
           className="object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
           <div className="text-center text-white px-6">
@@ -286,7 +293,9 @@ export default function HomePage() {
                     src={experience.image}
                     alt={experience.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-400"
+                    loading="lazy"
                   />
                 </div>
                 <h3 className="text-2xl font-serif font-light mb-4">{experience.title}</h3>
@@ -336,6 +345,7 @@ export default function HomePage() {
                         src={exp.image}
                         alt={exp.title}
                         fill
+                        sizes="(max-width: 768px) 90vw, 600px"
                         className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -430,7 +440,7 @@ export default function HomePage() {
           </p>
           <a 
             href="/book-escape" 
-            className="px-16 py-6 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-transparent hover:text-white hover:border-2 hover:border-white transition-all duration-500"
+            className="px-16 py-6 rounded-full bg-white text-black text-sm tracking-[0.2em] uppercase font-medium hover:bg-transparent hover:text-white hover:border-2 hover:border-white transition-all duration-300"
           >
             Check Availability
           </a>

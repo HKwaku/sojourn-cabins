@@ -1671,36 +1671,36 @@ function formatDate(isoDate?: string | null): string {
     }
 
     return (
-      <div className="absolute z-50 mt-2 bg-white border-2 border-slate-200 rounded-2xl shadow-2xl p-4 w-80">
-        <div className="flex items-center justify-between mb-4">
+      <div className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-[12px] shadow-[0_10px_25px_rgba(0,0,0,.1)] p-4 min-w-[320px]">
+        <div className="flex items-center justify-between mb-3">
           <button
             type="button"
             onClick={() => changeMonth(pickerId, -1)}
-            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            className="px-2 py-1 text-gray-600 hover:text-orange-500 transition-colors text-lg"
           >
-            ←
+            ‹
           </button>
-          <h3 className="font-medium text-slate-900">
+          <span className="font-semibold text-sm text-gray-900">
             {monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          </h3>
+          </span>
           <button
             type="button"
             onClick={() => changeMonth(pickerId, 1)}
-            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            className="px-2 py-1 text-gray-600 hover:text-orange-500 transition-colors text-lg"
           >
-            →
+            ›
           </button>
         </div>
 
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-            <div key={day} className="text-center text-xs font-medium text-slate-500 py-1">
+            <div key={day} className="text-center text-xs font-semibold text-gray-500 py-1">
               {day}
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-[6px]">
           {days.map((day, idx) => {
             if (day === null) {
               return <div key={`empty-${idx}`} />;
@@ -1717,12 +1717,12 @@ function formatDate(isoDate?: string | null): string {
                 onClick={() => !disabled && handleDateClick(dateStr, pickerId)}
                 disabled={disabled}
                 className={`
-                  aspect-square p-2 text-sm rounded-lg transition
+                  flex items-center justify-center h-9 text-[13px] rounded-lg transition-all duration-150
                   ${disabled
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed line-through'
+                    ? 'text-gray-300 cursor-not-allowed line-through'
                     : isSelected
-                    ? 'bg-orange-500 text-white font-semibold'
-                    : 'hover:bg-orange-100 text-slate-900'
+                    ? 'bg-orange-500 text-white font-semibold shadow-sm'
+                    : 'hover:bg-orange-50 text-gray-900 cursor-pointer'
                   }
                 `}
               >
@@ -1739,15 +1739,15 @@ function formatDate(isoDate?: string | null): string {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/25 backdrop-blur-[8px]" onClick={onClose} />
       
       <div className="relative min-h-screen flex items-start justify-center p-4 py-8">
-        <div className="relative bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div className="relative bg-white w-full max-w-3xl rounded-[22px] shadow-[0_26px_70px_rgba(15,23,42,.25)] border border-gray-200 overflow-y-auto max-h-[92vh]">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-white hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-lg transition"
+            className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full bg-transparent hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-900 transition"
           >
-            <span className="text-2xl leading-none">×</span>
+            <span className="text-[22px] leading-none">×</span>
           </button>
 
           {loading ? (
@@ -1757,15 +1757,15 @@ function formatDate(isoDate?: string | null): string {
               {/* STAGE 1: Package Selection */}
               {stage === 'packages' && (
                 <div className="p-8">
-                  <h2 className="text-3xl font-serif font-light text-slate-900 mb-2">
+                  <h2 className="text-[26px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900 mb-2">
                     Choose Your Package
                   </h2>
-                  <p className="text-slate-600 mb-8">
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">
                     Select the perfect package for your getaway
                   </p>
 
                   {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[12px] text-red-700 text-sm">
                       {error}
                     </div>
                   )}
@@ -1777,7 +1777,7 @@ function formatDate(isoDate?: string | null): string {
                       <div
                         key={pkg.id}
                         onClick={() => !isSoldOut && handleSelectPackage(pkg.id)}
-                        className={`group bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-500 flex flex-col border ${isSoldOut ? 'border-stone-200 opacity-75 cursor-not-allowed' : 'border-stone-100 hover:shadow-xl cursor-pointer'}`}
+                        className={`group bg-gradient-to-br from-white to-gray-50 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(15,23,42,.08)] transition-all duration-200 flex flex-col border ${isSoldOut ? 'border-gray-200 opacity-75 cursor-not-allowed' : 'border-slate-400/35 hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5 hover:border-orange-500/75 cursor-pointer'}`}
                       >
                         {/* Package Image */}
                         {pkg.image_url && (
@@ -1799,7 +1799,7 @@ function formatDate(isoDate?: string | null): string {
                         {/* Package Content */}
                         <div className="p-5 md:p-6 flex flex-col flex-1">
                           {/* Package Name */}
-                          <h3 className="text-xl md:text-2xl font-serif font-light text-stone-900 leading-tight mb-2">
+                          <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 leading-tight mb-2">
                             {pkg.name}
                           </h3>
 
@@ -1894,7 +1894,7 @@ function formatDate(isoDate?: string | null): string {
                           <button
                             type="button"
                             disabled={isSoldOut}
-                            className={`w-full py-3.5 rounded-xl text-sm tracking-wide font-medium transition-all duration-300 ${isSoldOut ? 'bg-stone-300 text-stone-500 cursor-not-allowed' : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98]'}`}
+                            className={`w-full py-3 rounded-full text-sm font-bold uppercase tracking-[0.05em] transition-all duration-200 ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] active:translate-y-0'}`}
                           >
                             {isSoldOut ? 'Sold Out' : 'Select Package'}
                           </button>
@@ -1907,7 +1907,7 @@ function formatDate(isoDate?: string | null): string {
                   <div className="mt-8 flex justify-center gap-4">
                     <button
                       onClick={onClose}
-                      className="px-8 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition"
+                      className="px-5 py-2.5 rounded-full border border-slate-400/70 text-gray-900 font-semibold text-sm tracking-[0.02em] hover:bg-gray-100 hover:shadow-[0_10px_26px_rgba(15,23,42,.12)] transition-all duration-200"
                     >
                       Cancel
                     </button>
@@ -1923,13 +1923,13 @@ function formatDate(isoDate?: string | null): string {
                       setStage('packages');
                       setSelectedPackageId(null);
                     }}
-                    className="mb-6 flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+                    className="mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors duration-200"
                   >
                     <span>←</span> Back to Packages
                   </button>
 
-                  <div className="mb-6 p-6 bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl border border-orange-200">
-                    <h3 className="text-xl font-serif font-light text-slate-900 mb-2">
+                  <div className="mb-6 p-4 bg-gradient-to-br from-orange-50/80 to-amber-50/60 rounded-[14px] border border-orange-200/70">
+                    <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 mb-2">
                       {selectedPkg.name}
                     </h3>
                     <div className="flex items-center gap-6 text-sm text-slate-700">
@@ -1947,15 +1947,15 @@ function formatDate(isoDate?: string | null): string {
                     )}
                   </div>
 
-                  <h2 className="text-3xl font-serif font-light text-slate-900 mb-2">
+                  <h2 className="text-[26px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900 mb-2">
                     Select Your Dates
                   </h2>
-                  <p className="text-slate-600 mb-8">
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">
                     Choose your check-in date (checkout will be set automatically based on package duration)
                   </p>
 
                   {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[12px] text-red-700 text-sm">
                       {error}
                     </div>
                   )}
@@ -1964,7 +1964,7 @@ function formatDate(isoDate?: string | null): string {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Check-in */}
                     <div className="relative">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                         Check-in
                       </label>
                       <input
@@ -1972,7 +1972,7 @@ function formatDate(isoDate?: string | null): string {
                         value={formatDateDDMMMYYYY(checkIn)}
                         readOnly
                         onClick={() => setActivePickerId(activePickerId === 'ci' ? null : 'ci')}
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-white cursor-pointer hover:border-orange-500 focus:border-orange-500 focus:outline-none transition"
+                        className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] bg-white cursor-pointer text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                       />
                       
                       {/* Custom Date Picker for Check-in */}
@@ -1981,14 +1981,14 @@ function formatDate(isoDate?: string | null): string {
 
                     {/* Check-out (locked - auto-calculated from check-in) */}
                     <div className="relative">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                         Check-out
                       </label>
                       <input
                         type="text"
                         value={formatDateDDMMMYYYY(checkOut)}
                         readOnly
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-slate-50 cursor-not-allowed text-slate-600"
+                        className="w-full px-3 py-[11px] border border-slate-300/70 rounded-[12px] bg-gray-50 cursor-not-allowed text-gray-500"
                       />
                       <p className="mt-1 text-xs text-slate-500">
                         Exact {selectedPkg?.nights} night{selectedPkg?.nights !== 1 ? 's' : ''}
@@ -2002,13 +2002,13 @@ function formatDate(isoDate?: string | null): string {
                         setStage('packages');
                         setSelectedPackageId(null);
                       }}
-                      className="px-8 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition"
+                      className="px-5 py-2.5 rounded-full border border-slate-400/70 text-gray-900 font-semibold text-sm tracking-[0.02em] hover:bg-gray-100 hover:shadow-[0_10px_26px_rgba(15,23,42,.12)] transition-all duration-200"
                     >
                       Back
                     </button>
                     <button
                       onClick={handleNextToRooms}
-                      className="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 text-white font-medium hover:from-orange-600 hover:to-orange-500 transition shadow-lg"
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 font-bold text-sm uppercase tracking-[0.05em] shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] transition-all duration-200"
                     >
                       Continue to Cabins
                     </button>
@@ -2021,30 +2021,30 @@ function formatDate(isoDate?: string | null): string {
                 <div className="p-8">
                   <button
                     onClick={() => setStage('dates')}
-                    className="mb-6 flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+                    className="mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors duration-200"
                   >
                     <span>←</span> Back to Dates
                   </button>
 
-                  <h2 className="text-3xl font-serif font-light text-slate-900 mb-2">
+                  <h2 className="text-[26px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900 mb-2">
                     Choose Your Cabin
                   </h2>
-                  <p className="text-slate-600 mb-8">
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">
                     Select your preferred cabin for this package
                   </p>
 
                   {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[12px] text-red-700 text-sm">
                       {error}
                     </div>
                   )}
 
                   {availableRoomsForSelected.length === 0 ? (
-                    <div className="mb-8 p-8 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-                      <p className="text-slate-600 mb-2">
+                    <div className="mb-8 p-8 bg-gray-50 border border-gray-200 rounded-[18px] text-center">
+                      <p className="text-gray-600 mb-2">
                         No cabins are available for the selected dates.
                       </p>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-gray-500">
                         Please go back and choose different dates.
                       </p>
                     </div>
@@ -2054,10 +2054,10 @@ function formatDate(isoDate?: string | null): string {
                         <div
                         key={room.id}
                         onClick={() => setSelectedRoomId(room.id)}
-                        className={`group relative bg-white border-2 rounded-2xl overflow-hidden cursor-pointer transition-all ${
+                        className={`group relative bg-gradient-to-br from-white to-gray-50 border rounded-[18px] overflow-hidden cursor-pointer transition-all duration-200 ${
                           selectedRoomId === room.id
-                            ? 'border-orange-500 shadow-xl'
-                            : 'border-slate-200 hover:border-orange-300 hover:shadow-lg'
+                            ? 'border-orange-500 shadow-[0_18px_45px_rgba(15,23,42,.12)]'
+                            : 'border-gray-200 hover:border-orange-500/75 hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5'
                         }`}
                       >
                         {room.image_url && (
@@ -2071,7 +2071,7 @@ function formatDate(isoDate?: string | null): string {
                         )}
                         
                         <div className="p-6">
-                          <h3 className="text-xl font-serif font-light text-slate-900 mb-2">
+                          <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 mb-2">
                             {room.name}
                           </h3>
                           
@@ -2096,13 +2096,13 @@ function formatDate(isoDate?: string | null): string {
                   <div className="flex justify-end gap-4">
                     <button
                       onClick={() => setStage('dates')}
-                      className="px-8 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition"
+                      className="px-5 py-2.5 rounded-full border border-slate-400/70 text-gray-900 font-semibold text-sm tracking-[0.02em] hover:bg-gray-100 hover:shadow-[0_10px_26px_rgba(15,23,42,.12)] transition-all duration-200"
                     >
                       Back
                     </button>
                     <button
                       onClick={handleNextToDetails}
-                      className="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 text-white font-medium hover:from-orange-600 hover:to-orange-500 transition shadow-lg"
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 font-bold text-sm uppercase tracking-[0.05em] shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] transition-all duration-200"
                     >
                       Continue to Details
                     </button>
@@ -2115,20 +2115,20 @@ function formatDate(isoDate?: string | null): string {
                 <div className="p-8">
                   <button
                     onClick={() => setStage('rooms')}
-                    className="mb-6 flex items-center gap-2 text-slate-600 hover:text-slate-900 transition"
+                    className="mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors duration-200"
                   >
                     <span>←</span> Back to Cabins
                   </button>
 
-                  <h2 className="text-3xl font-serif font-light text-slate-900 mb-2">
+                  <h2 className="text-[26px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900 mb-2">
                     Guest Details
                   </h2>
-                  <p className="text-slate-600 mb-8">
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">
                     Complete your booking information
                   </p>
 
                   {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[12px] text-red-700 text-sm">
                       {error}
                     </div>
                   )}
@@ -2136,7 +2136,7 @@ function formatDate(isoDate?: string | null): string {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                           First Name *
                         </label>
                         <input
@@ -2144,12 +2144,12 @@ function formatDate(isoDate?: string | null): string {
                           required
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition"
+                          className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                           Last Name *
                         </label>
                         <input
@@ -2157,14 +2157,14 @@ function formatDate(isoDate?: string | null): string {
                           required
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition"
+                          className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                         />
                       </div>
                     </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                           Email *
                         </label>
                         <input
@@ -2172,12 +2172,12 @@ function formatDate(isoDate?: string | null): string {
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition"
+                          className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                           Number of Guests *
                         </label>
                         <input
@@ -2187,13 +2187,13 @@ function formatDate(isoDate?: string | null): string {
                           required
                           value={adults}
                           onChange={(e) => setAdults(parseInt(e.target.value))}
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition"
+                          className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                         />
                       </div>
                     </div>
 
                                         <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                         Phone Number *
                       </label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -2201,14 +2201,14 @@ function formatDate(isoDate?: string | null): string {
                           <button
                             type="button"
                             onClick={() => { setCcOpen(!ccOpen); setCcSearch(''); }}
-                            className="w-full flex items-center gap-2 px-4 py-3 border-2 border-slate-200 rounded-xl bg-white text-left text-sm hover:border-slate-300 focus:border-orange-500 focus:outline-none transition"
+                            className="w-full flex items-center gap-2 px-3 py-[11px] border border-slate-400/70 rounded-[12px] bg-white text-left text-sm hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                           >
                             <span className="text-xl leading-none">{selectedCountry.flag}</span>
                             <span className="flex-1 truncate">{selectedCountry.name} ({selectedCountry.code})</span>
                             <svg className={`w-4 h-4 text-slate-400 transition-transform ${ccOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </button>
                           {ccOpen && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-[12px] shadow-[0_10px_30px_rgba(15,23,42,.12)] z-50 overflow-hidden">
                               <input
                                 type="text"
                                 value={ccSearch}
@@ -2245,20 +2245,20 @@ function formatDate(isoDate?: string | null): string {
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="Phone number"
-                          className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition"
+                          className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200"
                         />
                       </div>
                     </div>
   
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 mb-2">
                         Special Requests
                       </label>
                       <textarea
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={4}
-                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition resize-none"
+                        className="w-full px-3 py-[11px] border border-slate-400/70 rounded-[12px] text-base hover:border-slate-400 hover:bg-gray-50 focus:border-orange-500 focus:shadow-[0_0_0_1px_rgba(249,115,22,.8),0_0_0_6px_rgba(249,115,22,.18)] focus:outline-none transition-all duration-200 resize-none"
                         placeholder="Any special requests or requirements..."
                       />
                     </div>
@@ -2285,45 +2285,45 @@ function formatDate(isoDate?: string | null): string {
                     </div>
 
                     {/* Booking Summary */}
-                    <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                    <div className="mt-8 px-4 py-4 pb-3 bg-gray-50 rounded-[18px] border border-gray-200">
+                      <h3 className="text-base font-bold tracking-[-0.02em] text-gray-900 mb-3">
                         Booking Summary
                       </h3>
                       
-                      <div className="space-y-3 text-sm">
+                      <div className="space-y-2.5 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Package</span>
-                          <span className="font-medium text-slate-900">{selectedPkg?.name}</span>
+                          <span className="text-gray-500">Package</span>
+                          <span className="font-semibold text-gray-900">{selectedPkg?.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Cabin</span>
-                          <span className="font-medium text-slate-900">{selectedRoom?.name}</span>
+                          <span className="text-gray-500">Cabin</span>
+                          <span className="font-semibold text-gray-900">{selectedRoom?.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Check-in</span>
-                          <span className="font-medium text-slate-900">{formatDate(checkIn)}</span>
+                          <span className="text-gray-500">Check-in</span>
+                          <span className="font-semibold text-gray-900">{formatDate(checkIn)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Check-out</span>
-                          <span className="font-medium text-slate-900">{formatDate(checkOut)}</span>
+                          <span className="text-gray-500">Check-out</span>
+                          <span className="font-semibold text-gray-900">{formatDate(checkOut)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Nights</span>
-                          <span className="font-medium text-slate-900">{nights}</span>
+                          <span className="text-gray-500">Nights</span>
+                          <span className="font-semibold text-gray-900">{nights}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-600">Guests</span>
-                          <span className="font-medium text-slate-900">{adults}</span>
+                          <span className="text-gray-500">Guests</span>
+                          <span className="font-semibold text-gray-900">{adults}</span>
                         </div>
                         
                         {extrasForSelectedPackage.length > 0 && (
                           <>
-                            <div className="pt-3 border-t border-slate-300">
-                              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">
+                            <div className="pt-3 border-t border-gray-200">
+                              <p className="text-[11px] text-gray-500 uppercase tracking-[0.12em] font-semibold mb-2">
                                 Package Includes
                               </p>
                               {extrasForSelectedPackage.map((ex, idx) => (
-                                <div key={idx} className="flex justify-between text-slate-700 mb-1">
+                                <div key={idx} className="flex justify-between text-gray-700 mb-1">
                                   <span className="flex items-center gap-2">
                                     <span className="text-green-500">✓</span>
                                     {ex.name}
@@ -2335,10 +2335,9 @@ function formatDate(isoDate?: string | null): string {
                           </>
                         )}
 
-
-                        <div className="pt-4 border-t-2 border-slate-300 flex justify-between text-lg">
-                          <span className="font-semibold text-slate-900">Total</span>
-                          <span className="font-bold text-slate-900">
+                        <div className="pt-3 border-t-2 border-gray-300 flex justify-between text-base">
+                          <span className="font-bold text-gray-900">Total</span>
+                          <span className="font-bold text-gray-900">
                             {selectedPkg?.currency} {formatNumber(total.toFixed(2))}
                           </span>
                         </div>
@@ -2349,14 +2348,14 @@ function formatDate(isoDate?: string | null): string {
                       <button
                         type="button"
                         onClick={() => setStage('rooms')}
-                        className="px-8 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition"
+                        className="px-5 py-2.5 rounded-full border border-slate-400/70 text-gray-900 font-semibold text-sm tracking-[0.02em] hover:bg-gray-100 hover:shadow-[0_10px_26px_rgba(15,23,42,.12)] transition-all duration-200"
                       >
                         Back
                       </button>
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 text-white font-medium hover:from-orange-600 hover:to-orange-500 transition shadow-lg disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 font-bold text-sm uppercase tracking-[0.05em] shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] transition-all duration-200 disabled:opacity-50"
                       >
                         {submitting ? 'Processing...' : 'Complete Booking'}
                       </button>
@@ -2369,78 +2368,78 @@ function formatDate(isoDate?: string | null): string {
 
           {/* Confirmation Modal */}
           {confirmation && (
-            <div className="fixed inset-0 z-[60] bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="relative bg-white max-w-2xl w-full rounded-3xl shadow-2xl p-8">
+            <div className="fixed inset-0 z-[60] bg-slate-900/25 backdrop-blur-[8px] flex items-center justify-center p-4">
+              <div className="relative bg-white max-w-[520px] w-full rounded-[22px] shadow-[0_26px_70px_rgba(15,23,42,.25)] border border-gray-200 p-8">
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-serif font-light text-slate-900 mb-2">
+                  <h3 className="text-[22px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900 mb-1">
                     Booking Confirmed!
                   </h3>
-                  <p className="text-slate-600">
+                  <p className="text-gray-500 text-sm">
                     Your reservation has been successfully created
                   </p>
                 </div>
 
-                <div className="bg-slate-50 rounded-2xl p-6 space-y-3 text-sm">
+                <div className="bg-gray-50 rounded-[18px] border border-gray-200 px-4 py-4 space-y-2.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Confirmation Code</span>
-                    <span className="font-semibold text-slate-900">{confirmation.code}</span>
+                    <span className="text-gray-500">Confirmation Code</span>
+                    <span className="font-semibold text-gray-900">{confirmation.code}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Guest Name</span>
-                    <span className="font-semibold text-slate-900">{confirmation.guestName}</span>
+                    <span className="text-gray-500">Guest Name</span>
+                    <span className="font-semibold text-gray-900">{confirmation.guestName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Package</span>
-                    <span className="font-semibold text-slate-900">{confirmation.packageName}</span>
+                    <span className="text-gray-500">Package</span>
+                    <span className="font-semibold text-gray-900">{confirmation.packageName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Cabin</span>
-                    <span className="font-semibold text-slate-900">{confirmation.roomName}</span>
+                    <span className="text-gray-500">Cabin</span>
+                    <span className="font-semibold text-gray-900">{confirmation.roomName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Check-in</span>
-                    <span className="font-semibold text-slate-900">{formatDate(confirmation.checkIn)}</span>
+                    <span className="text-gray-500">Check-in</span>
+                    <span className="font-semibold text-gray-900">{formatDate(confirmation.checkIn)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Check-out</span>
-                    <span className="font-semibold text-slate-900">{formatDate(confirmation.checkOut)}</span>
+                    <span className="text-gray-500">Check-out</span>
+                    <span className="font-semibold text-gray-900">{formatDate(confirmation.checkOut)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Nights</span>
-                    <span className="font-semibold text-slate-900">{confirmation.packageNights}</span>
+                    <span className="text-gray-500">Nights</span>
+                    <span className="font-semibold text-gray-900">{confirmation.packageNights}</span>
                   </div>
                   
                   {/* Package Extras/Includes */}
                   {confirmation.packageExtras && confirmation.packageExtras.length > 0 && (
-                    <div className="pt-3 border-t border-slate-300">
-                      <span className="text-slate-600 block mb-2">Package Includes</span>
+                    <div className="pt-3 border-t border-gray-200">
+                      <span className="text-gray-500 block mb-2">Package Includes</span>
                       <div className="space-y-1.5 pl-4">
                         {confirmation.packageExtras.map((extra: any, idx: number) => (
                           <div key={idx} className="flex items-start gap-2 text-sm">
                             <svg className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                             </svg>
-                            <span className="text-slate-700">{extra.name}</span>
+                            <span className="text-gray-700">{extra.name}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
                   
-                  <div className="pt-3 border-t border-slate-300 flex justify-between">
-                    <span className="text-slate-600">Total paid</span>
-                    <span className="font-semibold text-slate-900">
+                  <div className="pt-3 border-t-2 border-gray-300 flex justify-between">
+                    <span className="font-bold text-gray-900">Total paid</span>
+                    <span className="font-bold text-gray-900">
                       {confirmation.currency} {formatNumber(confirmation.total.toFixed(2))}
                     </span>
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm text-slate-500 text-center">
+                <p className="mt-4 text-sm text-gray-500 text-center">
                   A confirmation email will be sent to you shortly.
                 </p>
 
@@ -2450,7 +2449,7 @@ function formatDate(isoDate?: string | null): string {
                       setConfirmation(null);
                       onClose();
                     }}
-                    className="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 text-white font-medium hover:from-orange-600 hover:to-orange-500 transition shadow-lg"
+                    className="px-5 py-2.5 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 font-bold text-sm uppercase tracking-[0.05em] shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] transition-all duration-200"
                   >
                     Close
                   </button>
@@ -2462,26 +2461,26 @@ function formatDate(isoDate?: string | null): string {
           {/* Terms and Conditions Modal */}
           {showTermsModal && (
             <div
-              className="fixed inset-0 z-[70] bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+              className="fixed inset-0 z-[70] bg-slate-900/25 backdrop-blur-[8px] flex items-center justify-center p-4 overflow-y-auto"
               onClick={() => setShowTermsModal(false)}
             >
               <div
-                className="relative bg-white max-w-4xl w-full rounded-3xl shadow-2xl overflow-hidden my-8"
+                className="relative bg-white max-w-4xl w-full rounded-[22px] shadow-[0_26px_70px_rgba(15,23,42,.25)] border border-gray-200 overflow-hidden my-8"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-5 flex items-center justify-between z-10">
-                  <h3 className="text-2xl font-serif font-light text-slate-900">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between z-10">
+                  <h3 className="text-[22px] leading-[1.15] font-bold tracking-[-0.03em] text-gray-900">
                     Terms & Conditions
                   </h3>
                   <button
                     onClick={() => setShowTermsModal(false)}
-                    className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition"
+                    className="w-11 h-11 rounded-full bg-transparent hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-900 transition"
                   >
-                    ×
+                    <span className="text-[22px] leading-none">×</span>
                   </button>
                 </div>
                 <div className="px-6 py-8 overflow-y-auto max-h-[calc(90vh-120px)]">
-                  <div className="prose prose-slate max-w-none">
+                  <div className="prose prose-gray max-w-none">
                     <h2 className="text-2xl font-serif font-light mb-6 pb-4 border-b border-slate-200">Introduction</h2>
                     <p className="text-slate-600 leading-relaxed mb-4">
                       These Booking Terms &amp; Conditions and the General Booking Information contained on our web
@@ -2648,19 +2647,19 @@ function formatDate(isoDate?: string | null): string {
                       writing (by email or by recorded delivery letter) stating the reason(s). If you do cancel your
                       booking, the following cancellation charges shall apply:
                     </p>
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 mb-4">
+                    <div className="bg-gray-50 border border-gray-200 rounded-[12px] p-5 mb-4">
                       <ul className="space-y-3 list-none pl-0">
-                        <li className="flex justify-between py-2 border-b border-slate-200">
-                          <span className="text-slate-600">More than 14 days before check-in</span>
-                          <span className="font-medium text-slate-900">Full refund less transaction and administration fees</span>
+                        <li className="flex justify-between py-2 border-b border-gray-200">
+                          <span className="text-gray-500">More than 14 days before check-in</span>
+                          <span className="font-semibold text-gray-900">Full refund less transaction and administration fees</span>
                         </li>
-                        <li className="flex justify-between py-2 border-b border-slate-200">
-                          <span className="text-slate-600">Between 7 and 14 days before check-in</span>
-                          <span className="font-medium text-slate-900">50% of total price less transaction and administration fees</span>
+                        <li className="flex justify-between py-2 border-b border-gray-200">
+                          <span className="text-gray-500">Between 7 and 14 days before check-in</span>
+                          <span className="font-semibold text-gray-900">50% of total price less transaction and administration fees</span>
                         </li>
                         <li className="flex justify-between py-2">
-                          <span className="text-slate-600">Less than 7 days before check-in</span>
-                          <span className="font-medium text-slate-900">Non-refundable</span>
+                          <span className="text-gray-500">Less than 7 days before check-in</span>
+                          <span className="font-semibold text-gray-900">Non-refundable</span>
                         </li>
                       </ul>
                     </div>

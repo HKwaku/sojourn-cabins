@@ -438,7 +438,7 @@ export default function Page() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
         <Image
@@ -479,7 +479,7 @@ export default function Page() {
           </div>
 
           {/* Main heading */}
-          <h2 className="text-center text-2xl md:text-3xl font-serif font-light text-stone-700 mb-8">
+          <h2 className="text-center text-2xl md:text-3xl font-serif font-light text-gray-700 mb-8">
             How would you like to book?
           </h2>
           
@@ -513,15 +513,15 @@ export default function Page() {
 
             {/* Divider */}
             <div className="flex sm:flex-col items-center gap-3 sm:gap-2">
-              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
-              <span className="text-xs tracking-[0.3em] uppercase text-stone-500 font-medium">or</span>
-              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
+              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
+              <span className="text-xs tracking-[0.3em] uppercase text-gray-400 font-medium">or</span>
+              <div className="h-px sm:h-8 w-12 sm:w-px bg-gradient-to-r sm:bg-gradient-to-b from-transparent via-gray-300 to-transparent" />
             </div>
 
             {/* Customise Button */}
             <a 
               href="#booking-widget" 
-              className="group w-full sm:w-auto min-w-[280px] px-8 py-5 rounded-2xl bg-white border-2 border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-300"
+              className="group w-full sm:w-auto min-w-[280px] px-8 py-5 rounded-2xl bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200"
             >
               <div className="flex items-center justify-center gap-3">
                 <svg 
@@ -558,21 +558,21 @@ export default function Page() {
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <p className="text-xs tracking-[0.4em] uppercase text-stone-400 mb-4">
+            <p className="text-xs tracking-[0.4em] uppercase text-gray-400 mb-4">
               Curated Experiences
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-stone-900 mb-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-gray-900 mb-4">
               Featured Packages
             </h2>
-            <div className="w-16 h-px bg-stone-300 mx-auto" />
+            <div className="w-16 h-px bg-gray-300 mx-auto" />
           </div>
 
           {/* Loading State */}
           {loadingPackages && (
             <div className="flex items-center justify-center py-16">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-8 h-8 border-2 border-stone-200 border-t-stone-600 rounded-full animate-spin" />
-                <p className="text-sm text-stone-500 tracking-wide">Loading packages...</p>
+                <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
+                <p className="text-sm text-gray-500 tracking-wide">Loading packages...</p>
               </div>
             </div>
           )}
@@ -602,7 +602,7 @@ export default function Page() {
                 return (
                 <div
                   key={pkg.id}
-                  className={`group bg-white rounded-2xl overflow-hidden shadow-sm transition-all duration-500 flex flex-col border ${isSoldOut ? 'border-stone-200 opacity-75' : 'border-stone-100 hover:shadow-xl'}`}
+                  className={`group bg-gradient-to-br from-white to-gray-50 rounded-[18px] overflow-hidden shadow-[0_10px_30px_rgba(15,23,42,.08)] transition-all duration-200 flex flex-col border ${isSoldOut ? 'border-gray-200 opacity-75 cursor-not-allowed' : 'border-slate-400/35 hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5 hover:border-orange-500/75'}`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* Package Image */}
@@ -618,15 +618,15 @@ export default function Page() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </>
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center">
-                        <svg className="w-12 h-12 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
                     {/* Featured Badge */}
                     <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-[0.15em] uppercase bg-white/95 backdrop-blur-sm text-stone-700 font-medium shadow-sm">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] tracking-[0.15em] uppercase bg-white/90 backdrop-blur-sm text-gray-700 font-semibold shadow-sm">
                         Featured
                       </span>
                     </div>
@@ -641,30 +641,30 @@ export default function Page() {
                   {/* Package Content */}
                   <div className="p-5 md:p-6 flex flex-col flex-1">
                     {/* Package Name */}
-                    <h3 className="text-xl md:text-2xl font-serif font-light text-stone-900 leading-tight mb-2">
+                    <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 leading-tight mb-2">
                       {pkg.name}
                     </h3>
 
                     {/* Price immediately under name */}
                     {pkg.package_price != null && (
-                      <p className="font-bold text-2xl text-stone-900 mb-4">
+                      <p className="font-bold text-2xl text-gray-900 mb-4">
                         {pkg.currency || 'GHS'} {pkg.package_price.toLocaleString()}
                       </p>
                     )}
 
                     {/* Separator */}
-                    <div className="h-px bg-stone-200 mb-4" />
+                    <div className="h-px bg-gray-200 mb-4" />
 
                     {/* Package Details - Nights & Room Types on same line */}
                     <div className="mb-4">
-                      <div className="flex items-center gap-2 text-sm text-stone-600">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
                         <span>{pkg.nights!} night{pkg.nights! > 1 ? 's' : ''}</span>
                         {pkg.appliesTo && (
                           <>
-                            <span className="text-stone-300">•</span>
+                            <span className="text-gray-300">•</span>
                             <span>
                               {pkg.appliesTo
                                 .replace('Applies to ', '')
@@ -678,16 +678,16 @@ export default function Page() {
                     </div>
 
                     {/* Separator */}
-                    <div className="h-px bg-stone-200 mb-4" />
+                    <div className="h-px bg-gray-200 mb-4" />
 
                     {/* Includes Section with background */}
                     {pkg.extrasSummary && (
                       <>
                         <div className="mb-4 p-3 bg-emerald-50 rounded-lg">
-                          <p className="text-xs tracking-widest uppercase text-stone-500 mb-2">Includes</p>
+                          <p className="text-xs tracking-widest uppercase text-gray-500 mb-2">Includes</p>
                           <ul className="space-y-1.5">
                             {pkg.extrasSummary.split(', ').map((extra, idx) => (
-                              <li key={idx} className="flex items-start gap-2 text-sm text-stone-700">
+                              <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
                                 <svg className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -697,7 +697,7 @@ export default function Page() {
                           </ul>
                         </div>
                         {/* Separator */}
-                        <div className="h-px bg-stone-200 mb-4" />
+                        <div className="h-px bg-gray-200 mb-4" />
                       </>
                     )}
 
@@ -705,8 +705,8 @@ export default function Page() {
                     {(pkg.valid_from || pkg.valid_until) && (
                       <>
                         <div className="mb-4 p-3 bg-amber-50 rounded-lg">
-                          <p className="text-xs tracking-widest uppercase text-stone-500 mb-1.5">Valid Period</p>
-                          <p className="text-sm text-stone-700 font-medium">
+                          <p className="text-xs tracking-widest uppercase text-gray-500 mb-1.5">Valid Period</p>
+                          <p className="text-sm text-gray-700 font-medium">
                             {pkg.valid_from && new Date(pkg.valid_from).toLocaleDateString('en-GB', {
                               day: 'numeric',
                               month: 'short',
@@ -721,7 +721,7 @@ export default function Page() {
                           </p>
                         </div>
                         {/* Separator */}
-                        <div className="h-px bg-stone-200 mb-4" />
+                        <div className="h-px bg-gray-200 mb-4" />
                       </>
                     )}
 
@@ -734,9 +734,9 @@ export default function Page() {
                       <div className="flex items-center gap-2 text-sm">
                         <div className={`w-2 h-2 rounded-full ${pkg.nextAvailable ? 'bg-emerald-400' : 'bg-red-400'}`} />
                         {pkg.nextAvailable ? (
-                          <span className="text-stone-600">
+                          <span className="text-gray-500">
                             Available from{' '}
-                            <span className="font-medium text-stone-900">
+                            <span className="font-semibold text-gray-900">
                               {new Date(pkg.nextAvailable).toLocaleDateString('en-GB', {
                                 day: 'numeric',
                                 month: 'short',
@@ -759,7 +759,7 @@ export default function Page() {
                             setPackagesOpen(true)
                           }
                         }}
-                        className={`w-full py-3.5 rounded-xl text-sm tracking-wide font-medium transition-all duration-300 ${isSoldOut ? 'bg-stone-300 text-stone-500 cursor-not-allowed' : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-[0.98]'}`}
+                        className={`w-full py-3 rounded-full text-sm font-bold uppercase tracking-[0.05em] transition-all duration-200 ${isSoldOut ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-br from-orange-500 to-orange-300 text-gray-900 shadow-[0_14px_30px_rgba(249,115,22,.35)] hover:brightness-105 hover:-translate-y-px hover:shadow-[0_18px_40px_rgba(249,115,22,.4)] active:translate-y-0'}`}
                         >
                         {isSoldOut ? 'Sold Out' : 'Book Package'}
                         </button>
@@ -787,7 +787,7 @@ export default function Page() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </button>
-              <p className="mt-4 text-sm text-stone-500">
+              <p className="mt-4 text-sm text-gray-500">
                 or customize your experience below
               </p>
             </div>
@@ -796,18 +796,18 @@ export default function Page() {
       </section>
 
       {/* Booking Widget Section */}
-      <section id="booking-widget" className="py-20 md:py-28 px-3 md:px-8 lg:px-12 bg-stone-50">
-        <div className="max-w-7xl mx-auto">
+      <section id="booking-widget" className="py-20 md:py-28 px-3 md:px-8 lg:px-12">
+        <div className="max-w-5xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-12">
-            <p className="text-xs tracking-[0.4em] uppercase text-stone-400 mb-4">
+            <p className="text-xs tracking-[0.4em] uppercase text-gray-400 mb-4">
               Customise Your Stay
             </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-stone-900 mb-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-light text-gray-900 mb-4">
               Create Your Stay
             </h2>
-            <div className="w-16 h-px bg-stone-300 mx-auto mb-6" />
-            <p className="text-stone-600 max-w-lg mx-auto">
+            <div className="w-16 h-px bg-gray-300 mx-auto mb-6" />
+            <p className="text-gray-500 max-w-lg mx-auto text-sm leading-relaxed">
               Select your preferred dates, cabin, and extras to build your perfect retreat
             </p>
           </div>
@@ -822,10 +822,10 @@ export default function Page() {
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {/* Flexible Booking Card */}
-            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
-              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
+            <div className="group bg-gradient-to-br from-white to-gray-50 rounded-[18px] border border-slate-400/35 p-8 md:p-10 shadow-[0_10px_30px_rgba(15,23,42,.08)] hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5 hover:border-orange-500/75 transition-all duration-200">
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 group-hover:bg-orange-50 flex items-center justify-center mb-6 transition-colors duration-200">
                 <svg
-                  className="w-7 h-7 text-stone-600"
+                  className="w-7 h-7 text-gray-600 group-hover:text-orange-500 transition-colors duration-200"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -838,17 +838,17 @@ export default function Page() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Flexible Booking</h3>
-              <p className="text-sm text-stone-500 leading-relaxed">
+              <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 mb-3">Flexible Booking</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 Free cancellation up to 7 days before arrival. Plans change—we understand.
               </p>
             </div>
 
             {/* Curated Amenities Card */}
-            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
-              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
+            <div className="group bg-gradient-to-br from-white to-gray-50 rounded-[18px] border border-slate-400/35 p-8 md:p-10 shadow-[0_10px_30px_rgba(15,23,42,.08)] hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5 hover:border-orange-500/75 transition-all duration-200">
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 group-hover:bg-orange-50 flex items-center justify-center mb-6 transition-colors duration-200">
                 <svg
-                  className="w-7 h-7 text-stone-600"
+                  className="w-7 h-7 text-gray-600 group-hover:text-orange-500 transition-colors duration-200"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -861,17 +861,17 @@ export default function Page() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Curated Amenities</h3>
-              <p className="text-sm text-stone-500 leading-relaxed">
+              <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 mb-3">Curated Amenities</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 Premium extras thoughtfully selected to elevate your coastal experience.
               </p>
             </div>
 
             {/* Seamless Check-In Card */}
-            <div className="group bg-white rounded-2xl border border-stone-100 p-8 md:p-10 hover:shadow-lg hover:border-stone-200 transition-all duration-500">
-              <div className="w-14 h-14 rounded-2xl bg-stone-50 group-hover:bg-stone-100 flex items-center justify-center mb-6 transition-colors duration-300">
+            <div className="group bg-gradient-to-br from-white to-gray-50 rounded-[18px] border border-slate-400/35 p-8 md:p-10 shadow-[0_10px_30px_rgba(15,23,42,.08)] hover:shadow-[0_24px_55px_rgba(15,23,42,.14)] hover:-translate-y-0.5 hover:border-orange-500/75 transition-all duration-200">
+              <div className="w-14 h-14 rounded-2xl bg-gray-50 group-hover:bg-orange-50 flex items-center justify-center mb-6 transition-colors duration-200">
                 <svg
-                  className="w-7 h-7 text-stone-600"
+                  className="w-7 h-7 text-gray-600 group-hover:text-orange-500 transition-colors duration-200"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -884,8 +884,8 @@ export default function Page() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-serif font-light text-stone-900 mb-3">Seamless Check-In</h3>
-              <p className="text-sm text-stone-500 leading-relaxed">
+              <h3 className="text-lg font-bold tracking-[-0.02em] text-gray-900 mb-3">Seamless Check-In</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 Check-in details shared before arrival. Your retreat starts smoothly.
               </p>
             </div>
