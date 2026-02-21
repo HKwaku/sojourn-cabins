@@ -21,7 +21,7 @@ function ChevronRight() {
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
-  { src: '/cabins/ext3.jpg', alt: '' },
+  { src: '/cabins/ext3.JPG', alt: '' },
   { src: '/cabins/4a4.jpg', alt: '' },
   { src: '/cabins/sea4.jpg', alt: '' },
   { src: '/cabins/sun.jpg', alt: '' },
@@ -37,7 +37,7 @@ const galleryCategories = [
   {
     title: 'Exterior',
     description: 'Cabin exteriors and the surrounding landscape.',
-    images: ['/cabins/ext00.JPG', '/cabins/ext1.JPG', '/cabins/ext2.JPG', '/cabins/ext3.JPG', '/cabins/ext4.jpg', '/cabins/ext5.jpg', '/cabins/ext8.jpg', '/cabins/ext9.JPG' ],
+    images: ['/cabins/ext00.JPG', '/cabins/ext1.JPG', '/cabins/ext2.JPG', '/cabins/ext3.JPG', '/cabins/ext4.jpg', '/cabins/ext5.jpg', '/cabins/ext8.JPG', '/cabins/ext9.JPG' ],
   },
   {
     title: 'Interior',
