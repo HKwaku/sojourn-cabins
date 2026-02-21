@@ -1,21 +1,30 @@
+import Image from 'next/image'
+
 export default function ChefMenuPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-stone-50 to-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-stone-900 to-stone-800 text-white py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs tracking-[0.4em] uppercase text-orange-400 mb-4">
+      {/* Hero Section */}
+      <section className="relative h-[70vh] md:h-[85vh] flex items-center justify-center overflow-hidden">
+        <Image
+          src="/cabins/sun.jpg"
+          alt="Chef menu hero"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+        <div className="relative z-10 text-center text-white px-6 max-w-4xl">
+          <p className="text-sm tracking-[0.3em] uppercase mb-4 text-orange-400">
             Private Chef Experience
           </p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-light mb-6">
+          <h1 className="text-5xl md:text-7xl font-serif font-light mb-6 leading-tight">
             Our Menu
           </h1>
-          <div className="w-16 h-px bg-orange-400 mx-auto mb-6" />
-          <p className="text-lg text-stone-300 font-light max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl font-light text-white/90 max-w-2xl mx-auto leading-relaxed">
             Menu is curated and inspired by home-based and sustainable resources
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Menu Content */}
       <div className="max-w-5xl mx-auto px-6 py-16 md:py-24">

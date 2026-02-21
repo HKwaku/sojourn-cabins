@@ -4,7 +4,7 @@ export default function RatesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section - Enhanced with gradient overlay */}
-      <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[70vh] md:h-[85vh] flex items-center justify-center overflow-hidden">
         <Image
           src="/cabins/sun.jpg"
           alt="/cabins/sea.jpg"

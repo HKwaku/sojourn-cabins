@@ -1,7 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+
+function ChevronLeft() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ChevronRight() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
+}
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
@@ -63,21 +79,36 @@ const galleryCategories = [
 // -------- Mini slideshow for each category --------
 function MiniSlideshow({ images }: { images: string[] }) {
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const goNext = useCallback(() => {
+    setIndex((i) => (i + 1) % images.length);
+    setPaused(true);
+  }, [images.length]);
+
+  const goPrev = useCallback(() => {
+    setIndex((i) => (i - 1 + images.length) % images.length);
+    setPaused(true);
+  }, [images.length]);
 
   useEffect(() => {
-    if (!images || images.length <= 1) return;
-
+    if (!images || images.length <= 1 || paused) return;
     const id = setInterval(() => {
       setIndex((i) => (i + 1) % images.length);
-    }, 6000); // 6s per slide
-
+    }, 6000);
     return () => clearInterval(id);
-  }, [images]);
+  }, [images, paused]);
+
+  useEffect(() => {
+    if (!paused) return;
+    const id = setTimeout(() => setPaused(false), 12000);
+    return () => clearTimeout(id);
+  }, [paused]);
 
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="relative w-full h-full">
+    <div className="group relative w-full h-full">
       {images.map((img, i) => (
         <Image
           key={img}
@@ -91,6 +122,38 @@ function MiniSlideshow({ images }: { images: string[] }) {
           loading={i === 0 ? 'eager' : 'lazy'}
         />
       ))}
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={goPrev}
+            aria-label="Previous image"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/50"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={goNext}
+            aria-label="Next image"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/50"
+          >
+            <ChevronRight />
+          </button>
+
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { setIndex(i); setPaused(true); }}
+                aria-label={`Go to image ${i + 1}`}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  i === index ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -98,21 +161,37 @@ function MiniSlideshow({ images }: { images: string[] }) {
 // -------- Main page --------
 export default function GalleryPage() {
   const [currentHero, setCurrentHero] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
 
-  // Auto-advance hero
+  const heroNext = useCallback(() => {
+    setCurrentHero((prev) => (prev + 1) % heroSlides.length);
+    setHeroPaused(true);
+  }, []);
+
+  const heroPrev = useCallback(() => {
+    setCurrentHero((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+    setHeroPaused(true);
+  }, []);
+
   useEffect(() => {
-    if (heroSlides.length <= 1) return;
+    if (heroSlides.length <= 1 || heroPaused) return;
     const id = setInterval(
       () => setCurrentHero((prev) => (prev + 1) % heroSlides.length),
       8000
     );
     return () => clearInterval(id);
-  }, []);
+  }, [heroPaused]);
+
+  useEffect(() => {
+    if (!heroPaused) return;
+    const id = setTimeout(() => setHeroPaused(false), 12000);
+    return () => clearTimeout(id);
+  }, [heroPaused]);
 
   return (
     <div className="min-h-screen bg-white">
       {/* Hero with fade */}
-      <section className="relative h-[55vh] md:h-[70vh] overflow-hidden">
+      <section className="group relative h-[70vh] md:h-[85vh] overflow-hidden">
         <div className="absolute inset-0">
           {heroSlides.map((slide, i) => (
             <Image
@@ -128,6 +207,25 @@ export default function GalleryPage() {
           ))}
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70" />
         </div>
+
+        {heroSlides.length > 1 && (
+          <>
+            <button
+              onClick={heroPrev}
+              aria-label="Previous slide"
+              className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/25 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/45"
+            >
+              <ChevronLeft />
+            </button>
+            <button
+              onClick={heroNext}
+              aria-label="Next slide"
+              className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/25 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/45"
+            >
+              <ChevronRight />
+            </button>
+          </>
+        )}
 
         <div className="relative z-10 flex h-full items-end px-5 sm:px-6 md:px-10 pb-10 md:pb-14">
           <div className="max-w-xl text-center text-white">
