@@ -5,14 +5,14 @@ import Image from 'next/image';
 
 // -------- HERO IMAGES (edit paths if needed) --------
 const heroSlides = [
-  { src: '/cabins/ext00.jpg', alt: '' },
-  { src: '/cabins/ext0.jpg', alt: '' },
+  { src: '/cabins/ext00.JPG', alt: '' },
+  { src: '/cabins/ext0.JPG', alt: '' },
   { src: '/cabins/sea.jpg', alt: '' },
   { src: '/cabins/sun.jpg', alt: '' },
   { src: '/cabins/sand.jpg', alt: '' },
-  { src: '/cabins/ext1.jpg', alt: '' },
-  { src: '/cabins/ext2.jpg', alt: '' },
-  { src: '/cabins/coc.jpg', alt: '' },
+  { src: '/cabins/ext13.jpg', alt: '' },
+  { src: '/cabins/ext2.JPG', alt: '' },
+  { src: '/cabins/coc.JPG', alt: '' },
   { src: '/cabins/exper1.jpg', alt: '' },
 ];
 
@@ -21,7 +21,7 @@ const galleryCategories = [
   {
     title: 'Exterior',
     description: 'Cabin exteriors and the surrounding landscape.',
-    images: ['/cabins/ext00.jpg', '/cabins/ext1.jpg', '/cabins/ext2.jpg', '/cabins/ext3.jpg', '/cabins/ext4.jpg', '/cabins/ext5.jpg', '/cabins/ext8.jpg', '/cabins/ext9.jpg' ],
+    images: ['/cabins/ext00.JPG', '/cabins/ext1.JPG', '/cabins/ext2.JPG', '/cabins/ext3.JPG', '/cabins/ext4.jpg', '/cabins/ext5.jpg', '/cabins/ext8.jpg', '/cabins/ext9.JPG' ],
   },
   {
     title: 'Interior',
