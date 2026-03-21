@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 
 export default function Hero() {
   const [scrolled, setScrolled] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,21 +16,30 @@ export default function Hero() {
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* Full-Screen Video Background */}
+      {/* Full-Screen Video Background (or fallback image if video fails) */}
       <div className="absolute inset-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/hero-fallback.jpg"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source 
-            src="https://res.cloudinary.com/dszk8iplz/video/upload/q_auto:best,w_1920/v1762465861/hero-background.mp4_dx6ous.mp4" 
-            type="video/mp4" 
+        {videoFailed ? (
+          <img
+            src="/hero-fallback.JPG"
+            alt="Sojourn Cabins"
+            className="absolute inset-0 w-full h-full object-cover"
           />
-        </video>
+        ) : (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/hero-fallback.JPG"
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={() => setVideoFailed(true)}
+          >
+            <source 
+              src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/hero-background.mp4" 
+              type="video/mp4" 
+            />
+          </video>
+        )}
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
       </div>

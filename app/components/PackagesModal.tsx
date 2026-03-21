@@ -170,6 +170,7 @@ type PackageRow = {
   nights: number | null;
   valid_from?: string | null;
   valid_until?: string | null;
+  applies_to_days?: 'both' | 'weekdays' | 'weekends' | null;
   image_url?: string | null;
 };
 
@@ -306,6 +307,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     {}
   );
 
+  const [weekendDays, setWeekendDays] = useState<number[]>([]);
   const [nextAvailableByPackage, setNextAvailableByPackage] = useState<
   Record<number, string | null>
   >({});
@@ -467,10 +469,16 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       setLoading(true);
       setError(null);
       try {
+        // 0) Load weekend_definitions for applies_to_days logic
+        const weekendUrl = `${SUPABASE_URL}/rest/v1/weekend_definitions?select=day_of_week,is_weekend`;
+        const weekendRaw = await fetchJSON<{ day_of_week: number; is_weekend: boolean }[]>(weekendUrl);
+        const wd = (weekendRaw || []).filter((d) => d.is_weekend).map((d) => d.day_of_week);
+        setWeekendDays(wd);
+
         // 1) Load packages
         const pkgURL =
           `${SUPABASE_URL}/rest/v1/packages` +
-          `?select=id,code,name,description,package_price,currency,nights,valid_from,valid_until,image_url` +
+          `?select=id,code,name,description,package_price,currency,nights,valid_from,valid_until,applies_to_days,image_url` +
           `&is_active=eq.true&order=sort_order`;
         const pkgsRaw = await fetchJSON<any>(pkgURL);
         const pkgs: PackageRow[] = Array.isArray(pkgsRaw) ? pkgsRaw : [];
@@ -749,6 +757,30 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
               break;
             }
 
+            // applies_to_days: every night of the stay must match
+            const appliesTo = pkg.applies_to_days || 'both';
+            if (appliesTo !== 'both') {
+              let stayMatches = true;
+              for (let i = 0; i < nights; i++) {
+                const d = new Date(ciCursor);
+                d.setDate(d.getDate() + i);
+                const day = d.getDay();
+                const isWeekend = wd.includes(day);
+                if (appliesTo === 'weekends' && !isWeekend) {
+                  stayMatches = false;
+                  break;
+                }
+                if (appliesTo === 'weekdays' && isWeekend) {
+                  stayMatches = false;
+                  break;
+                }
+              }
+              if (!stayMatches) {
+                ciCursor.setDate(ciCursor.getDate() + 1);
+                continue;
+              }
+            }
+
             let hasAvailableRoom = false;
 
             for (const room of rooms) {
@@ -991,6 +1023,30 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             continue;
           }
 
+          // applies_to_days: every night of the stay must match weekend_definitions
+          const appliesTo = pkg.applies_to_days || 'both';
+          if (appliesTo !== 'both') {
+            let stayMatches = true;
+            for (let i = 0; i < nights; i++) {
+              const d = new Date(ciCursor);
+              d.setDate(d.getDate() + i);
+              const day = d.getDay();
+              const isWeekend = weekendDays.includes(day);
+              if (appliesTo === 'weekends' && !isWeekend) {
+                stayMatches = false;
+                break;
+              }
+              if (appliesTo === 'weekdays' && isWeekend) {
+                stayMatches = false;
+                break;
+              }
+            }
+            if (!stayMatches) {
+              disabled.push(ciStr);
+              ciCursor.setDate(ciCursor.getDate() + 1);
+              continue;
+            }
+          }
 
           let hasAvailableRoom = false;
 
@@ -1033,7 +1089,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     }
 
     loadDisabledDates();
-  }, [isOpen, stage, selectedPackageId, packages, roomsByPackage]);
+  }, [isOpen, stage, selectedPackageId, packages, roomsByPackage, weekendDays]);
 
   const nights = useMemo(() => diffNights(checkIn, checkOut), [checkIn, checkOut]);
 
@@ -1172,6 +1228,31 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             continue;
           }
 
+          // applies_to_days: every night of the stay must match
+          const appliesTo = pkg.applies_to_days || 'both';
+          if (appliesTo !== 'both') {
+            let stayMatches = true;
+            for (let i = 0; i < stayNights; i++) {
+              const d = new Date(ciDate);
+              d.setDate(d.getDate() + i);
+              const day = d.getDay();
+              const isWeekend = weekendDays.includes(day);
+              if (appliesTo === 'weekends' && !isWeekend) {
+                stayMatches = false;
+                break;
+              }
+              if (appliesTo === 'weekdays' && isWeekend) {
+                stayMatches = false;
+                break;
+              }
+            }
+            if (!stayMatches) {
+              invalid.push(coStr);
+              coCursor.setDate(coCursor.getDate() + 1);
+              continue;
+            }
+          }
+
           for (const room of rooms) {
             const key = String(room.id);
             const occ = occupancy[key] ?? new Set<string>();
@@ -1210,7 +1291,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
     }
 
     loadInvalidCheckoutDates();
-  }, [isOpen, stage, selectedPackageId, packages, roomsByPackage, checkIn]);
+  }, [isOpen, stage, selectedPackageId, packages, roomsByPackage, checkIn, weekendDays]);
 
   function handleSelectPackage(pkgId: number) {
     setSelectedPackageId(pkgId);
@@ -1340,6 +1421,32 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           setError(`Check-in must be on or before ${formatDate(pkg.valid_until)}`);
           return;
         }
+      }
+    }
+
+    // Validate applies_to_days: every night of the stay must match
+    const appliesTo = pkg.applies_to_days || 'both';
+    if (appliesTo !== 'both') {
+      const stayNights = diffNights(checkIn, checkOut);
+      let stayMatches = true;
+      for (let i = 0; i < stayNights; i++) {
+        const d = new Date(checkIn);
+        d.setDate(d.getDate() + i);
+        const day = d.getDay();
+        const isWeekend = weekendDays.includes(day);
+        if (appliesTo === 'weekends' && !isWeekend) {
+          stayMatches = false;
+          break;
+        }
+        if (appliesTo === 'weekdays' && isWeekend) {
+          stayMatches = false;
+          break;
+        }
+      }
+      if (!stayMatches) {
+        const label = appliesTo === 'weekends' ? 'weekends only' : 'weekdays only';
+        setError(`This package applies to ${label}. Your selected dates do not match.`);
+        return;
       }
     }
 
@@ -1848,15 +1955,22 @@ function formatDate(isoDate?: string | null): string {
                           )}
 
                           {/* Validity Period with background */}
-                          {(pkg.valid_from || pkg.valid_until) && (
+                          {(pkg.valid_from || pkg.valid_until || (pkg.applies_to_days && pkg.applies_to_days !== 'both')) && (
                             <>
                               <div className="mb-4 p-3 bg-amber-50 rounded-lg">
                                 <p className="text-xs tracking-widest uppercase text-stone-500 mb-1.5">Valid Period</p>
-                                <p className="text-sm text-stone-700 font-medium">
-                                  {pkg.valid_from && formatDate(pkg.valid_from)}
-                                  {pkg.valid_from && pkg.valid_until && ' – '}
-                                  {pkg.valid_until && formatDate(pkg.valid_until)}
-                                </p>
+                                {(pkg.valid_from || pkg.valid_until) && (
+                                  <p className="text-sm text-stone-700 font-medium">
+                                    {pkg.valid_from && formatDate(pkg.valid_from)}
+                                    {pkg.valid_from && pkg.valid_until && ' – '}
+                                    {pkg.valid_until && formatDate(pkg.valid_until)}
+                                  </p>
+                                )}
+                                {pkg.applies_to_days && pkg.applies_to_days !== 'both' && (
+                                  <p className="text-sm text-stone-600 mt-1">
+                                    {pkg.applies_to_days === 'weekends' ? 'Weekends only' : 'Weekdays only'}
+                                  </p>
+                                )}
                               </div>
                               {/* Separator */}
                               <div className="h-px bg-stone-200 mb-4" />
@@ -1938,11 +2052,16 @@ function formatDate(isoDate?: string | null): string {
                         {selectedPkg.currency} {selectedPkg.package_price?.toFixed(2)}
                       </span>
                     </div>
-                    {(selectedPkg.valid_from || selectedPkg.valid_until) && (
+                    {(selectedPkg.valid_from || selectedPkg.valid_until || (selectedPkg.applies_to_days && selectedPkg.applies_to_days !== 'both')) && (
                       <p className="mt-2 text-sm text-orange-800">
-                        Valid: {selectedPkg.valid_from && formatDate(selectedPkg.valid_from)}
-                        {selectedPkg.valid_from && selectedPkg.valid_until && ' – '}
-                        {selectedPkg.valid_until && formatDate(selectedPkg.valid_until)}
+                        {selectedPkg.valid_from || selectedPkg.valid_until ? (
+                          <>Valid: {selectedPkg.valid_from && formatDate(selectedPkg.valid_from)}
+                          {selectedPkg.valid_from && selectedPkg.valid_until && ' – '}
+                          {selectedPkg.valid_until && formatDate(selectedPkg.valid_until)}</>
+                        ) : null}
+                        {selectedPkg.applies_to_days && selectedPkg.applies_to_days !== 'both' && (
+                          <>{selectedPkg.valid_from || selectedPkg.valid_until ? ' • ' : ''}{selectedPkg.applies_to_days === 'weekends' ? 'Weekends only' : 'Weekdays only'}</>
+                        )}
                       </p>
                     )}
                   </div>
