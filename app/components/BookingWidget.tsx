@@ -2157,7 +2157,7 @@ export default function BookingWidget() {
 
       var roomTypes = bulkResults[0] || [];
       var reservations = (bulkResults[1] || []).filter(function(r) {
-        return r.status !== 'cancelled' && r.status !== 'no_show';
+        return r.status !== 'cancelled' && r.status !== 'no_show' && r.status !== 'pending_payment';
       });
       var blockedDates = bulkResults[2] || [];
 

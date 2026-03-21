@@ -590,7 +590,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
             `${SUPABASE_URL}/rest/v1/reservations` +
             `?select=room_type_id,room_type_code,check_in,check_out,status` +
             `&check_in=lt.${horizonEndISO}&check_out=gt.${todayISO}` +
-            `&status=not.in.("cancelled","no_show")`;
+            `&status=not.in.("cancelled","no_show","pending_payment")`;
 
 
           resvs = await fetchJSON<
@@ -903,7 +903,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           `${SUPABASE_URL}/rest/v1/reservations` +
           `?select=room_type_id,room_type_code,check_in,check_out,status` +
           `&check_in=lt.${horizonEndISO}&check_out=gt.${horizonStartISO}` +
-          `&status=not.in.("cancelled","no_show")`;
+          `&status=not.in.("cancelled","no_show","pending_payment")`;
 
         const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
         const blockedUrl = roomIds.length
@@ -1094,7 +1094,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
           `${SUPABASE_URL}/rest/v1/reservations` +
           `?select=room_type_id,room_type_code,check_in,check_out,status` +
           `&check_in=lt.${horizonEndISO}&check_out=gt.${horizonStartISO}` +
-          `&status=not.in.("cancelled","no_show")`;
+          `&status=not.in.("cancelled","no_show","pending_payment")`;
 
         const roomIds = rooms.map((r) => r.id).filter((id) => id != null);
         const blockedUrl = roomIds.length
@@ -1244,7 +1244,7 @@ export default function PackagesModal({ isOpen, onClose, initialPackageId }: Pro
       `${SUPABASE_URL}/rest/v1/reservations` +
       `?select=room_type_id,room_type_code,check_in,check_out,status` +
       `&check_in=lt.${co}&check_out=gt.${ci}` +
-      `&status=not.in.("cancelled","no_show")`;
+      `&status=not.in.("cancelled","no_show","pending_payment")`;
 
       const roomIds = rooms.map((r) => String(r.id));
       const idList = roomIds.join(',');

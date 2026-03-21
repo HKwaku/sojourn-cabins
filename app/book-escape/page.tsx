@@ -244,7 +244,7 @@ export default function Page() {
           `${SUPABASE_URL}/rest/v1/reservations` +
           `?select=room_type_id,room_type_code,check_in,check_out,status` +
           `&check_in=lt.${horizonEndISO}&check_out=gt.${todayISO}` +
-          `&status=not.in.("cancelled","no_show")`
+          `&status=not.in.("cancelled","no_show","pending_payment")`
 
         const resvs = await fetchJSON<{
           room_type_id: string | number | null
