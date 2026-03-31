@@ -1,11 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { sendBookingEmail, sendExtraSelectionsEmail } from '@/mailjet';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
+
+/**
+ * Bernard-admin calls send-booking-email with an explicit public URL.
+ * This webhook must also reach the same deployment; NEXT_PUBLIC_BASE_URL is
+ * easy to omit on Vercel (build-time). Fall back to this request's origin
+ * (Paystack posts to your real domain) or VERCEL_URL.
+ */
+function getPublicBaseUrl(request: NextRequest): string {
+  const fromEnv = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, '').trim();
+  let fromRequest = '';
+  try {
+    fromRequest = new URL(request.url).origin;
+  } catch {
+    /* ignore */
+  }
+  const vu = process.env.VERCEL_URL?.replace(/\/$/, '').replace(/^https?:\/\//, '');
+  const fromVercel = vu ? `https://${vu}` : '';
+
+  const base = fromEnv || fromRequest || fromVercel;
+  if (base) {
+    console.log('📧 Email API base URL:', base, {
+      source: fromEnv ? 'NEXT_PUBLIC_BASE_URL' : fromRequest ? 'request.url' : 'VERCEL_URL',
+    });
+  }
+  return base;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -225,74 +252,47 @@ export async function POST(request: NextRequest) {
         console.log('📧 Confirmation code:', emailData.booking.confirmation_code);
         console.log('📧 Is group:', isGroupBooking);
 
-        if (!process.env.NEXT_PUBLIC_BASE_URL) {
-          console.error('❌ NEXT_PUBLIC_BASE_URL not set - emails will fail!');
-        }
+        // Public URL only needed for links inside emails (extras). Booking email uses Mailjet in-process
+        // so it does not depend on HTTP fetch to this deployment (same code path as Bernard → /api/send-booking-email).
+        const baseUrl = getPublicBaseUrl(request);
 
-        // Send booking confirmation email - always attempt to send
+        // Send booking confirmation email (direct — avoids fetch-to-self / edge / WAF issues)
         try {
-          const emailResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-booking-email`,
-            {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(emailData),
-            }
-          );
-
-          console.log('📧 Email API status:', emailResponse.status);
-
-          if (!emailResponse.ok) {
-            const errorText = await emailResponse.text();
-            console.error('❌ Email failed:', errorText);
-          } else {
-            console.log('✅ Email sent successfully');
-          }
-        } catch (emailSendError: any) {
-          console.error('❌ Error calling email API:', emailSendError.message);
+          await sendBookingEmail({
+            to: emailData.booking.guest_email,
+            name: emailData.booking.guest_first_name || '',
+            booking: emailData.booking,
+          });
+          console.log('✅ Booking confirmation email sent (Mailjet)');
+        } catch (emailSendError: unknown) {
+          const msg = emailSendError instanceof Error ? emailSendError.message : String(emailSendError);
+          console.error('❌ Booking email failed:', msg);
         }
 
         // Send extra selections email if needed
-        if (hasExtrasNeedingSelection) {
+        if (hasExtrasNeedingSelection && baseUrl) {
           console.log('📧 === EXTRA SELECTIONS EMAIL START ===');
-          
-          const extrasLink = `${process.env.NEXT_PUBLIC_BASE_URL}/extra-selections?code=${displayConfirmationCode}`;
-          
-          const extrasEmailData = {
-            booking: emailData.booking,
-            extrasLink: extrasLink,
-          };
+
+          const extrasLink = `${baseUrl}/extra-selections?code=${displayConfirmationCode}`;
 
           try {
-            const extrasEmailResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_BASE_URL}/api/send-extra-selections-email`,
-              {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                },
-                body: JSON.stringify(extrasEmailData),
-              }
-            );
-
-            console.log('📧 Extra selections email API status:', extrasEmailResponse.status);
-
-            if (!extrasEmailResponse.ok) {
-              const errorText = await extrasEmailResponse.text();
-              console.error('❌ Extra selections email failed:', errorText);
-            } else {
-              console.log('✅ Extra selections email sent successfully');
-              console.log('📧 Link:', extrasLink);
-            }
-          } catch (extraEmailError: any) {
-            console.error('❌ Error calling extra selections email API:', extraEmailError.message);
+            await sendExtraSelectionsEmail({
+              to: emailData.booking.guest_email,
+              name: emailData.booking.guest_first_name || '',
+              booking: emailData.booking,
+              extrasLink,
+            });
+            console.log('✅ Extra selections email sent (Mailjet). Link:', extrasLink);
+          } catch (extraEmailError: unknown) {
+            const msg = extraEmailError instanceof Error ? extraEmailError.message : String(extraEmailError);
+            console.error('❌ Extra selections email failed:', msg);
           }
 
           console.log('📧 === EXTRA SELECTIONS EMAIL END ===');
+        } else if (hasExtrasNeedingSelection && !baseUrl) {
+          console.error(
+            '❌ Extras need selection email but public base URL missing — set NEXT_PUBLIC_BASE_URL'
+          );
         } else {
           console.log('ℹ️ No extras requiring selection, skipping extra selections email');
         }
