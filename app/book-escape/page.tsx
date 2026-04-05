@@ -5,8 +5,9 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 const BookingWidget = dynamic(() => import('@/app/components/BookingWidget'), { ssr: false })
 import PackagesModal from '@/app/components/PackagesModal'
+import { PromoBanner } from '@/app/components/PromoBanner'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '')
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 const HEADERS: HeadersInit = {
@@ -16,7 +17,16 @@ const HEADERS: HeadersInit = {
 }
 
 async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: HEADERS })
+  let res: Response
+  try {
+    res = await fetch(url, { headers: HEADERS })
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : 'Network error'
+    throw new Error(
+      `Supabase request failed (${reason}). Confirm NEXT_PUBLIC_SUPABASE_URL in .env.local and that the project is reachable.`,
+      { cause: e }
+    )
+  }
   if (!res.ok) {
     const text = await res.text()
     throw new Error(text || `Request failed (${res.status})`)
@@ -426,8 +436,8 @@ export default function Page() {
         })
         setFeaturedPackages(withAvailability)
 
-      } catch (err) {
-        console.error(err)
+      } catch {
+        // Avoid console.error here — Next.js dev overlay treats it like an uncaught error.
         setPackagesError('Unable to load featured packages.')
       } finally {
         setLoadingPackages(false)
@@ -467,6 +477,8 @@ export default function Page() {
           </div>
         </div>
       </section>
+
+      <PromoBanner context="book" />
 
       {/* Choose Package or Customise Section */}
       <section className="py-20 md:py-24 px-6 md:px-8 lg:px-12 bg-gradient-to-b from-white via-amber-50/30 to-white">

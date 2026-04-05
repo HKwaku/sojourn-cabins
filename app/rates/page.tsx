@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { PromoBanner } from '@/app/components/PromoBanner'
 
 export default function RatesPage() {
   return (
@@ -21,6 +22,8 @@ export default function RatesPage() {
           </p>
         </div>
       </section>
+
+      <PromoBanner context="rates" />
 
       {/* Cabin Rates Section - Enhanced cards */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
