@@ -3,6 +3,10 @@
     {
       "path": "/api/exchange-rates/update",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/reservations/send-abandonment-reminders",
+      "schedule": "30 * * * *"
     }
   ]
 }

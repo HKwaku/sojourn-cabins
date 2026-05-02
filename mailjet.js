@@ -944,4 +944,231 @@ www.sojourncabins.com
 }
 
 
+// Subject lines per attempt (1..8). Keep tone progressively gentle-then-direct.
+const ABANDONED_BOOKING_SUBJECTS = {
+  1: "Almost done — finish booking your Sojourn cabin",
+  2: "Your Anomabo cabin is still on hold",
+  3: "Still here when you're ready",
+  4: "A friendly final daily reminder — your cabin is held",
+  5: "We're holding your dates at Sojourn Cabins",
+  6: "Your reservation is still waiting",
+  7: "One more nudge — your dates are still yours",
+  8: "Last reminder — your reservation is still pending",
+};
+
+export async function sendAbandonedBookingEmail({
+  to,
+  name,
+  booking,
+  attempt,
+  resumeUrl,
+  unsubscribeUrl,
+}) {
+  const currency = booking.currency || "GHS";
+
+  const guestName =
+    `${booking.guest_first_name || ""} ${booking.guest_last_name || ""}`
+      .trim() || name || "";
+
+  const datesText =
+    booking.check_in && booking.check_out
+      ? `${formatDatePretty(booking.check_in)} → ${formatDatePretty(booking.check_out)}`
+      : "";
+
+  const roomsArray =
+    Array.isArray(booking.rooms) && booking.rooms.length
+      ? booking.rooms
+      : [
+          {
+            room_name: booking.room_name,
+            room_subtotal: booking.room_subtotal,
+            extras_total: booking.extras_total,
+            total: booking.total,
+          },
+        ];
+
+  const roomLinesHtml = roomsArray
+    .map((r) => {
+      const nm = r.room_name || "Room";
+      const sub =
+        r.room_subtotal != null
+          ? formatMoney(r.room_subtotal, r.currency || currency)
+          : "—";
+      return `<tr>
+        <td style="padding: 6px 0; font-size: 14px; color: #0f172a;">${nm}</td>
+        <td style="padding: 6px 0; text-align: right; font-size: 14px; color: #0f172a; font-weight: 500;">${sub}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const totalDisplay =
+    booking.group_total != null
+      ? formatMoney(Number(booking.group_total), currency)
+      : booking.total != null
+      ? formatMoney(Number(booking.total), currency)
+      : "—";
+
+  const subject =
+    ABANDONED_BOOKING_SUBJECTS[attempt] || ABANDONED_BOOKING_SUBJECTS[1];
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8fafc;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); overflow: hidden;">
+
+          <tr>
+            <td style="background: linear-gradient(135deg, #1c1917 0%, #44403c 100%); padding: 40px 32px; text-align: center;">
+              <img src="https://pqtedphijayclewljlkq.supabase.co/storage/v1/object/public/cabin-images/logo.png" alt="Sojourn Cabins" width="200" height="auto" style="width: 200px; height: auto; max-width: 100%; display: block; border: 0; margin: 0 auto 16px auto;" />
+              <h1 style="margin: 0; font-size: 26px; font-weight: 300; color: white; letter-spacing: -0.5px;">
+                Your cabin is still held
+              </h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 32px;">
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #0f172a;">
+                Hello <strong>${guestName || "there"}</strong>,
+              </p>
+
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #0f172a;">
+                We noticed you started booking a stay at Sojourn Cabins but didn't finish checkout. Your dates are still on hold — pick up where you left off.
+              </p>
+
+              <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+                <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; font-size: 13px; color: #6b7280;">Dates</td>
+                    <td style="padding: 8px 0; font-size: 14px; color: #0f172a; font-weight: 500; text-align: right;">${datesText || "—"}</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding-top: 12px;">
+                      <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.08em; margin-bottom: 4px;">
+                        Cabin${roomsArray.length > 1 ? "s" : ""}
+                      </div>
+                      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                        ${roomLinesHtml}
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0 0 0; font-size: 14px; color: #6b7280; border-top: 1px solid #e5e7eb;">Total</td>
+                    <td style="padding: 12px 0 0 0; font-size: 16px; color: #0f172a; font-weight: 700; text-align: right; border-top: 1px solid #e5e7eb;">${totalDisplay}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${resumeUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);">
+                  Complete your booking
+                </a>
+              </div>
+
+              <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.6; color: #64748b; text-align: center;">
+                If the button doesn't work, copy and paste this link:<br>
+                <a href="${resumeUrl}" style="color: #f97316; word-break: break-all;">${resumeUrl}</a>
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background: #f8fafc; padding: 24px 32px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; color: #0f172a; font-weight: 600;">
+                Sojourn Cabins
+              </p>
+              <p style="margin: 0 0 12px 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                Anomabo, Central Region, Ghana<br>
+                <a href="mailto:theteam@sojourngh.com" style="color: #f97316; text-decoration: none;">theteam@sojourngh.com</a><br>
+                <a href="https://www.sojourncabins.com" style="color: #f97316; text-decoration: none;">www.sojourncabins.com</a>
+              </p>
+              ${unsubscribeUrl ? `<p style="margin: 12px 0 0 0; font-size: 11px; color: #9ca3af; line-height: 1.5;">
+                No longer interested? <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Stop these reminders</a>.
+              </p>` : ""}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const textContent = `${subject}
+
+Hello ${guestName || "there"},
+
+We noticed you started booking a stay at Sojourn Cabins but didn't finish checkout. Your dates are still on hold — pick up where you left off.
+
+Dates: ${datesText || "—"}
+Total: ${totalDisplay}
+
+Complete your booking: ${resumeUrl}
+
+Sojourn Cabins, Anomabo, Central Region, Ghana
+theteam@sojourngh.com
+${unsubscribeUrl ? `\nStop these reminders: ${unsubscribeUrl}` : ""}
+  `;
+
+  const authHeader = `Basic ${Buffer.from(
+    `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
+  ).toString("base64")}`;
+
+  const headers = unsubscribeUrl
+    ? {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      }
+    : undefined;
+
+  const payload = {
+    Messages: [
+      {
+        From: { Email: MAILJET_FROM_EMAIL, Name: MAILJET_FROM_NAME },
+        To: [{ Email: to, Name: guestName }],
+        Bcc: [{ Email: MAILJET_BCC_EMAIL, Name: "Sojourn Team" }],
+        Subject: subject,
+        TextPart: textContent,
+        HTMLPart: htmlContent,
+        ...(headers ? { Headers: headers } : {}),
+      },
+    ],
+  };
+
+  const response = await fetch("https://api.mailjet.com/v3.1/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Mailjet abandoned-booking error:", errText);
+    throw new Error(
+      `Mailjet send failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+  const messageId =
+    data?.Messages?.[0]?.To?.[0]?.MessageID ||
+    data?.Messages?.[0]?.To?.[0]?.MessageUUID ||
+    null;
+  return { ...data, messageId };
+}
+
+
 //Mailjet helper to generate package details HTML
