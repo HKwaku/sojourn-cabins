@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/reservations/send-abandonment-reminders",
-      "schedule": "30 * * * *"
+      "schedule": "30 14 * * *"
     }
   ]
 }
