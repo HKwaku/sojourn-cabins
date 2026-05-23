@@ -58,7 +58,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Sunday — Thursday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 2,600</p>
+                    <p className="text-2xl font-light">From GHS 1,820</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
@@ -68,7 +68,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Friday — Saturday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 3,200</p>
+                    <p className="text-2xl font-light">From GHS 2,240</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Sunday — Thursday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 2,600</p>
+                    <p className="text-2xl font-light">From GHS 1,820</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Friday — Saturday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 3,200</p>
+                    <p className="text-2xl font-light">From GHS 2,240</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Sunday — Thursday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 3,200</p>
+                    <p className="text-2xl font-light">From GHS 2,240</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ export default function RatesPage() {
                     <p className="text-xs text-gray-400">Friday — Saturday</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-light">GHS 3,500</p>
+                    <p className="text-2xl font-light">From GHS 2,450</p>
                     <p className="text-xs text-gray-400">per night</p>
                   </div>
                 </div>
