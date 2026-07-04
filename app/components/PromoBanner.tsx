@@ -41,10 +41,10 @@ export function PromoBanner({ context }: PromoBannerProps) {
           </span>
           <div>
             <p className="text-sm font-semibold tracking-wide text-amber-950">
-              May 2026 weekday promotion
+              July 2026 weekday promotion
             </p>
             <p className="mt-1 text-sm text-amber-900/85 leading-relaxed">
-              Get up to 20% off all weekday bookings (Sunday–Thursday) in May 2026! Book Now!
+              Get up to 20% off all weekday bookings (Sunday–Thursday) in July 2026! Book Now!
             </p>
           </div>
         </div>
