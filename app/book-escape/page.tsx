@@ -5,7 +5,6 @@ import Image from 'next/image'
 import dynamic from 'next/dynamic'
 const BookingWidget = dynamic(() => import('@/app/components/BookingWidget'), { ssr: false })
 import PackagesModal from '@/app/components/PackagesModal'
-import { PromoBanner } from '@/app/components/PromoBanner'
 
 const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '')
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -477,8 +476,6 @@ export default function Page() {
           </div>
         </div>
       </section>
-
-      <PromoBanner context="book" />
 
       {/* Choose Package or Customise Section */}
       <section className="py-20 md:py-24 px-6 md:px-8 lg:px-12 bg-gradient-to-b from-white via-amber-50/30 to-white">
